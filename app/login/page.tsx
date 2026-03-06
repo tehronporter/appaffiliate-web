@@ -1,51 +1,74 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { redirect } from "next/navigation";
 
-export default function LoginPage() {
+import { AppShell, SectionCard, StatCard } from "@/components/app-shell";
+import { LoginForm } from "@/components/auth/login-form";
+import { getAuthenticatedUser } from "@/lib/auth";
+
+type LoginPageProps = {
+  searchParams: Promise<{
+    redirectTo?: string;
+  }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const user = await getAuthenticatedUser();
+  const { redirectTo } = await searchParams;
+  const safeRedirectTo =
+    redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard";
+
+  if (user) {
+    redirect(safeRedirectTo);
+  }
+
   return (
-    <PlaceholderPage
+    <AppShell
       currentPath="/login"
       eyebrow="Access"
-      title="Login placeholder"
-      description="This screen marks the future entry point for AppAffiliate users. It stays intentionally simple for Phase 0 so routing and product framing are ready before auth is wired in."
-      primaryAction={{ href: "/dashboard", label: "Continue to dashboard" }}
-      secondaryAction={{ href: "/", label: "Back to home" }}
-      stats={[
-        {
-          label: "Auth state",
-          value: "Mocked",
-          detail: "No real sign-in flow or session handling is connected yet.",
-        },
-        {
-          label: "Next step",
-          value: "Supabase",
-          detail: "This route is ready for Supabase auth UI or custom forms later.",
-        },
-        {
-          label: "Purpose",
-          value: "Entry",
-          detail: "Keep a clear first-stop route for internal teams and partners.",
-        },
-      ]}
-      sections={[
-        {
-          title: "Planned content",
-          description: "The real login page can grow here without replacing the shell.",
-          items: [
-            "Email and password sign-in form.",
-            "Magic link or invite acceptance flow.",
-            "Basic role-based redirect after sign in.",
-          ],
-        },
-        {
-          title: "Phase 0 notes",
-          description: "For now, this route only proves structure and presentation.",
-          items: [
-            "No form state or validation is included.",
-            "No session checks block access to the rest of the app yet.",
-            "The shared shell keeps the visual system consistent from day one.",
-          ],
-        },
-      ]}
-    />
+      title="Sign in to AppAffiliate"
+      description="This is the Phase 0 auth foundation: a simple email and password login backed by Supabase, with just enough server protection to support the dashboard."
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          label="Flow"
+          value="Email"
+          detail="Supabase email and password sign-in is enabled for the first protected route."
+        />
+        <StatCard
+          label="Protection"
+          value="Server checked"
+          detail="The dashboard now redirects back here when there is no valid auth cookie."
+        />
+        <StatCard
+          label="Scope"
+          value="Phase 0"
+          detail="No roles, billing, org switching, or deep account management are included yet."
+        />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        <LoginForm redirectTo={safeRedirectTo} />
+
+        <div className="space-y-6">
+          <SectionCard
+            title="What is implemented"
+            description="The auth layer is intentionally narrow and beginner-friendly."
+            items={[
+              "Client-side Supabase sign-in with basic loading and error handling.",
+              "A small route handler keeps a server-readable auth cookie in sync.",
+              "The login page redirects authenticated users away from this screen.",
+            ]}
+          />
+          <SectionCard
+            title="What is still out of scope"
+            description="The rest of the auth model can be added later without rewriting this page."
+            items={[
+              "No signup flow or email confirmation UI yet.",
+              "No password reset, invites, or magic links yet.",
+              "No product roles, organizations, or permissions yet.",
+            ]}
+          />
+        </div>
+      </div>
+    </AppShell>
   );
 }

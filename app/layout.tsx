@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
+import { AuthSessionSync } from "@/components/auth/auth-session-sync";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,6 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-slate-50 text-slate-950 antialiased`}
       >
+        <AuthSessionSync />
         {children}
       </body>
     </html>

@@ -1,51 +1,73 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function DashboardPage() {
+import { AppShell, SectionCard, StatCard } from "@/components/app-shell";
+import { SignOutButton } from "@/components/auth/sign-out-button";
+import { getAuthenticatedUser } from "@/lib/auth";
+
+export default async function DashboardPage() {
+  const user = await getAuthenticatedUser();
+
+  if (!user) {
+    redirect("/login?redirectTo=/dashboard");
+  }
+
   return (
-    <PlaceholderPage
+    <AppShell
       currentPath="/dashboard"
       eyebrow="Overview"
       title="Dashboard placeholder"
-      description="The dashboard will become the main summary for partner performance, code activity, unattributed events, and payout readiness. For now it serves as a polished shell route."
-      primaryAction={{ href: "/partners", label: "View partners" }}
-      secondaryAction={{ href: "/codes", label: "Open codes" }}
-      stats={[
-        {
-          label: "Partners",
-          value: "0",
-          detail: "No connected records yet. Real counts will come from Supabase.",
-        },
-        {
-          label: "Codes",
-          value: "0",
-          detail: "Referral codes and ownership rules will appear here later.",
-        },
-        {
-          label: "Payouts",
-          value: "Draft",
-          detail: "Batching and approvals are not active in Phase 0.",
-        },
-      ]}
-      sections={[
-        {
-          title: "Dashboard modules",
-          description: "These are the blocks this page is being prepared to host.",
-          items: [
+      description="This page is now the first protected route in the app. The business content is still placeholder-level, but access is gated behind a simple Supabase auth check."
+      actions={
+        <>
+          <Link
+            href="/partners"
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+          >
+            View partners
+          </Link>
+          <SignOutButton />
+        </>
+      }
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          label="Signed in as"
+          value={user.email ?? "User"}
+          detail="This value comes from the verified Supabase user on the server."
+        />
+        <StatCard
+          label="Partners"
+          value="0"
+          detail="No connected records yet. Real counts will come from Supabase later."
+        />
+        <StatCard
+          label="Payouts"
+          value="Draft"
+          detail="Batching and approvals are still placeholder-only in Phase 0."
+        />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <SectionCard
+          title="Protected route foundation"
+          description="The page remains lightweight, but the access pattern is now in place."
+          items={[
+            "The server reads an auth cookie and verifies the user before rendering.",
+            "Unauthenticated requests are redirected to /login.",
+            "Sign out clears both the Supabase browser session and the server cookie.",
+          ]}
+        />
+        <SectionCard
+          title="Dashboard modules"
+          description="The main product content can still be added gradually on top of this auth layer."
+          items={[
             "Top-line partner, code, and revenue metrics.",
             "Recent attribution exceptions that need review.",
             "Quick links into onboarding and payout workflows.",
-          ],
-        },
-        {
-          title: "Why this placeholder exists",
-          description: "The page provides stable navigation and layout before the data model lands.",
-          items: [
-            "Lets localhost review feel like a real product.",
-            "Creates a consistent home for future widgets and filters.",
-            "Keeps route structure clear while backend logic is still pending.",
-          ],
-        },
-      ]}
-    />
+          ]}
+        />
+      </div>
+    </AppShell>
   );
 }
