@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 function joinClasses(...classes: Array<string | undefined | false>) {
@@ -307,5 +308,113 @@ export function InlineActionRow({
 
       {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
     </div>
+  );
+}
+
+type FilterBarProps = {
+  title?: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+};
+
+export function FilterBar({
+  title,
+  description,
+  children,
+  className,
+}: FilterBarProps) {
+  return (
+    <SurfaceCard
+      className={joinClasses(
+        "sticky top-[88px] z-10 border-border bg-[color:color-mix(in_srgb,var(--color-surface-elevated)_94%,white)] backdrop-blur",
+        className,
+      )}
+    >
+      {title ? (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle">
+            {title}
+          </p>
+          {description ? (
+            <p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className={title ? "mt-4 flex flex-wrap gap-2" : "flex flex-wrap gap-2"}>
+        {children}
+      </div>
+    </SurfaceCard>
+  );
+}
+
+type FilterChipLinkProps = {
+  href: string;
+  children: ReactNode;
+  active?: boolean;
+};
+
+export function FilterChipLink({
+  href,
+  children,
+  active = false,
+}: FilterChipLinkProps) {
+  return (
+    <Link
+      href={href}
+      className={joinClasses(
+        "inline-flex rounded-full border px-3 py-1.5 text-xs font-medium transition",
+        active
+          ? "border-primary bg-primary text-white"
+          : "border-border bg-surface text-ink-muted hover:border-border-strong hover:bg-surface-elevated hover:text-ink",
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
+
+type DetailPanelProps = {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  status?: ReactNode;
+  children: ReactNode;
+  className?: string;
+};
+
+export function DetailPanel({
+  eyebrow,
+  title,
+  description,
+  status,
+  children,
+  className,
+}: DetailPanelProps) {
+  return (
+    <SurfaceCard className={joinClasses("sticky top-[88px]", className)}>
+      <div className="flex flex-col gap-4 border-b border-border pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            {eyebrow ? (
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+                {eyebrow}
+              </p>
+            ) : null}
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              {title}
+            </h2>
+          </div>
+          {status}
+        </div>
+
+        {description ? (
+          <p className="text-sm leading-6 text-ink-muted">{description}</p>
+        ) : null}
+      </div>
+
+      <div className="mt-5 space-y-5">{children}</div>
+    </SurfaceCard>
   );
 }
