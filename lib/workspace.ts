@@ -1,7 +1,7 @@
 import type { PostgrestError, User } from "@supabase/supabase-js";
 
-import { getAccessToken, getAuthenticatedUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/server-supabase";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { createAuthenticatedServerClient } from "@/lib/authenticated-supabase";
 import {
   PHASE0_ROLE_DEFINITIONS,
   type OrganizationMembershipRecord,
@@ -23,13 +23,7 @@ function isWorkspaceSetupError(error: PostgrestError | null) {
 }
 
 async function createAuthenticatedWorkspaceClient() {
-  const accessToken = await getAccessToken();
-
-  if (!accessToken) {
-    return null;
-  }
-
-  return createServerSupabaseClient(accessToken);
+  return createAuthenticatedServerClient();
 }
 
 function getRoleDefinition(roleKey: RoleKey | null) {
@@ -168,9 +162,10 @@ export async function getAvailableRoles(): Promise<{
 
 export async function getCurrentWorkspaceContext(): Promise<WorkspaceContext> {
   const user = await getAuthenticatedUser();
-  const { roles, source } = await getAvailableRoles();
 
   if (!user) {
+    const { roles, source } = await getAvailableRoles();
+
     return {
       organization: null,
       membership: null,
@@ -180,6 +175,14 @@ export async function getCurrentWorkspaceContext(): Promise<WorkspaceContext> {
       source,
     };
   }
+
+  return getWorkspaceContextForUser(user);
+}
+
+export async function getWorkspaceContextForUser(
+  user: User,
+): Promise<WorkspaceContext> {
+  const { roles, source } = await getAvailableRoles();
 
   const membership = await getCurrentOrganizationMembership(user);
   const organization = await getCurrentOrganization(membership);

@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AppAffiliate Web
 
-## Getting Started
+This repository contains the Phase 0 AppAffiliate web shell built with Next.js App Router, Tailwind CSS, and Supabase.
 
-First, run the development server:
+Phase 0 focuses on:
+
+- a public homepage and placeholder product routes
+- Supabase email/password auth
+- a protected dashboard
+- workspace and product baseline schema
+- RLS hardening
+- a small service-layer foundation for future writes
+
+## Local Startup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Confirm `.env.local` already contains the expected Supabase values.
+
+3. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Useful Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev
+npm run build
+npm run lint
+```
 
-## Learn More
+## Phase 0 Docs
 
-To learn more about Next.js, take a look at the following resources:
+- [Phase 0 handoff](docs/phase-0-handoff.md)
+- [Phase 0 QA checklist](docs/phase-0-qa-checklist.md)
+- [Phase 0 known gaps](docs/phase-0-known-gaps.md)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Current Project Shape
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `app/`: App Router pages and route handlers
+- `components/`: shared shell and auth UI components
+- `lib/`: auth, workspace, Supabase, and service-layer helpers
+- `supabase/migrations/`: SQL migrations applied manually in Supabase
+- `supabase/tests/`: SQL verification queries for RLS checks
 
-## Deploy on Vercel
+## Manual Migration Files
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Current Phase 0 migrations:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `supabase/migrations/20260306123000_phase0_workspace_foundation.sql`
+- `supabase/migrations/20260306133000_phase0_product_baseline.sql`
+- `supabase/migrations/20260306143000_phase0_rls_hardening.sql`
+- `supabase/migrations/20260306153000_phase0_service_foundation_policies.sql`
+
+Apply them manually in Supabase in filename order if your database is not up to date.
