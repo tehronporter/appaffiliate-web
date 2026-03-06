@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { SectionCard, StatCard } from "@/components/app-shell";
+import { SectionCard, StatCard } from "@/components/admin-ui";
 import { LoginForm } from "@/components/auth/login-form";
 import { PublicShell } from "@/components/public-shell";
 import { getAuthenticatedUser } from "@/lib/auth";

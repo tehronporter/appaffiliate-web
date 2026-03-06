@@ -1,11 +1,12 @@
+import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
-  ActionLink,
-  PageContainer,
+  ListTable,
   PageHeader,
   SectionCard,
   StatCard,
-  SurfaceCard,
-} from "@/components/app-shell";
+  StatusBadge,
+  type StatusTone,
+} from "@/components/admin-ui";
 
 const partnerRows = [
   {
@@ -28,16 +29,16 @@ const partnerRows = [
   },
 ];
 
-function statusClasses(status: string) {
+function statusTone(status: string): StatusTone {
   if (status === "Ready") {
-    return "border-success bg-success-soft text-success";
+    return "success";
   }
 
   if (status === "Needs payout setup") {
-    return "border-warning bg-warning-soft text-warning";
+    return "warning";
   }
 
-  return "border-primary bg-primary-soft text-primary";
+  return "primary";
 }
 
 export default function PartnersPage() {
@@ -79,53 +80,45 @@ export default function PartnersPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]">
-        <SurfaceCard>
-          <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle">
-                Partner list
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                Relationship coverage at a glance
-              </h2>
-            </div>
-            <p className="max-w-xl text-sm leading-6 text-ink-muted">
-              This is intentionally static in Phase 1. The goal is to establish a
-              readable list shape inside the shared shell.
-            </p>
+        <ListTable
+          eyebrow="Partner list"
+          title="Relationship coverage at a glance"
+          description="This is intentionally static in Phase 1. The goal is to establish a readable list shape inside the shared shell."
+        >
+          <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
+            <span>Partner</span>
+            <span>Coverage</span>
+            <span>Status</span>
           </div>
 
-          <div className="mt-5 space-y-3">
+          <div className="divide-y divide-border bg-surface-elevated">
             {partnerRows.map((partner) => (
               <div
                 key={partner.name}
-                className="rounded-3xl border border-border bg-surface px-5 py-4"
+                className="grid gap-4 px-5 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_auto] md:items-center"
               >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-ink">
-                      {partner.name}
-                    </h3>
-                    <p className="mt-1 text-sm leading-6 text-ink-muted">
-                      {partner.focus}
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-base font-semibold text-ink">
+                    {partner.name}
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-ink-muted">
+                    {partner.focus}
+                  </p>
+                </div>
 
-                  <div className="flex flex-wrap gap-3">
-                    <span className="rounded-full border border-border bg-surface-elevated px-3 py-1 text-xs font-medium text-ink-muted">
-                      {partner.coverage}
-                    </span>
-                    <span
-                      className={`rounded-full border px-3 py-1 text-xs font-medium ${statusClasses(partner.status)}`}
-                    >
-                      {partner.status}
-                    </span>
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  <StatusBadge>{partner.coverage}</StatusBadge>
+                </div>
+
+                <div className="flex flex-wrap gap-2 md:justify-end">
+                  <StatusBadge tone={statusTone(partner.status)}>
+                    {partner.status}
+                  </StatusBadge>
                 </div>
               </div>
             ))}
           </div>
-        </SurfaceCard>
+        </ListTable>
 
         <SectionCard
           title="What comes next"

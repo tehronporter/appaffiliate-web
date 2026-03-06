@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
-  ActionLink,
-  PageContainer,
+  EmptyState,
+  InlineActionRow,
+  ListTable,
   PageHeader,
   SectionCard,
   StatCard,
-  SurfaceCard,
-  SurfaceList,
-} from "@/components/app-shell";
+  StatusBadge,
+} from "@/components/admin-ui";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { getCurrentWorkspaceContext } from "@/lib/workspace";
@@ -44,9 +45,9 @@ export default async function DashboardPage() {
         }
       >
         <div className="flex flex-wrap gap-3">
-          <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted">
+          <StatusBadge>
             Apple Health has a first-class route under Program
-          </span>
+          </StatusBadge>
           <Link
             href="/apps/demo-app/apple-health"
             className="rounded-full border border-border bg-surface-elevated px-3 py-1.5 text-xs font-medium text-primary transition hover:border-border-strong hover:bg-surface"
@@ -78,50 +79,28 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <SurfaceCard>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-            Focus areas
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">
-            Keep the operator view shallow and decisive
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-ink-muted">
-            Overview, program setup, operations, and settings are now grouped in
-            the shell so the product story reads clearly before deeper workflow
-            logic is added.
-          </p>
-
-          <SurfaceList className="mt-5">
-            <li className="rounded-2xl border border-border bg-surface px-4 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-ink">
-                    Needs Attribution
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-ink-muted">
-                    Keep unattributed events visible as a first-class operational
-                    queue.
-                  </p>
-                </div>
-                <ActionLink href="/unattributed">Open queue</ActionLink>
-              </div>
-            </li>
-            <li className="rounded-2xl border border-border bg-surface px-4 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-ink">Apple Health</p>
-                  <p className="mt-1 text-sm leading-6 text-ink-muted">
-                    Preserve a first-class place for app-specific setup and
-                    support notes.
-                  </p>
-                </div>
-                <ActionLink href="/apps/demo-app/apple-health">
-                  Review setup
-                </ActionLink>
-              </div>
-            </li>
-          </SurfaceList>
-        </SurfaceCard>
+        <ListTable
+          eyebrow="Focus areas"
+          title="Keep the operator view shallow and decisive"
+          description="Overview, program setup, operations, and settings are now grouped in the shell so the product story reads clearly before deeper workflow logic is added."
+        >
+          <InlineActionRow
+            title="Needs Attribution"
+            description="Keep unattributed events visible as a first-class operational queue."
+            badge={<StatusBadge tone="warning">Operations</StatusBadge>}
+            actions={<ActionLink href="/unattributed">Open queue</ActionLink>}
+          />
+          <InlineActionRow
+            title="Apple Health"
+            description="Preserve a first-class place for app-specific setup and support notes."
+            badge={<StatusBadge tone="primary">Program</StatusBadge>}
+            actions={
+              <ActionLink href="/apps/demo-app/apple-health">
+                Review setup
+              </ActionLink>
+            }
+          />
+        </ListTable>
 
         <SectionCard
           title="Protected route foundation"
@@ -143,13 +122,18 @@ export default async function DashboardPage() {
                   `Membership status: ${workspace.membership?.status ?? "unknown"}.`,
                   `Partner user profile: ${workspace.partnerUser?.partner_name ?? "not linked yet"}.`,
                 ]
-              : [
-                  "No organization membership was found for this user yet.",
-                  "Run the Phase 0 workspace migration and attach your first auth user as the demo owner.",
-                  "Once that exists, this dashboard can show organization-specific placeholders.",
-                ]
+              : undefined
           }
-        />
+        >
+          {workspace.organization ? null : (
+            <EmptyState
+              eyebrow="Workspace"
+              title="No organization membership yet"
+              description="Run the Phase 0 workspace migration and attach your first auth user as the demo owner. Once that exists, this dashboard can show organization-specific placeholders."
+              action={<ActionLink href="/settings">Open settings</ActionLink>}
+            />
+          )}
+        </SectionCard>
         <SectionCard
           title="Supported Phase 0 roles"
           description="These are the roles the workspace foundation is prepared to recognize."

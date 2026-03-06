@@ -1,11 +1,7 @@
 import Link from "next/link";
 
-import {
-  ActionLink,
-  SectionCard,
-  StatCard,
-  SurfaceCard,
-} from "@/components/app-shell";
+import { ActionLink } from "@/components/app-shell";
+import { SectionCard, StatCard, SurfaceCard } from "@/components/admin-ui";
 import { PublicShell } from "@/components/public-shell";
 
 const routeCards = [

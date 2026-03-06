@@ -1,10 +1,8 @@
 import {
   ActionLink,
   PageContainer,
-  PageHeader,
-  SectionCard,
-  StatCard,
 } from "@/components/app-shell";
+import { PageHeader, SectionCard, StatCard } from "@/components/admin-ui";
 
 type PlaceholderPageProps = {
   title: string;
