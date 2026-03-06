@@ -14,27 +14,29 @@ export default async function AppleHealthPage({
 
   return (
     <PlaceholderPage
-      currentPath={`/apps/${formattedAppId}/apple-health`}
-      eyebrow="App Integration"
-      title={`Apple Health placeholder for ${formattedAppId}`}
-      description="This nested app route is reserved for future Apple Health setup notes, permissions guidance, and implementation checks. The page currently acts as a clean placeholder only."
+      eyebrow="Program"
+      title={`Apple Health for ${formattedAppId}`}
+      description="This nested app route is reserved for Apple Health setup notes, permissions guidance, and implementation checks. Phase 1 keeps it placeholder-only, but the shared shell makes it feel like a first-class program surface."
       primaryAction={{ href: "/onboarding", label: "Back to onboarding" }}
-      secondaryAction={{ href: "/dashboard", label: "Open dashboard" }}
+      secondaryAction={{ href: "/dashboard", label: "Open overview" }}
       stats={[
         {
           label: "App",
           value: formattedAppId,
           detail: "The route is dynamic so app-specific setup pages can be added later.",
+          tone: "primary",
         },
         {
           label: "Integration",
           value: "Pending",
           detail: "No checks or sync state are connected yet.",
+          tone: "warning",
         },
         {
           label: "Scope",
           value: "Apple Health",
           detail: "This path can later hold docs, status, and troubleshooting steps.",
+          tone: "success",
         },
       ]}
       sections={[
@@ -49,7 +51,7 @@ export default async function AppleHealthPage({
         },
         {
           title: "Current placeholder role",
-          description: "For Phase 0, the goal is just to prove the nested route structure works.",
+          description: "For Phase 1, the goal is to prove the nested route structure works without adding real implementation logic yet.",
           items: [
             "No live data is read for the selected app.",
             "No integration actions are available.",

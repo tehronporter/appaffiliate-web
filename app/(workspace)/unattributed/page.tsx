@@ -3,27 +3,29 @@ import { PlaceholderPage } from "@/components/placeholder-page";
 export default function UnattributedPage() {
   return (
     <PlaceholderPage
-      currentPath="/unattributed"
-      eyebrow="Exceptions"
-      title="Unattributed placeholder"
-      description="This route is reserved for installs, trials, or purchases that do not yet map cleanly to a known partner or code. The placeholder keeps the operational workflow visible early."
+      eyebrow="Operations"
+      title="Needs attribution"
+      description="This route is reserved for installs, trials, or purchases that do not yet map cleanly to a known partner or code. The shell now makes that queue feel first-class before real review tooling is added."
       primaryAction={{ href: "/codes", label: "Review codes" }}
-      secondaryAction={{ href: "/dashboard", label: "Back to dashboard" }}
+      secondaryAction={{ href: "/dashboard", label: "Back to overview" }}
       stats={[
         {
           label: "Queue size",
           value: "0",
           detail: "No unresolved events are loaded at this stage.",
+          tone: "primary",
         },
         {
           label: "Priority",
           value: "High",
           detail: "This route will matter once attribution exceptions appear.",
+          tone: "warning",
         },
         {
           label: "Resolution",
           value: "Manual",
           detail: "Future tools here will help analysts map events more quickly.",
+          tone: "success",
         },
       ]}
       sections={[
@@ -37,7 +39,7 @@ export default function UnattributedPage() {
           ],
         },
         {
-          title: "Phase 0 purpose",
+          title: "Phase 1 purpose",
           description: "This placeholder gives the product a realistic operational footprint.",
           items: [
             "Shows where exception handling will live.",

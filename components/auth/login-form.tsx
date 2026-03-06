@@ -70,28 +70,28 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   }
 
   return (
-    <div className="rounded-[2rem] border border-slate-200/70 bg-white/90 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:p-8">
+    <div className="rounded-[32px] border border-border bg-surface-elevated p-6 shadow-[var(--shadow-strong)] sm:p-8">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
           Sign in
         </p>
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+        <h2 className="text-2xl font-semibold tracking-tight text-ink">
           Use your Supabase email and password
         </h2>
-        <p className="text-sm leading-6 text-slate-600">
-          Keep this simple for Phase 0. Sign in with an existing Auth user from
+        <p className="text-sm leading-6 text-ink-muted">
+          Keep this simple for Phase 1. Sign in with an existing Auth user from
           your Supabase project.
         </p>
       </div>
 
       <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-slate-700">Email</span>
+          <span className="text-sm font-medium text-ink">Email</span>
           <input
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-sky-400 focus:bg-white"
+            className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
             placeholder="you@example.com"
             autoComplete="email"
             required
@@ -100,12 +100,12 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         </label>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-slate-700">Password</span>
+          <span className="text-sm font-medium text-ink">Password</span>
           <input
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-sky-400 focus:bg-white"
+            className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
             placeholder="Enter your password"
             autoComplete="current-password"
             required
@@ -114,7 +114,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         </label>
 
         {errorMessage ? (
-          <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p className="rounded-2xl border border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
             {errorMessage}
           </p>
         ) : null}
@@ -122,7 +122,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         <button
           type="submit"
           disabled={isSubmitting || isCheckingSession}
-          className="w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="w-full rounded-full border border-primary bg-primary px-4 py-3 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)] disabled:cursor-not-allowed disabled:border-border-strong disabled:bg-border-strong"
         >
           {isCheckingSession
             ? "Checking session..."
@@ -132,16 +132,16 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         </button>
       </form>
 
-      <div className="mt-6 rounded-3xl border border-slate-200/80 bg-slate-50 p-4">
-        <p className="text-sm font-medium text-slate-800">Phase 0 note</p>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
+      <div className="mt-6 rounded-3xl border border-border bg-surface p-4">
+        <p className="text-sm font-medium text-ink">Phase 1 note</p>
+        <p className="mt-2 text-sm leading-6 text-ink-muted">
           Signup is intentionally skipped for now to keep the auth foundation
           focused and predictable.
         </p>
       </div>
 
-      <p className="mt-6 text-sm text-slate-500">
-        <Link href="/" className="font-medium text-sky-700 hover:text-sky-800">
+      <p className="mt-6 text-sm text-ink-muted">
+        <Link href="/" className="font-medium text-primary hover:opacity-80">
           Back to home
         </Link>
       </p>

@@ -3,27 +3,29 @@ import { PlaceholderPage } from "@/components/placeholder-page";
 export default function CodesPage() {
   return (
     <PlaceholderPage
-      currentPath="/codes"
-      eyebrow="Attribution"
-      title="Codes placeholder"
-      description="The codes area will eventually track referral codes, ownership, status, and attribution coverage. For Phase 0, it exists as a clean route-level placeholder."
-      primaryAction={{ href: "/unattributed", label: "View unattributed" }}
+      eyebrow="Program"
+      title="Codes"
+      description="The codes area will eventually track referral codes, ownership, status, and attribution coverage. For Phase 1, it exists as a clean route-level placeholder inside the new shared shell."
+      primaryAction={{ href: "/unattributed", label: "Open needs attribution" }}
       secondaryAction={{ href: "/partners", label: "Open partners" }}
       stats={[
         {
           label: "Tracked codes",
           value: "0",
           detail: "Code records and validation rules are still to come.",
+          tone: "primary",
         },
         {
           label: "Coverage",
           value: "Draft",
           detail: "This page will later show how much traffic is attributable.",
+          tone: "success",
         },
         {
           label: "Review state",
           value: "Open",
           detail: "It is ready for future moderation and cleanup workflows.",
+          tone: "warning",
         },
       ]}
       sections={[

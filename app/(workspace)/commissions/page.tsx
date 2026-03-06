@@ -3,10 +3,9 @@ import { PlaceholderPage } from "@/components/placeholder-page";
 export default function CommissionsPage() {
   return (
     <PlaceholderPage
-      currentPath="/commissions"
-      eyebrow="Earnings"
-      title="Commissions placeholder"
-      description="The commissions area will track what has been earned, what still needs review, and what is ready for payout. At the moment it is a structured placeholder page only."
+      eyebrow="Operations"
+      title="Commissions"
+      description="The commissions area will track what has been earned, what still needs review, and what is ready for payout. At the moment it is still a structured placeholder page, but it now sits in the new operations group."
       primaryAction={{ href: "/payout-batches", label: "Open payout batches" }}
       secondaryAction={{ href: "/partners", label: "Open partners" }}
       stats={[
@@ -14,16 +13,19 @@ export default function CommissionsPage() {
           label: "Approved",
           value: "$0",
           detail: "No real earnings data is loaded into the app yet.",
+          tone: "success",
         },
         {
           label: "Pending",
           value: "$0",
           detail: "Review states and approval actions will be added later.",
+          tone: "warning",
         },
         {
           label: "Currency",
           value: "USD",
           detail: "A simple default keeps the placeholder grounded in a real workflow.",
+          tone: "primary",
         },
       ]}
       sections={[

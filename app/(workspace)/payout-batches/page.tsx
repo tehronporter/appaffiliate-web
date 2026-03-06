@@ -3,27 +3,29 @@ import { PlaceholderPage } from "@/components/placeholder-page";
 export default function PayoutBatchesPage() {
   return (
     <PlaceholderPage
-      currentPath="/payout-batches"
-      eyebrow="Payments"
-      title="Payout batches placeholder"
-      description="This page will support the final batching workflow for approved commissions. In Phase 0 it simply marks the destination for future payout review and release tools."
+      eyebrow="Operations"
+      title="Payout batches"
+      description="This page will support the final batching workflow for approved commissions. In Phase 1 it still marks the destination for future payout review and release tools, but the surrounding shell now reads like a finance workspace."
       primaryAction={{ href: "/commissions", label: "Back to commissions" }}
-      secondaryAction={{ href: "/dashboard", label: "Back to dashboard" }}
+      secondaryAction={{ href: "/dashboard", label: "Back to overview" }}
       stats={[
         {
           label: "Batches",
           value: "0",
           detail: "No payout runs have been created yet.",
+          tone: "primary",
         },
         {
           label: "State",
           value: "Draft",
           detail: "The route is present before real approval mechanics exist.",
+          tone: "warning",
         },
         {
           label: "Destination",
           value: "Finance",
           detail: "This screen will eventually support handoff and reconciliation.",
+          tone: "success",
         },
       ]}
       sections={[

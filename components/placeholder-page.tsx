@@ -1,9 +1,12 @@
-import Link from "next/link";
-
-import { AppShell, SectionCard, StatCard } from "@/components/app-shell";
+import {
+  ActionLink,
+  PageContainer,
+  PageHeader,
+  SectionCard,
+  StatCard,
+} from "@/components/app-shell";
 
 type PlaceholderPageProps = {
-  currentPath: string;
   title: string;
   description: string;
   eyebrow?: string;
@@ -19,6 +22,7 @@ type PlaceholderPageProps = {
     label: string;
     value: string;
     detail: string;
+    tone?: "primary" | "success" | "warning";
   }>;
   sections: Array<{
     title: string;
@@ -27,16 +31,7 @@ type PlaceholderPageProps = {
   }>;
 };
 
-function actionLinkClasses(variant: "primary" | "secondary") {
-  if (variant === "primary") {
-    return "rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700";
-  }
-
-  return "rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900";
-}
-
 export function PlaceholderPage({
-  currentPath,
   title,
   description,
   eyebrow,
@@ -48,32 +43,25 @@ export function PlaceholderPage({
   const actions = (
     <>
       {secondaryAction ? (
-        <Link
-          href={secondaryAction.href}
-          className={actionLinkClasses("secondary")}
-        >
-          {secondaryAction.label}
-        </Link>
+        <ActionLink href={secondaryAction.href}>{secondaryAction.label}</ActionLink>
       ) : null}
       {primaryAction ? (
-        <Link
-          href={primaryAction.href}
-          className={actionLinkClasses("primary")}
-        >
+        <ActionLink href={primaryAction.href} variant="primary">
           {primaryAction.label}
-        </Link>
+        </ActionLink>
       ) : null}
     </>
   );
 
   return (
-    <AppShell
-      currentPath={currentPath}
-      eyebrow={eyebrow}
-      title={title}
-      description={description}
-      actions={primaryAction || secondaryAction ? actions : undefined}
-    >
+    <PageContainer>
+      <PageHeader
+        eyebrow={eyebrow}
+        title={title}
+        description={description}
+        actions={primaryAction || secondaryAction ? actions : undefined}
+      />
+
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((stat) => (
           <StatCard
@@ -81,6 +69,7 @@ export function PlaceholderPage({
             label={stat.label}
             value={stat.value}
             detail={stat.detail}
+            tone={stat.tone}
           />
         ))}
       </div>
@@ -95,6 +84,6 @@ export function PlaceholderPage({
           />
         ))}
       </div>
-    </AppShell>
+    </PageContainer>
   );
 }

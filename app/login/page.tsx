@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 
-import { AppShell, SectionCard, StatCard } from "@/components/app-shell";
+import { SectionCard, StatCard } from "@/components/app-shell";
 import { LoginForm } from "@/components/auth/login-form";
+import { PublicShell } from "@/components/public-shell";
 import { getAuthenticatedUser } from "@/lib/auth";
 
 type LoginPageProps = {
@@ -21,27 +22,29 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <AppShell
-      currentPath="/login"
+    <PublicShell
       eyebrow="Access"
       title="Sign in to AppAffiliate"
-      description="This is the Phase 0 auth foundation: a simple email and password login backed by Supabase, with just enough server protection to support the dashboard."
+      description="This is the current auth foundation: a simple email and password login backed by Supabase, with just enough server protection to support the workspace overview."
     >
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           label="Flow"
           value="Email"
           detail="Supabase email and password sign-in is enabled for the first protected route."
+          tone="primary"
         />
         <StatCard
           label="Protection"
           value="Server checked"
           detail="The dashboard now redirects back here when there is no valid auth cookie."
+          tone="success"
         />
         <StatCard
           label="Scope"
-          value="Phase 0"
+          value="Phase 1"
           detail="No roles, billing, org switching, or deep account management are included yet."
+          tone="warning"
         />
       </div>
 
@@ -64,11 +67,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             items={[
               "No signup flow or email confirmation UI yet.",
               "No password reset, invites, or magic links yet.",
-              "No product roles, organizations, or permissions yet.",
+              "No deep account, billing, or profile management yet.",
             ]}
           />
         </div>
       </div>
-    </AppShell>
+    </PublicShell>
   );
 }

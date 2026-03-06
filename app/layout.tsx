@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     default: "AppAffiliate",
     template: "%s | AppAffiliate",
   },
-  description: "AppAffiliate Phase 0 route shell built with Next.js App Router.",
+  description: "AppAffiliate admin workspace built with Next.js App Router.",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-slate-50 text-slate-950 antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} bg-background text-ink antialiased`}
       >
         <AuthSessionSync />
         {children}
