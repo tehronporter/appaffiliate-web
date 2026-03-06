@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { ActionLink } from "@/components/app-shell";
 import {
   PARTNER_PORTAL_BASE_PATH,
   isNavItemActive,
@@ -87,6 +88,9 @@ export function SidebarNav() {
           are reserved for external partner-facing screens so admin tools stay
           separate from creator workflows.
         </p>
+        <div className="mt-4">
+          <ActionLink href="/portal">Open placeholder</ActionLink>
+        </div>
       </div>
     </div>
   );
