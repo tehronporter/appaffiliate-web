@@ -15,8 +15,11 @@ import {
   SurfaceCard,
   type StatusTone,
 } from "@/components/admin-ui";
-
-type EventState = "attributed" | "unattributed" | "ignored" | "failed";
+import {
+  formatOperationalTimestamp,
+  listWorkspaceNormalizedEvents,
+  type EventOperationalState,
+} from "@/lib/services/apple-read-model";
 
 type EventsPageProps = {
   searchParams: Promise<{
@@ -25,78 +28,14 @@ type EventsPageProps = {
   }>;
 };
 
-const events = [
-  {
-    slug: "evt-apple-001",
-    label: "Health receipt sync",
-    eventType: "trial_started",
-    app: "Motion Daily",
-    appId: "motion-daily",
-    source: "apple_health_webhook",
-    state: "attributed" as EventState,
-    receivedAt: "2026-03-06 08:42 UTC",
-    normalizedAt: "2026-03-06 08:43 UTC",
-    summary: "Mapped to Motion Daily / MOTIONIOS / trial_started.",
-    nextLane: "Finance-safe and ready for downstream review.",
-    rawPayload:
-      '{ "source": "apple_health_webhook", "external_id": "ah_001", "status": "delivered", "event_name": "trial_started" }',
-    normalizedRecord:
-      '{ "event_type": "trial_started", "partner": "Motion Daily", "code": "MOTIONIOS", "pipeline_state": "attributed" }',
-  },
-  {
-    slug: "evt-app-redirect-002",
-    label: "Promo redirect",
-    eventType: "install_started",
-    app: "Northstar Coach",
-    appId: "northstar-coach",
-    source: "promo_redirect",
-    state: "unattributed" as EventState,
-    receivedAt: "2026-03-06 09:15 UTC",
-    normalizedAt: "2026-03-06 09:16 UTC",
-    summary: "Normalized event exists but no code owner was confirmed.",
-    nextLane: "Route into the needs attribution queue before ledger review.",
-    rawPayload:
-      '{ "source": "promo_redirect", "path": "/go/northstar", "campaign": "creator_launch", "device": "ios" }',
-    normalizedRecord:
-      '{ "event_type": "install_started", "partner": null, "code": null, "pipeline_state": "unattributed" }',
-  },
-  {
-    slug: "evt-import-003",
-    label: "Legacy backfill receipt",
-    eventType: "purchase",
-    app: "Atlas Run",
-    appId: "atlas-run",
-    source: "receipt_import",
-    state: "ignored" as EventState,
-    receivedAt: "2026-03-05 22:10 UTC",
-    normalizedAt: "2026-03-05 22:11 UTC",
-    summary: "Ignored because this source was archived before current attribution rules.",
-    nextLane: "Retain for audit history without pushing it into active review.",
-    rawPayload:
-      '{ "source": "receipt_import", "batch": "legacy_q1", "status": "duplicate", "campaign": "spring_event" }',
-    normalizedRecord:
-      '{ "event_type": "purchase", "partner": "Atlas Run Club", "code": "ATLASRUN", "pipeline_state": "ignored" }',
-  },
-  {
-    slug: "evt-apple-004",
-    label: "Health notification failure",
-    eventType: "unknown",
-    app: "Motion Daily",
-    appId: "motion-daily",
-    source: "apple_health_webhook",
-    state: "failed" as EventState,
-    receivedAt: "2026-03-06 10:04 UTC",
-    normalizedAt: "Not normalized",
-    summary: "Payload could not be normalized because the health event type was missing.",
-    nextLane: "Investigate the payload contract before retrying downstream handling.",
-    rawPayload:
-      '{ "source": "apple_health_webhook", "external_id": "ah_004", "status": "delivered", "event_name": null }',
-    normalizedRecord:
-      '{ "event_type": null, "partner": null, "code": null, "pipeline_state": "failed", "error": "missing_event_name" }',
-  },
-];
+const VALID_STATES = new Set<EventOperationalState>([
+  "attributed",
+  "unattributed",
+  "ignored",
+  "failed",
+]);
 
-function stateTone(state: EventState): StatusTone {
+function stateTone(state: EventOperationalState): StatusTone {
   if (state === "attributed") {
     return "success";
   }
@@ -110,30 +49,6 @@ function stateTone(state: EventState): StatusTone {
   }
 
   return "warning";
-}
-
-function nextActionHref(event: (typeof events)[number]) {
-  if (event.state === "unattributed") {
-    return "/unattributed";
-  }
-
-  if (event.state === "failed") {
-    return `/apps/${event.appId}/apple-health`;
-  }
-
-  return "/commissions";
-}
-
-function nextActionLabel(state: EventState) {
-  if (state === "unattributed") {
-    return "Open needs attribution";
-  }
-
-  if (state === "failed") {
-    return "Review app readiness";
-  }
-
-  return "Open ledger";
 }
 
 function buildHref(params: { state: string; event?: string }) {
@@ -151,15 +66,37 @@ function buildHref(params: { state: string; event?: string }) {
   return query ? `/events?${query}` : "/events";
 }
 
-export default async function EventsPage({ searchParams }: EventsPageProps) {
-  const { state = "all", event: selectedEventSlug } = await searchParams;
+function nextActionHref(eventState: EventOperationalState, appSlug: string | null) {
+  if (eventState === "unattributed") {
+    return "/unattributed";
+  }
 
-  const filteredEvents = events.filter(
+  if (appSlug) {
+    return `/apps/${appSlug}/apple-health`;
+  }
+
+  return "/dashboard";
+}
+
+function nextActionLabel(eventState: EventOperationalState) {
+  if (eventState === "unattributed") {
+    return "Open needs attribution";
+  }
+
+  return "Review app readiness";
+}
+
+export default async function EventsPage({ searchParams }: EventsPageProps) {
+  const { state: rawState = "all", event: selectedEventId } = await searchParams;
+  const state = VALID_STATES.has(rawState as EventOperationalState)
+    ? (rawState as EventOperationalState)
+    : "all";
+  const eventData = await listWorkspaceNormalizedEvents();
+  const filteredEvents = eventData.events.filter(
     (event) => state === "all" || event.state === state,
   );
-
   const selectedEvent =
-    filteredEvents.find((event) => event.slug === selectedEventSlug) ??
+    filteredEvents.find((event) => event.id === selectedEventId) ??
     filteredEvents[0] ??
     null;
 
@@ -168,7 +105,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
       <PageHeader
         eyebrow="Operations"
         title="Events"
-        description="Review the event pipeline like a system of record: what arrived, how it normalized, what state it ended in, and where operators should investigate next."
+        description="Review the real event pipeline as a system of record: what normalized successfully, what still needs attribution, and where operators should investigate without exposing raw Apple payloads in the browser."
         actions={
           <>
             <ActionLink href="/unattributed">Needs attribution</ActionLink>
@@ -179,35 +116,35 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Raw and normalized visible</StatusBadge>
-          <StatusBadge tone="warning">Operational states explicit</StatusBadge>
-          <StatusBadge>Audit-safe exclusions stay visible</StatusBadge>
+          <StatusBadge tone="primary">Live normalized rows</StatusBadge>
+          <StatusBadge tone="warning">Verification placeholder explicit</StatusBadge>
+          <StatusBadge>Receipt references retained server-side</StatusBadge>
         </div>
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard
           label="Attributed"
-          value={String(events.filter((event) => event.state === "attributed").length)}
-          detail="Attributed events are normalized and linked cleanly to ownership."
+          value={String(eventData.stats.attributed)}
+          detail="These events already carry an attributed ownership state."
           tone="success"
         />
         <StatCard
           label="Unattributed"
-          value={String(events.filter((event) => event.state === "unattributed").length)}
-          detail="These are the events that need operational follow-up."
+          value={String(eventData.stats.unattributed)}
+          detail="These normalized rows are waiting on later attribution handling."
           tone="warning"
         />
         <StatCard
           label="Ignored"
-          value={String(events.filter((event) => event.state === "ignored").length)}
-          detail="Ignored states stay visible so exclusions remain auditable."
+          value={String(eventData.stats.ignored)}
+          detail="Ignored notifications remain visible so exclusions stay auditable."
           tone="primary"
         />
         <StatCard
           label="Failed"
-          value={String(events.filter((event) => event.state === "failed").length)}
-          detail="Failed normalization should stand out before it becomes silent data loss."
+          value={String(eventData.stats.failed)}
+          detail="Invalid normalized rows should stay visible before they become silent loss."
           tone="danger"
         />
       </div>
@@ -216,34 +153,34 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         <div className="space-y-4">
           <FilterBar
             title="Sticky filters"
-            description="Review the pipeline by outcome without leaving the list-and-detail flow."
+            description="Review the real pipeline by operational state without leaving the list-and-detail flow."
           >
             <FilterChipLink
-              href={buildHref({ state: "all", event: selectedEvent?.slug })}
+              href={buildHref({ state: "all", event: selectedEvent?.id })}
               active={state === "all"}
             >
               All states
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({ state: "attributed", event: selectedEvent?.slug })}
+              href={buildHref({ state: "attributed", event: selectedEvent?.id })}
               active={state === "attributed"}
             >
               Attributed
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({ state: "unattributed", event: selectedEvent?.slug })}
+              href={buildHref({ state: "unattributed", event: selectedEvent?.id })}
               active={state === "unattributed"}
             >
               Unattributed
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({ state: "ignored", event: selectedEvent?.slug })}
+              href={buildHref({ state: "ignored", event: selectedEvent?.id })}
               active={state === "ignored"}
             >
               Ignored
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({ state: "failed", event: selectedEvent?.slug })}
+              href={buildHref({ state: "failed", event: selectedEvent?.id })}
               active={state === "failed"}
             >
               Failed
@@ -252,8 +189,8 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 
           <ListTable
             eyebrow="Event register"
-            title="Raw intake versus normalized state"
-            description="Use the list to see what the system received and how each event landed in the pipeline."
+            title="Latest normalized events"
+            description="Use the list to review the current event stream produced by real normalization work."
           >
             <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Event</span>
@@ -266,13 +203,23 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
               {filteredEvents.length === 0 ? (
                 <div className="p-5">
                   <EmptyState
-                    eyebrow="No matches"
-                    title="No events match these filters"
-                    description="Reset the state filter to review the full pipeline again."
+                    eyebrow={eventData.hasWorkspaceAccess ? "No live rows" : "Access required"}
+                    title={
+                      eventData.hasWorkspaceAccess
+                        ? "No normalized events yet"
+                        : "Sign in to review events"
+                    }
+                    description={
+                      eventData.hasWorkspaceAccess
+                        ? "Apple receipts that cannot be normalized safely yet will remain receipt-only until later hardening. Once a normalized row exists, it will appear here."
+                        : "The workspace event register becomes available after the current user has an active organization membership."
+                    }
                     action={
-                      <ActionLink href="/events" variant="primary">
-                        Reset filters
-                      </ActionLink>
+                      eventData.hasWorkspaceAccess ? (
+                        <ActionLink href="/apps/demo-app/apple-health" variant="primary">
+                          Review app readiness
+                        </ActionLink>
+                      ) : null
                     }
                   />
                 </div>
@@ -280,20 +227,26 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 
               {filteredEvents.map((event) => (
                 <Link
-                  key={event.slug}
-                  href={buildHref({ state, event: event.slug })}
+                  key={event.id}
+                  href={buildHref({ state, event: event.id })}
                   className={`grid gap-4 px-5 py-4 transition md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] md:items-center ${
-                    event.slug === selectedEvent?.slug
+                    event.id === selectedEvent?.id
                       ? "bg-primary-soft/40"
                       : "hover:bg-surface"
                   }`}
                 >
                   <div>
-                    <h3 className="text-base font-semibold text-ink">{event.label}</h3>
-                    <p className="mt-1 text-sm text-ink-muted">{event.source}</p>
+                    <h3 className="text-base font-semibold text-ink">
+                      {event.eventType.replaceAll("_", " ")}
+                    </h3>
+                    <p className="mt-1 text-sm text-ink-muted">
+                      {event.reasonCode ?? `${event.sourceType} • ${event.environment}`}
+                    </p>
                   </div>
-                  <div className="text-sm text-ink-muted">{event.app}</div>
-                  <div className="text-sm text-ink-muted">{event.receivedAt}</div>
+                  <div className="text-sm text-ink-muted">{event.appName}</div>
+                  <div className="text-sm text-ink-muted">
+                    {formatOperationalTimestamp(event.receivedAt ?? event.occurredAt)}
+                  </div>
                   <div className="flex justify-start md:justify-end">
                     <StatusBadge tone={stateTone(event.state)}>{event.state}</StatusBadge>
                   </div>
@@ -306,37 +259,58 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         {selectedEvent ? (
           <DetailPanel
             eyebrow="Inspector"
-            title={selectedEvent.label}
-            description={selectedEvent.summary}
-            status={<StatusBadge tone={stateTone(selectedEvent.state)}>{selectedEvent.state}</StatusBadge>}
+            title={selectedEvent.eventType.replaceAll("_", " ")}
+            description={`${selectedEvent.appName} in ${selectedEvent.environment}. Processing is ${selectedEvent.eventStatus} and attribution is ${selectedEvent.attributionStatus}.`}
+            status={
+              <StatusBadge tone={stateTone(selectedEvent.state)}>
+                {selectedEvent.state}
+              </StatusBadge>
+            }
           >
             <SectionCard
               title="Pipeline summary"
-              description="Keep the high-level event facts visible before diving into payload detail."
+              description="Keep the operational facts visible before diving into metadata."
               items={[
-                `Event type: ${selectedEvent.eventType}.`,
-                `App: ${selectedEvent.app}.`,
-                `Source: ${selectedEvent.source}.`,
-                `Received at: ${selectedEvent.receivedAt}.`,
-                `Normalized at: ${selectedEvent.normalizedAt}.`,
+                `App: ${selectedEvent.appName}.`,
+                `Source: ${selectedEvent.sourceType}.`,
+                `Occurred at: ${formatOperationalTimestamp(selectedEvent.occurredAt)}.`,
+                `Received at: ${formatOperationalTimestamp(selectedEvent.receivedAt ?? selectedEvent.occurredAt)}.`,
+                `Environment: ${selectedEvent.environment}.`,
+                `Event status: ${selectedEvent.eventStatus}.`,
+                `Attribution status: ${selectedEvent.attributionStatus}.`,
               ]}
             />
 
             <SurfaceCard className="bg-surface">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                Raw versus normalized
+                Safe record detail
               </p>
               <div className="mt-4 grid gap-4 xl:grid-cols-2">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Raw intake</p>
+                  <p className="text-sm font-semibold text-ink">Normalized metadata</p>
                   <pre className="mt-3 overflow-x-auto rounded-[22px] border border-border bg-surface-elevated p-4 text-xs leading-6 text-ink-muted">
-                    {selectedEvent.rawPayload}
+                    {JSON.stringify(selectedEvent.payload, null, 2)}
                   </pre>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-ink">Normalized record</p>
+                  <p className="text-sm font-semibold text-ink">Receipt reference</p>
                   <pre className="mt-3 overflow-x-auto rounded-[22px] border border-border bg-surface-elevated p-4 text-xs leading-6 text-ink-muted">
-                    {selectedEvent.normalizedRecord}
+                    {JSON.stringify(
+                      {
+                        receiptId: selectedEvent.appleNotificationReceiptId,
+                        sourceEventKey: selectedEvent.sourceEventKey,
+                        transactionId: selectedEvent.transactionId,
+                        originalTransactionId: selectedEvent.originalTransactionId,
+                        webOrderLineItemId: selectedEvent.webOrderLineItemId,
+                        productId: selectedEvent.productId,
+                        offerIdentifier: selectedEvent.offerIdentifier,
+                        reasonCode: selectedEvent.reasonCode,
+                        currency: selectedEvent.currency,
+                        amountMinor: selectedEvent.amountMinor,
+                      },
+                      null,
+                      2,
+                    )}
                   </pre>
                 </div>
               </div>
@@ -348,8 +322,12 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
               </p>
               <div className="mt-4 overflow-hidden rounded-[22px] border border-border bg-surface-elevated">
                 <InlineActionRow
-                  title={selectedEvent.nextLane}
-                  description="Move from event review into the next operational lane without implying that the system has already fixed or approved anything."
+                  title={
+                    selectedEvent.reasonCode
+                      ? `Review ${selectedEvent.reasonCode} before moving the event downstream.`
+                      : "Keep the app readiness and attribution follow-up path visible."
+                  }
+                  description="This MVP stores and normalizes receipts, but it does not imply attribution, commission approval, or full Apple signature validation."
                   badge={
                     <StatusBadge tone={stateTone(selectedEvent.state)}>
                       {selectedEvent.state}
@@ -357,7 +335,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                   }
                   actions={
                     <ActionLink
-                      href={nextActionHref(selectedEvent)}
+                      href={nextActionHref(selectedEvent.state, selectedEvent.appSlug)}
                       variant="primary"
                     >
                       {nextActionLabel(selectedEvent.state)}
@@ -371,12 +349,12 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
           <DetailPanel
             eyebrow="Inspector"
             title="No event selected"
-            description="Reset the filters to inspect an event record."
+            description="Reset the filters to inspect the latest normalized event record."
           >
             <EmptyState
               eyebrow="Empty inspector"
               title="Nothing matches the current event view"
-              description="The inspector will show raw intake and normalized detail once an event matches the selected filters."
+              description="The inspector will show normalized metadata and safe receipt references once an event matches the selected filters."
               action={
                 <ActionLink href="/events" variant="primary">
                   Reset filters
