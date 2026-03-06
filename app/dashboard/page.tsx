@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AppShell, SectionCard, StatCard } from "@/components/app-shell";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { getCurrentWorkspaceContext } from "@/lib/workspace";
 
 export default async function DashboardPage() {
   const user = await getAuthenticatedUser();
@@ -11,6 +12,12 @@ export default async function DashboardPage() {
   if (!user) {
     redirect("/login?redirectTo=/dashboard");
   }
+
+  const workspace = await getCurrentWorkspaceContext();
+  const workspaceTitle = workspace.organization?.name ?? "No organization linked";
+  const workspaceRole = workspace.role?.name ?? "No active membership";
+  const workspaceSourceLabel =
+    workspace.source === "database" ? "Database-backed" : "Phase 0 setup pending";
 
   return (
     <AppShell
@@ -37,35 +44,51 @@ export default async function DashboardPage() {
           detail="This value comes from the verified Supabase user on the server."
         />
         <StatCard
-          label="Partners"
-          value="0"
-          detail="No connected records yet. Real counts will come from Supabase later."
+          label="Workspace"
+          value={workspaceTitle}
+          detail="The dashboard now looks for the current organization tied to your membership."
         />
         <StatCard
-          label="Payouts"
-          value="Draft"
-          detail="Batching and approvals are still placeholder-only in Phase 0."
+          label="Current role"
+          value={workspaceRole}
+          detail="Roles are part of the new Phase 0 organization foundation."
         />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard
           title="Protected route foundation"
-          description="The page remains lightweight, but the access pattern is now in place."
+          description="The page remains lightweight, but the access and workspace pattern are now in place."
           items={[
             "The server reads an auth cookie and verifies the user before rendering.",
             "Unauthenticated requests are redirected to /login.",
             "Sign out clears both the Supabase browser session and the server cookie.",
+            `Workspace lookup: ${workspaceSourceLabel}.`,
           ]}
         />
         <SectionCard
-          title="Dashboard modules"
-          description="The main product content can still be added gradually on top of this auth layer."
-          items={[
-            "Top-line partner, code, and revenue metrics.",
-            "Recent attribution exceptions that need review.",
-            "Quick links into onboarding and payout workflows.",
-          ]}
+          title="Organization-aware placeholder"
+          description="This section reflects the Phase 0 workspace structure without adding real business logic yet."
+          items={
+            workspace.organization
+              ? [
+                  `Organization slug: ${workspace.organization.slug}.`,
+                  `Membership status: ${workspace.membership?.status ?? "unknown"}.`,
+                  `Partner user profile: ${workspace.partnerUser?.partner_name ?? "not linked yet"}.`,
+                ]
+              : [
+                  "No organization membership was found for this user yet.",
+                  "Run the Phase 0 workspace migration and attach your first auth user as the demo owner.",
+                  "Once that exists, this dashboard can show organization-specific placeholders.",
+                ]
+          }
+        />
+        <SectionCard
+          title="Supported Phase 0 roles"
+          description="These are the roles the workspace foundation is prepared to recognize."
+          items={workspace.roles.map(
+            (role) => `${role.name}: ${role.description}`,
+          )}
         />
       </div>
     </AppShell>
