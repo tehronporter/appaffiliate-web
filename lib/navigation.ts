@@ -55,6 +55,11 @@ export const workspaceNavGroups: NavGroup[] = [
     title: "Operations",
     items: [
       {
+        href: "/events",
+        label: "Events",
+        description: "Inspect raw intake, normalized records, and pipeline states.",
+      },
+      {
         href: "/unattributed",
         label: "Needs Attribution",
         description: "Resolve unattributed installs, trials, and purchases.",
@@ -65,7 +70,7 @@ export const workspaceNavGroups: NavGroup[] = [
         description: "Review earnings states and payout readiness.",
       },
       {
-        href: "/payout-batches",
+        href: "/payouts",
         label: "Payouts",
         description: "Batching and finance handoff.",
       },
