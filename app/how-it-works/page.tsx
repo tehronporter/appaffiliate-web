@@ -1,5 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  AppWindow,
+  UserPlus,
+  Link2,
+  BarChart3,
+  Award,
+  PiggyBank,
+  Heart,
+  ShieldCheck,
+} from "lucide-react";
 
 import {
   MarketingCard,
@@ -8,6 +18,7 @@ import {
   MarketingSection,
   MarketingSectionHeading,
   MarketingSteps,
+  ScrollReveal,
 } from "@/components/marketing-page";
 import { MarketingShell } from "@/components/marketing-shell";
 import {
@@ -29,30 +40,35 @@ const steps = [
     title: "Add your app",
     description:
       "Connect your iOS app so AppAffiliate can turn creator promotion into a real subscription growth channel.",
+    icon: <AppWindow size={20} strokeWidth={1.5} />,
   },
   {
     number: "02",
     title: "Invite creators",
     description:
       "Work with creators you already trust instead of defaulting to risky upfront influencer deals.",
+    icon: <UserPlus size={20} strokeWidth={1.5} />,
   },
   {
     number: "03",
     title: "Assign codes or links",
     description:
       "Give each creator a clear trackable path so ownership stays readable from the start.",
+    icon: <Link2 size={20} strokeWidth={1.5} />,
   },
   {
     number: "04",
     title: "Track real subscription results",
     description:
       "See what actually converted, what still needs review, and what is ready to become approved earnings.",
+    icon: <BarChart3 size={20} strokeWidth={1.5} />,
   },
   {
     number: "05",
     title: "Reward creators based on performance",
     description:
       "Approve earnings, move them into payout, and keep creators updated with a simple read-only portal.",
+    icon: <Award size={20} strokeWidth={1.5} />,
   },
 ];
 
@@ -61,16 +77,19 @@ const outcomes = [
     title: "Less wasted spend",
     description:
       "You stop paying for creator promotion without knowing whether it turned into real subscriptions.",
+    icon: <PiggyBank size={20} strokeWidth={1.5} />,
   },
   {
     title: "Fairer creator rewards",
     description:
       "Creators get paid when their audience actually converts, with clearer visibility into what changed.",
+    icon: <Heart size={20} strokeWidth={1.5} />,
   },
   {
     title: "More trust across the workflow",
     description:
       "Tracking, review, commissions, and payouts stay connected so decisions are easier to explain later.",
+    icon: <ShieldCheck size={20} strokeWidth={1.5} />,
   },
 ];
 
@@ -107,7 +126,7 @@ export default function HowItWorksPage() {
             ].map((item) => (
               <div
                 key={item}
-                className="rounded-[16px] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
+                className="rounded-[var(--radius-input)] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
               >
                 {item}
               </div>
@@ -134,15 +153,16 @@ export default function HowItWorksPage() {
             description="The point is not just to track creator activity. The point is to run creator promotion as a performance channel instead of a guessing game."
           />
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {outcomes.map((item) => (
               <MarketingCard
                 key={item.title}
                 title={item.title}
                 description={item.description}
+                icon={item.icon}
               />
             ))}
-          </div>
+          </ScrollReveal>
         </MarketingSection>
 
         <MarketingSection>

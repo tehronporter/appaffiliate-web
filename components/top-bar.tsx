@@ -14,7 +14,7 @@ export function TopBar() {
     <header className="sticky top-0 z-20 border-b border-border bg-[rgba(248,250,253,0.84)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-[var(--page-max-width)] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-subtle">
+          <p className="text-[10px] font-normal text-[#94a3b8]">
             {routeContext?.groupTitle ?? "Workspace"}
           </p>
           <p className="mt-1.5 text-sm font-semibold tracking-[-0.01em] text-ink">
@@ -32,9 +32,6 @@ export function TopBar() {
               Dashboard
             </Link>
           ) : null}
-          <Link href="/settings" className="aa-button aa-button-secondary">
-            Settings
-          </Link>
         </div>
       </div>
     </header>

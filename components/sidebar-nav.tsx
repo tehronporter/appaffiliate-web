@@ -2,6 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Rocket,
+  Users,
+  Code2,
+  Heart,
+  Activity,
+  AlertTriangle,
+  DollarSign,
+  Wallet,
+  Layers,
+  Download,
+  Settings,
+  FileSearch,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import { ActionLink } from "@/components/app-shell";
 import { BrandLogoLink } from "@/components/brand-logo";
@@ -10,13 +26,21 @@ import {
   workspaceNavGroups,
 } from "@/lib/navigation";
 
-function navItemClasses(active: boolean) {
-  if (active) {
-    return "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-ink shadow-[0_8px_20px_rgba(46,83,255,0.08)]";
-  }
-
-  return "border-transparent bg-transparent text-ink-muted hover:border-border hover:bg-white hover:text-ink";
-}
+const iconMap: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  Rocket,
+  Users,
+  Code2,
+  Heart,
+  Activity,
+  AlertTriangle,
+  DollarSign,
+  Wallet,
+  Layers,
+  Download,
+  Settings,
+  FileSearch,
+};
 
 export function SidebarNav() {
   const pathname = usePathname();
@@ -30,25 +54,25 @@ export function SidebarNav() {
           size="workspace"
           priority
         />
-        <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
-          Creator growth ops
-        </p>
-        <h2 className="mt-2 text-lg font-semibold tracking-[-0.04em] text-ink">
-          Internal workspace
+        <h2 className="mt-3 text-base font-semibold tracking-[-0.03em] text-ink">
+          AppAffiliate
         </h2>
-        <p className="mt-2 text-sm leading-6 text-ink-muted">
-          Review creator performance, clear what needs attention, and keep payouts moving.
+        <p className="mt-1 text-sm leading-6 text-ink-muted">
+          Internal workspace
         </p>
       </div>
 
       <nav className="rounded-[var(--radius-card)] border border-border bg-[rgba(255,255,255,0.92)] p-2 shadow-[var(--shadow-soft)]">
-        <div className="space-y-2.5">
-          {workspaceNavGroups.map((group) => (
-            <div key={group.title} className="border-b border-border pb-2.5 last:border-b-0 last:pb-0">
-              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-subtle">
+        <div className="space-y-1">
+          {workspaceNavGroups.map((group, groupIndex) => (
+            <div key={group.title}>
+              {groupIndex > 0 ? (
+                <div className="mx-3 my-2 border-t border-[#e8e8e8]" />
+              ) : null}
+              <p className="px-3 pb-1 pt-1.5 text-[10px] font-normal text-[#94a3b8]">
                 {group.title}
               </p>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {group.items.map((item) => {
                   const active = isNavItemActive(pathname, item);
                   const href =
@@ -56,24 +80,31 @@ export function SidebarNav() {
                     active
                       ? pathname
                       : item.href;
+                  const Icon = iconMap[item.icon];
 
                   return (
                     <Link
                       key={item.href}
                       href={href}
                       aria-current={active ? "page" : undefined}
-                      className={`block rounded-[14px] border px-3 py-2.5 transition focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white ${navItemClasses(active)}`}
+                      className={`flex items-center gap-2.5 rounded-[var(--radius-soft)] px-3 py-2.5 transition-colors ${
+                        active
+                          ? "border-l-2 border-l-primary bg-surface text-ink"
+                          : "border-l-2 border-l-transparent text-ink-muted hover:bg-surface hover:text-ink"
+                      }`}
                     >
-                      <p className="text-sm font-semibold tracking-[-0.01em]">
-                        {item.label}
-                      </p>
-                      <p
-                        className={`mt-0.5 text-[11px] leading-5 ${
-                          active ? "text-[color:color-mix(in_srgb,var(--color-primary)_72%,black)]" : "text-ink-subtle"
-                        }`}
-                      >
-                        {item.description}
-                      </p>
+                      {Icon ? (
+                        <Icon
+                          size={16}
+                          strokeWidth={1.5}
+                          className={active ? "text-primary" : "text-[#94a3b8]"}
+                        />
+                      ) : null}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium tracking-[-0.01em]">
+                          {item.label}
+                        </p>
+                      </div>
                     </Link>
                   );
                 })}
@@ -83,8 +114,8 @@ export function SidebarNav() {
         </div>
       </nav>
 
-      <div className="rounded-[var(--radius-card)] border border-border bg-[rgba(243,247,252,0.82)] p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-subtle">
+      <div className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
+        <p className="text-[10px] font-normal text-[#94a3b8]">
           Creator portal
         </p>
         <h3 className="mt-2 text-sm font-semibold tracking-[-0.02em] text-ink">

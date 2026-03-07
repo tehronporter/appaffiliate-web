@@ -2,24 +2,28 @@
 
 :root {
   --background: #eef3f8;
-  --foreground: #141a24;
+  --foreground: #1a1a1a;
   --primary: #2e53ff;
   --primary-soft: #eef3ff;
-  --success: #2f7a62;
-  --warning: #a96e21;
-  --danger: #b25154;
-  --surface: #f4f7fb;
-  --surface-muted: #edf2f7;
+  --success: #1e7e34;
+  --success-soft: #eaf7ee;
+  --warning: #8a5e00;
+  --warning-soft: #fef6e0;
+  --danger: #c0392b;
+  --danger-soft: #fdecea;
+  --surface: #f5f5f5;
+  --surface-muted: #efefef;
   --surface-elevated: #ffffff;
   --border: #d9e2ec;
   --border-strong: #c2cfde;
-  --ink: #141a24;
-  --ink-muted: #5b6678;
-  --ink-subtle: #7c8798;
+  --ink: #1a1a1a;
+  --ink-muted: #6b6b6b;
+  --ink-subtle: #94a3b8;
   --shadow-soft: 0 12px 32px rgba(17, 24, 39, 0.05);
   --shadow-strong: 0 20px 52px rgba(17, 24, 39, 0.08);
-  --radius-card: 18px;
-  --radius-soft: 14px;
+  --radius-card: 12px;
+  --radius-soft: 10px;
+  --radius-input: 8px;
   --radius-pill: 999px;
   --page-max-width: 1360px;
   --marketing-max-width: 1280px;
@@ -32,11 +36,11 @@
   --color-primary: var(--primary);
   --color-primary-soft: var(--primary-soft);
   --color-success: var(--success);
-  --color-success-soft: color-mix(in srgb, var(--success) 14%, white);
+  --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
-  --color-warning-soft: color-mix(in srgb, var(--warning) 14%, white);
+  --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
-  --color-danger-soft: color-mix(in srgb, var(--danger) 14%, white);
+  --color-danger-soft: var(--danger-soft);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-surface-elevated: var(--surface-elevated);
@@ -65,7 +69,7 @@ body {
     linear-gradient(180deg, #f9fbfd 0%, var(--background) 100%);
   color: var(--ink);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
-  line-height: 1.5;
+  line-height: 1.7;
 }
 
 a {
@@ -83,8 +87,8 @@ select {
 :focus-visible {
   outline: none;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--primary) 24%, white),
-    0 0 0 4px color-mix(in srgb, var(--primary) 12%, white);
+    0 0 0 2px var(--primary),
+    0 0 0 4px color-mix(in srgb, var(--primary) 20%, white);
 }
 
 ::selection {
@@ -99,18 +103,18 @@ select {
   gap: 0.45rem;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
-  min-height: 2.5rem;
-  padding: 0.65rem 1rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.01em;
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+    background-color 200ms ease-out,
+    border-color 200ms ease-out,
+    color 200ms ease-out,
+    box-shadow 200ms ease-out,
+    transform 200ms ease-out;
 }
 
 .aa-button:hover {
@@ -177,15 +181,15 @@ select {
 .aa-field {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-input);
   background: rgba(255, 255, 255, 0.78);
   padding: 0.85rem 1rem;
   font-size: 0.875rem;
   color: var(--ink);
   transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+    border-color 200ms ease-out,
+    background-color 200ms ease-out,
+    box-shadow 200ms ease-out;
 }
 
 .aa-field:hover {

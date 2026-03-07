@@ -19,13 +19,13 @@ type InsetTone = StatusTone | "default";
 const badgeToneClasses: Record<StatusTone, string> = {
   neutral: "border-border bg-[rgba(255,255,255,0.82)] text-ink-muted",
   primary:
-    "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary",
+    "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-[#ebf0ff] text-[#2e53ff]",
   success:
-    "border-[color:color-mix(in_srgb,var(--color-success)_18%,white)] bg-success-soft text-success",
+    "border-[color:color-mix(in_srgb,var(--color-success)_18%,white)] bg-[#eaf7ee] text-[#1e7e34]",
   warning:
-    "border-[color:color-mix(in_srgb,var(--color-warning)_18%,white)] bg-warning-soft text-warning",
+    "border-[color:color-mix(in_srgb,var(--color-warning)_18%,white)] bg-[#fef6e0] text-[#8a5e00]",
   danger:
-    "border-[color:color-mix(in_srgb,var(--color-danger)_18%,white)] bg-danger-soft text-danger",
+    "border-[color:color-mix(in_srgb,var(--color-danger)_18%,white)] bg-[#fdecea] text-[#c0392b]",
 };
 
 const surfaceToneClasses: Record<SurfaceTone, string> = {
@@ -314,6 +314,11 @@ type StatCardProps = {
   className?: string;
 };
 
+const statCardUrgencyClasses: Record<string, string> = {
+  danger: "border-l-[3px] border-l-danger bg-[#fef2f2]",
+  warning: "border-l-[3px] border-l-warning bg-[#fef9ee]",
+};
+
 export function StatCard({
   label,
   value,
@@ -322,10 +327,12 @@ export function StatCard({
   size = "default",
   className,
 }: StatCardProps) {
+  const urgencyClass = statCardUrgencyClasses[tone] ?? "";
+
   return (
     <SurfaceCard
       density={size === "compact" ? "compact" : "default"}
-      className={className}
+      className={joinClasses(urgencyClass, className)}
     >
       <StatusBadge tone={tone}>{label}</StatusBadge>
       <p

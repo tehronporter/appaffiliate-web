@@ -4,6 +4,7 @@ export type NavItem = {
   description: string;
   match?: "exact" | "prefix";
   activePrefixes?: string[];
+  icon: string;
 };
 
 export type NavGroup = {
@@ -22,12 +23,14 @@ export const workspaceNavGroups: NavGroup[] = [
         label: "Dashboard",
         description: "Performance, review posture, and next actions.",
         match: "exact",
+        icon: "LayoutDashboard",
       },
       {
         href: "/onboarding",
         label: "Activation",
         description: "First-run milestones and launch readiness.",
         match: "exact",
+        icon: "Rocket",
       },
     ],
   },
@@ -38,17 +41,20 @@ export const workspaceNavGroups: NavGroup[] = [
         href: "/partners",
         label: "Partners",
         description: "Creator records and program coverage.",
+        icon: "Users",
       },
       {
         href: "/codes",
         label: "Codes",
         description: "Code ownership, status, and app links.",
+        icon: "Code2",
       },
       {
         href: "/apps/demo-app/apple-health",
         label: "Apple Health",
         description: "Apple ingest readiness by app.",
         activePrefixes: ["/apps/"],
+        icon: "Heart",
       },
     ],
   },
@@ -59,11 +65,13 @@ export const workspaceNavGroups: NavGroup[] = [
         href: "/events",
         label: "Events",
         description: "Inspect event flow and tracked state.",
+        icon: "Activity",
       },
       {
         href: "/unattributed",
         label: "Unattributed",
         description: "Resolve items still waiting for attribution.",
+        icon: "AlertTriangle",
       },
     ],
   },
@@ -74,16 +82,19 @@ export const workspaceNavGroups: NavGroup[] = [
         href: "/commissions",
         label: "Commissions",
         description: "Review commission state before payout prep.",
+        icon: "DollarSign",
       },
       {
         href: "/payouts",
         label: "Payouts",
         description: "Track payout status across approved work.",
+        icon: "Wallet",
       },
       {
         href: "/payout-batches",
         label: "Payout batches",
         description: "Group payout-ready work into batches.",
+        icon: "Layers",
       },
       {
         href: "/settings/exports",
@@ -91,6 +102,7 @@ export const workspaceNavGroups: NavGroup[] = [
         description: "Finance exports and download history.",
         match: "exact",
         activePrefixes: ["/settings/exports"],
+        icon: "Download",
       },
     ],
   },
@@ -107,6 +119,7 @@ export const workspaceNavGroups: NavGroup[] = [
           "/settings/team",
           "/settings/rules",
         ],
+        icon: "Settings",
       },
       {
         href: "/settings/audit",
@@ -114,6 +127,7 @@ export const workspaceNavGroups: NavGroup[] = [
         description: "Activity history and operational trail.",
         match: "exact",
         activePrefixes: ["/settings/audit"],
+        icon: "FileSearch",
       },
     ],
   },

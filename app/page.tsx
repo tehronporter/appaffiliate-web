@@ -1,5 +1,20 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import {
+  Banknote,
+  Users,
+  ShieldCheck,
+  TrendingUp,
+  Eye,
+  Handshake,
+  UserSearch,
+  ClipboardCheck,
+  Wallet,
+  UserCircle,
+  Lock,
+  FileSearch,
+  BadgeDollarSign,
+} from "lucide-react";
 
 import {
   MarketingCard,
@@ -10,6 +25,7 @@ import {
   MarketingSection,
   MarketingSectionHeading,
   MarketingSteps,
+  ScrollReveal,
 } from "@/components/marketing-page";
 import { MarketingShell } from "@/components/marketing-shell";
 import {
@@ -24,16 +40,19 @@ const founderPain = [
     title: "You should not have to prepay for guesswork",
     description:
       "Too much influencer spend lands before anyone knows whether subscriptions will actually convert.",
+    icon: <Banknote size={20} strokeWidth={1.5} />,
   },
   {
     title: "Creators should be rewarded fairly",
     description:
       "When performance is tracked clearly, creators can see what they drove and what they earned without awkward side-channel updates.",
+    icon: <Users size={20} strokeWidth={1.5} />,
   },
   {
     title: "Your team still needs trust behind the scenes",
     description:
       "Attribution, commission review, and payouts should support the growth model instead of turning into spreadsheet cleanup.",
+    icon: <ShieldCheck size={20} strokeWidth={1.5} />,
   },
 ];
 
@@ -42,16 +61,19 @@ const valueProps = [
     title: "Safer growth for founders",
     description:
       "Reward creators when subscription results show up, not before you know whether a campaign worked.",
+    icon: <TrendingUp size={20} strokeWidth={1.5} />,
   },
   {
     title: "Fair visibility for creators",
     description:
       "Give creators a simple read-only view of codes, results, approved earnings, and payout progress.",
+    icon: <Eye size={20} strokeWidth={1.5} />,
   },
   {
     title: "Trust for both sides",
     description:
       "Tracking, review, commissions, and payouts stay connected so nobody has to guess where a result ended up.",
+    icon: <Handshake size={20} strokeWidth={1.5} />,
   },
 ];
 
@@ -93,21 +115,25 @@ const productSurfaces = [
     title: "Creator tracking",
     description:
       "Keep creator ownership, codes, and linked app context readable as the program grows.",
+    icon: <UserSearch size={20} strokeWidth={1.5} />,
   },
   {
     title: "Results review",
     description:
       "See which results are ready to trust, which still need review, and why.",
+    icon: <ClipboardCheck size={20} strokeWidth={1.5} />,
   },
   {
     title: "Commissions and payouts",
     description:
       "Move from approved earnings into payout without losing the logic behind what changed.",
+    icon: <Wallet size={20} strokeWidth={1.5} />,
   },
   {
     title: "Creator portal",
     description:
       "Give creators a simple view of what they earned without exposing internal workspace detail.",
+    icon: <UserCircle size={20} strokeWidth={1.5} />,
   },
 ];
 
@@ -116,16 +142,52 @@ const trustBlocks = [
     title: "Role-aware access",
     description:
       "Internal teams and creators get separate experiences with the right level of visibility.",
+    icon: <Lock size={20} strokeWidth={1.5} />,
   },
   {
     title: "Audited decisions",
     description:
       "Manual review, commission changes, and payout steps stay visible when trust matters.",
+    icon: <FileSearch size={20} strokeWidth={1.5} />,
   },
   {
     title: "Finance-safe payouts",
     description:
       "Payout prep, export, and paid states stay clear instead of blending into one vague money flow.",
+    icon: <BadgeDollarSign size={20} strokeWidth={1.5} />,
+  },
+];
+
+const comparisonRows = [
+  {
+    painPoint: "Upfront spend risk",
+    oldWay: "High spend lands first, then founders hope the campaign turns into real subscriptions. No recourse if it does not.",
+    newWay: "Pay only when subscription results are confirmed. Zero upfront creator fees. Risk stays off your balance sheet until results arrive.",
+  },
+  {
+    painPoint: "Creator accountability",
+    oldWay: "Deals are based on reach and views. Payout is disconnected from whether the audience subscribed or stayed.",
+    newWay: "Every creator\u2019s payout is tied directly to verified subscription outcomes \u2014 not follower counts or post metrics.",
+  },
+  {
+    painPoint: "Tracking complexity",
+    oldWay: "Spreadsheet-heavy manual tracking, back-and-forth on what actually converted, no single source of truth.",
+    newWay: "Creator codes, results, approved earnings, and payout status all live in one place. No spreadsheets, no chasing follow-up.",
+  },
+  {
+    painPoint: "Payout trust",
+    oldWay: "Creators do not know what they earned or when they will be paid until you tell them. Friction and distrust build over time.",
+    newWay: "Creators get a read-only portal showing their codes, results, approved earnings, and payout progress in real time.",
+  },
+  {
+    painPoint: "Review process",
+    oldWay: "Manual review with no workflow \u2014 you are deciding in DMs or emails what counts and what does not.",
+    newWay: "Built-in review queue: see which results are ready to trust, which need review, and exactly why. Reviewable, auditable.",
+  },
+  {
+    painPoint: "Commission changes",
+    oldWay: "Any commission adjustment requires a manual message, update to your spreadsheet, and hope the creator has the right number.",
+    newWay: "Commission changes, payout notes, and status updates are tracked in the system \u2014 both sides always see the same number.",
   },
 ];
 
@@ -146,7 +208,7 @@ export default function Home() {
     >
       <main>
         <MarketingHero
-          eyebrow="For modern iOS app teams"
+          eyebrow="Creator growth for modern iOS founders"
           title="Pay creators for results, not hype."
           description="AppAffiliate helps iOS app teams grow through creators without risky upfront promo fees. Track real subscription results, reward creators fairly, and manage commissions and payouts in one place."
           wrapVisual={false}
@@ -167,23 +229,14 @@ export default function Home() {
           />
         </MarketingHero>
 
+        <div id="content" />
+
         <MarketingSection className="border-b border-border bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)]">
           <MarketingComparison
             eyebrow="Old way vs AppAffiliate"
-            title="A better model than paying for promotion and hoping it converts."
-            description="Replace risky upfront influencer deals with a results-based creator channel built around subscription outcomes, fair rewards, and payout trust."
-            leftTitle="The old way"
-            leftItems={[
-              "Pay creators before you know whether subscriptions will convert.",
-              "Guess which promotion actually drove the result.",
-              "Patch together spreadsheets, payout notes, and status updates later.",
-            ]}
-            rightTitle="The AppAffiliate way"
-            rightItems={[
-              "Track creator-linked subscription results in one system.",
-              "Review what needs attention before earnings are finalized.",
-              "Reward creators based on real performance, not hype alone.",
-            ]}
+            title="Compare the cost logic, not just a feature list."
+            description="The real alternative is not another SaaS line item. It is wasted influencer spend, manual payout cleanup, and unclear creator performance."
+            rows={comparisonRows}
           />
         </MarketingSection>
 
@@ -194,11 +247,11 @@ export default function Home() {
             description="Founders are tired of spending on views, posts, and campaigns that feel busy but never turn into real subscription growth."
           />
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {founderPain.map((item) => (
-              <MarketingCard key={item.title} title={item.title} description={item.description} />
+              <MarketingCard key={item.title} title={item.title} description={item.description} icon={item.icon} />
             ))}
-          </div>
+          </ScrollReveal>
         </MarketingSection>
 
         <MarketingSection muted>
@@ -208,16 +261,17 @@ export default function Home() {
             description="The growth story is simple up front, but the product still gives your team the review and payout trust needed to run the channel for real."
           />
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {valueProps.map((item) => (
               <MarketingCard
                 key={item.title}
                 title={item.title}
                 description={item.description}
                 tone="contrast"
+                icon={item.icon}
               />
             ))}
-          </div>
+          </ScrollReveal>
         </MarketingSection>
 
         <MarketingSection>
@@ -239,15 +293,16 @@ export default function Home() {
             description="AppAffiliate connects creator tracking, review, commissions, payouts, and creator visibility without turning the site into a product-tour maze."
           />
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ScrollReveal className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {productSurfaces.map((item) => (
               <MarketingCard
                 key={item.title}
                 title={item.title}
                 description={item.description}
+                icon={item.icon}
               />
             ))}
-          </div>
+          </ScrollReveal>
         </MarketingSection>
 
         <MarketingSection>
@@ -262,6 +317,7 @@ export default function Home() {
               title="Creator portal"
               description="The portal stays simpler than admin: creator-friendly language, payout-safe status labels, and a calmer layout designed for trust instead of back-office complexity."
               tone="contrast"
+              icon={<UserCircle size={20} strokeWidth={1.5} />}
             >
               <div className="mt-5 grid gap-3">
                 {[
@@ -271,7 +327,7 @@ export default function Home() {
                 ].map((item) => (
                   <div
                     key={item}
-                    className="rounded-[16px] border border-border bg-white px-4 py-3 text-sm leading-6 text-ink-muted"
+                    className="rounded-[var(--radius-input)] border border-border bg-white px-4 py-3 text-sm leading-6 text-ink-muted"
                   >
                     {item}
                   </div>
@@ -288,15 +344,16 @@ export default function Home() {
             description="Trust is part of the growth model: role-aware access, clear review state, and finance-safe payout handling all reinforce the public promise."
           />
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {trustBlocks.map((item) => (
               <MarketingCard
                 key={item.title}
                 title={item.title}
                 description={item.description}
+                icon={item.icon}
               />
             ))}
-          </div>
+          </ScrollReveal>
         </MarketingSection>
 
         <MarketingSection>
