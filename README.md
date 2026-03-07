@@ -61,3 +61,5 @@ Current Phase 0 migrations:
 - `supabase/migrations/20260306153000_phase0_service_foundation_policies.sql`
 
 Apply them manually in Supabase in filename order if your database is not up to date.
+
+<!-- trigger vercel deploy -->
