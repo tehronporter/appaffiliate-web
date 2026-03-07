@@ -2,28 +2,29 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let browserSupabaseClient: SupabaseClient | null = null;
 
-function getRequiredBrowserEnv(
-  name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-) {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(
-      `Missing required browser Supabase environment variable: ${name}`,
-    );
-  }
-
-  return value;
-}
-
 export function getBrowserSupabaseClient() {
   if (browserSupabaseClient) {
     return browserSupabaseClient;
   }
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl) {
+    throw new Error(
+      "Missing required browser Supabase environment variable: NEXT_PUBLIC_SUPABASE_URL",
+    );
+  }
+
+  if (!supabaseAnonKey) {
+    throw new Error(
+      "Missing required browser Supabase environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    );
+  }
+
   browserSupabaseClient = createClient(
-    getRequiredBrowserEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    getRequiredBrowserEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    supabaseUrl,
+    supabaseAnonKey,
   );
 
   return browserSupabaseClient;
