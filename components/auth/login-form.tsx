@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { syncSessionCookie } from "@/lib/auth-client";
-import { supabase } from "@/lib/supabase";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 type LoginFormProps = {
   redirectTo: string;
@@ -20,6 +20,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   useEffect(() => {
+    const supabase = getBrowserSupabaseClient();
     let isActive = true;
 
     async function checkExistingSession() {
@@ -49,6 +50,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   }, [redirectTo, router]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const supabase = getBrowserSupabaseClient();
     event.preventDefault();
     setErrorMessage("");
     setIsSubmitting(true);

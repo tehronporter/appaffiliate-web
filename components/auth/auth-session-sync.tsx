@@ -3,10 +3,11 @@
 import { useEffect } from "react";
 
 import { syncSessionCookie } from "@/lib/auth-client";
-import { supabase } from "@/lib/supabase";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 export function AuthSessionSync() {
   useEffect(() => {
+    const supabase = getBrowserSupabaseClient();
     let isActive = true;
 
     async function syncCurrentSession() {

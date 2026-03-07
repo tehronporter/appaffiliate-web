@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { clearSessionCookie } from "@/lib/auth-client";
-import { supabase } from "@/lib/supabase";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 export function SignOutButton() {
+  const supabase = getBrowserSupabaseClient();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
