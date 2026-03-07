@@ -43,11 +43,11 @@ type AppRow = {
 type ReceiptRow = {
   id: string;
   received_at: string;
-  environment: string;
-  verification_status: string;
-  processed_status: string;
+  environment: string | null;
+  verification_status: string | null;
+  processed_status: string | null;
   last_error: string | null;
-  notification_type: string;
+  notification_type: string | null;
   notification_subtype: string | null;
   request_id: string | null;
 };
@@ -95,6 +95,9 @@ export type AppleHealthReadinessData = {
   environmentLabel: string;
 };
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function mapOperationalState(row: NormalizedEventRow): EventOperationalState {
   if (row.event_status === "invalid") {
     return "failed";
@@ -113,6 +116,26 @@ function mapOperationalState(row: NormalizedEventRow): EventOperationalState {
 
 function normalizePayload(value: Record<string, unknown> | null) {
   return value ?? {};
+}
+
+function normalizeTextLabel(value: string | null | undefined, fallback: string) {
+  if (!value) {
+    return fallback;
+  }
+
+  const normalized = value.trim();
+
+  return normalized || fallback;
+}
+
+function normalizeEnvironmentLabel(value: string | null | undefined) {
+  const normalized = normalizeTextLabel(value, "unknown").toLowerCase();
+
+  if (normalized === "sandbox" || normalized === "production") {
+    return normalized;
+  }
+
+  return "unknown";
 }
 
 function toWorkspaceEventView(
@@ -163,6 +186,47 @@ export function formatOperationalTimestamp(value: string | null) {
     timeStyle: "short",
     timeZone: "UTC",
   }).format(date);
+}
+
+async function resolveAppleHealthApp(
+  context: Awaited<ReturnType<typeof createServiceContext>>,
+  appIdentifier: string,
+) {
+  const normalizedIdentifier = appIdentifier.trim();
+
+  if (!normalizedIdentifier) {
+    return null;
+  }
+
+  if (UUID_PATTERN.test(normalizedIdentifier)) {
+    const { data: appById, error: appByIdError } = await context.supabase!
+      .from("apps")
+      .select("id, slug, name, ingest_key, status")
+      .eq("organization_id", context.workspace.organization!.id)
+      .eq("id", normalizedIdentifier)
+      .maybeSingle<AppRow>();
+
+    if (appByIdError) {
+      throw new Error(appByIdError.message);
+    }
+
+    if (appById) {
+      return appById;
+    }
+  }
+
+  const { data: appBySlug, error: appBySlugError } = await context.supabase!
+    .from("apps")
+    .select("id, slug, name, ingest_key, status")
+    .eq("organization_id", context.workspace.organization!.id)
+    .eq("slug", normalizedIdentifier)
+    .maybeSingle<AppRow>();
+
+  if (appBySlugError) {
+    throw new Error(appBySlugError.message);
+  }
+
+  return appBySlug;
 }
 
 export async function listWorkspaceNormalizedEvents() {
@@ -234,7 +298,7 @@ export async function listWorkspaceNormalizedEvents() {
   } satisfies WorkspaceEventsData;
 }
 
-export async function getAppleHealthReadinessData(appSlug: string) {
+export async function getAppleHealthReadinessData(appIdentifier: string) {
   const context = await createServiceContext();
 
   if (!context.supabase || !context.workspace.organization) {
@@ -252,16 +316,7 @@ export async function getAppleHealthReadinessData(appSlug: string) {
     } satisfies AppleHealthReadinessData;
   }
 
-  const { data: app, error: appError } = await context.supabase
-    .from("apps")
-    .select("id, slug, name, ingest_key, status")
-    .eq("organization_id", context.workspace.organization.id)
-    .eq("slug", appSlug)
-    .maybeSingle<AppRow>();
-
-  if (appError) {
-    throw new Error(appError.message);
-  }
+  const app = await resolveAppleHealthApp(context, appIdentifier);
 
   if (!app) {
     return {
@@ -331,8 +386,9 @@ export async function getAppleHealthReadinessData(appSlug: string) {
     } satisfies AppleHealthReadinessData;
   }
 
-  const environmentLabel =
-    latestEvent?.environment ?? latestReceipt.environment ?? "unknown";
+  const environmentLabel = normalizeEnvironmentLabel(
+    latestEvent?.environment ?? latestReceipt.environment,
+  );
   const warningNote =
     latestReceipt.last_error ??
     (latestReceipt.verification_status === "placeholder_unverified"

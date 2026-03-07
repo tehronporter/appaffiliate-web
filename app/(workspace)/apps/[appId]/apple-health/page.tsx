@@ -37,6 +37,17 @@ export default async function AppleHealthPage({
   const formattedAppId = decodeURIComponent(appId);
   const readiness = await getAppleHealthReadinessData(formattedAppId);
   const appName = readiness.app?.name ?? formattedAppId;
+  const environmentLabel =
+    readiness.environmentLabel === "unknown"
+      ? "Unknown"
+      : readiness.environmentLabel;
+  const receiptVerificationStatus =
+    readiness.latestReceipt?.verification_status ?? "unknown";
+  const receiptProcessingStatus =
+    readiness.latestReceipt?.processed_status ?? "unknown";
+  const receiptNotificationType =
+    readiness.latestReceipt?.notification_type ?? "unknown";
+  const receiptNotificationSubtype = readiness.latestReceipt?.notification_subtype;
 
   const readinessSteps: ReadinessStep[] = [
     {
@@ -51,7 +62,7 @@ export default async function AppleHealthPage({
     {
       title: "Receipt durability",
       description: readiness.latestReceipt
-        ? `Latest receipt stored at ${formatOperationalTimestamp(readiness.latestReceipt.received_at)} with ${readiness.latestReceipt.verification_status} verification state.`
+        ? `Latest receipt stored at ${formatOperationalTimestamp(readiness.latestReceipt.received_at)} with ${receiptVerificationStatus} verification state.`
         : "No Apple receipt has been stored yet for this app.",
       tone: readiness.latestReceipt ? "success" : "warning",
       statusLabel: readiness.latestReceipt ? "Receiving receipts" : "Awaiting first receipt",
@@ -101,11 +112,7 @@ export default async function AppleHealthPage({
           <StatusBadge tone={readiness.app?.ingest_key ? "success" : "warning"}>
             {readiness.app?.ingest_key ? "Ingest key assigned" : "Ingest key missing"}
           </StatusBadge>
-          <StatusBadge>
-            {readiness.environmentLabel === "unknown"
-              ? "Environment unknown"
-              : readiness.environmentLabel}
-          </StatusBadge>
+          <StatusBadge>{environmentLabel === "Unknown" ? "Environment unknown" : environmentLabel}</StatusBadge>
         </div>
       </PageHeader>
 
@@ -125,7 +132,7 @@ export default async function AppleHealthPage({
           }
           detail={
             readiness.latestReceipt
-              ? `Stored with ${readiness.latestReceipt.verification_status} verification and ${readiness.latestReceipt.processed_status} processing state.`
+              ? `Stored with ${receiptVerificationStatus} verification and ${receiptProcessingStatus} processing state.`
               : "The app has not stored an Apple receipt yet."
           }
           tone={readiness.latestReceipt ? "success" : "primary"}
@@ -148,11 +155,7 @@ export default async function AppleHealthPage({
         />
         <StatCard
           label="Environment"
-          value={
-            readiness.environmentLabel === "unknown"
-              ? "Unknown"
-              : readiness.environmentLabel
-          }
+          value={environmentLabel}
           detail="Environment reflects the latest receipt or normalized event when Apple provided it."
           tone="primary"
         />
@@ -223,7 +226,7 @@ export default async function AppleHealthPage({
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-ink-muted">
                     {readiness.latestReceipt
-                      ? `${formatOperationalTimestamp(readiness.latestReceipt.received_at)}. ${readiness.latestReceipt.notification_type}${readiness.latestReceipt.notification_subtype ? ` / ${readiness.latestReceipt.notification_subtype}` : ""}.`
+                      ? `${formatOperationalTimestamp(readiness.latestReceipt.received_at)}. ${receiptNotificationType}${receiptNotificationSubtype ? ` / ${receiptNotificationSubtype}` : ""}.`
                       : "No receipt has been stored for this app yet."}
                   </p>
                 </div>
@@ -247,7 +250,7 @@ export default async function AppleHealthPage({
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-ink-muted">
                     {readiness.latestReceipt
-                      ? `The latest receipt is marked ${readiness.latestReceipt.verification_status}. This page does not claim full Apple signature verification yet.`
+                      ? `The latest receipt is marked ${receiptVerificationStatus}. This page does not claim full Apple signature verification yet.`
                       : "Verification status becomes meaningful after the first receipt is stored."}
                   </p>
                 </div>
