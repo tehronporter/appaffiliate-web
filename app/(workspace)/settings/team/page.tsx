@@ -40,7 +40,7 @@ export default async function SettingsTeamPage({
     <SettingsPageFrame
       activeSection="team"
       title="Team settings"
-      description="Show the real workspace membership directory allowed by the current auth model, keep role changes narrow and explicit, and stay honest that invite automation still does not exist in this MVP."
+      description="Show the real workspace membership directory allowed by the current auth model, keep role changes narrow and explicit, and stay honest that invite automation still does not exist in the current product."
       actions={
         <>
           <SettingsHubActions />
@@ -49,7 +49,7 @@ export default async function SettingsTeamPage({
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Real workspace membership</StatusBadge>
+          <StatusBadge tone="success">Live workspace membership</StatusBadge>
           <StatusBadge tone={data.canManageRoles ? "primary" : "warning"}>
             {data.canManageRoles ? "Narrow role edits enabled" : "Read-only for your role"}
           </StatusBadge>
@@ -88,7 +88,7 @@ export default async function SettingsTeamPage({
             description="Sign in with an internal workspace role to review membership context."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -148,7 +148,7 @@ export default async function SettingsTeamPage({
                         <select
                           name="roleKey"
                           defaultValue={member.roleKey}
-                          className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white"
+                          className="aa-field"
                         >
                           {member.roleOptions.map((option) => (
                             <option key={option.key} value={option.key}>
@@ -160,7 +160,7 @@ export default async function SettingsTeamPage({
 
                       <button
                         type="submit"
-                        className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
+                        className="aa-button aa-button-primary"
                       >
                         Save role
                       </button>
@@ -170,7 +170,7 @@ export default async function SettingsTeamPage({
                       {member.isCurrentUser
                         ? "Self role changes are intentionally blocked so the current session cannot remove its own admin access."
                         : member.roleKey === "owner"
-                          ? "Owner role changes stay out of scope for this MVP slice."
+                          ? "Owner role changes stay out of scope for the current product."
                           : "This role is read-only under the current actor permissions."}
                     </div>
                   )}

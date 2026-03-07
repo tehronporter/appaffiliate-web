@@ -129,9 +129,9 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Operations"
+        eyebrow="Finance"
         title="Payouts"
-        description="Move approved commission items into deliberate payout tracking: group by partner, create draft batches explicitly, and keep export and paid confirmations separate."
+        description="Move approved commission items into deliberate payout tracking with clear separation between draft, exported, and paid states."
         actions={
           <>
             <ActionLink href="/commissions">Open commissions</ActionLink>
@@ -144,7 +144,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone="warning">Manual batch preparation</StatusBadge>
           <StatusBadge tone="primary">Export and paid stay separate</StatusBadge>
-          <StatusBadge>Real payout tracking only</StatusBadge>
+          <StatusBadge>Tracked payout workflow</StatusBadge>
         </div>
       </PageHeader>
 
@@ -193,6 +193,35 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         />
       </div>
 
+      <SurfaceCard>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Ready for payout tracking
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {data.stats.readyGroups} partner groups contain {data.stats.readyEntries} approved entries that have not been batched yet.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              In motion
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {data.stats.draftBatches} draft and {data.stats.exportedBatches} exported batches are still in motion.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              What this page controls
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              Create draft batches carefully, then confirm export and payment as separate finance actions.
+            </p>
+          </div>
+        </div>
+      </SurfaceCard>
+
       {!data.hasFinanceAccess ? (
         <SurfaceCard>
           <EmptyState
@@ -201,7 +230,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             description="Payout tracking is limited to owner, admin, or finance roles because it exposes real payout state."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -210,8 +239,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.22fr)_minmax(320px,0.78fr)]">
           <div className="space-y-4">
             <FilterBar
-              title="Sticky filters"
-              description="Keep payout preparation readable by separating partner-ready groups from tracked batches."
+              title="Payout filters"
+              description="Keep ready groups and tracked batches readable without losing the payout sequence."
             >
               <FilterChipLink
                 href={buildHref({
@@ -247,7 +276,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               <ListTable
                 eyebrow="Ready by partner"
                 title="Approved items waiting for payout tracking"
-                description="Use these groups to create draft batches deliberately, not automatically."
+                description="Use these groups to create draft batches deliberately, not automatically or invisibly."
               >
                 <div className="hidden grid-cols-[minmax(0,1.2fr)_120px_120px] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
                   <span>Partner</span>
@@ -289,7 +318,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                           {group.partnerName}
                         </h3>
                         <p className="mt-1 text-sm text-ink-muted">
-                          {group.appNames.join(", ") || "No app context"}
+                          {group.appNames.join(", ") || "App context unavailable"}
                         </p>
                       </div>
                       <div className="text-sm text-ink-muted">{group.entryCount}</div>
@@ -305,8 +334,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             {showBatches ? (
               <ListTable
                 eyebrow="Tracked batches"
-                title="Real payout batch register"
-                description="Draft, export, and paid states remain separate and auditable."
+                title="Payout batch register"
+                description="Draft, exported, and paid states remain separate and auditable."
               >
                 <div className="hidden grid-cols-[minmax(0,1.2fr)_120px_120px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
                   <span>Batch</span>
@@ -379,7 +408,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               title={selectedBatch.name}
               description={
                 selectedBatch.note ??
-                "Keep export and paid confirmations as separate finance actions."
+                "Keep export and paid confirmations as separate finance actions, even when the batch is already in motion."
               }
               status={
                 <StatusBadge tone={batchTone(selectedBatch.status)}>
@@ -389,7 +418,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             >
               <SectionCard
                 title="Batch summary"
-                description="This is the current payout-tracking shell for the selected finance batch."
+                description="Keep the current batch window, payout posture, and export state visible before taking the next action."
                 items={[
                   `Window: ${selectedBatch.windowLabel}.`,
                   `Entries: ${selectedBatch.entryCount}.`,
@@ -437,7 +466,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               {selectedBatch.status !== "exported" && selectedBatch.status !== "paid" ? (
                 <SurfaceCard className="bg-surface">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                    Mark exported
+                    Export confirmation
                   </p>
                   <form action={markPayoutBatchExportedAction} className="mt-5 space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -477,7 +506,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               {selectedBatch.status !== "paid" ? (
                 <SurfaceCard className="bg-surface">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                    Mark paid
+                    Payment confirmation
                   </p>
                   <form action={markPayoutBatchPaidAction} className="mt-5 space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -548,7 +577,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       type="submit"
                       className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
                     >
-                      Create payout draft
+                        Create draft batch
                     </button>
                   </div>
                 </form>
@@ -558,15 +587,15 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             <DetailPanel
               eyebrow="Payout inspector"
               title="No payout context selected"
-              description="Choose a ready group or tracked batch to inspect a real payout workflow."
-            >
-              <EmptyState
-                eyebrow="Empty inspector"
-                title="No payout item is available"
-                description="The inspector will show partner grouping or tracked batch detail once real payout records are available in the current view."
-                action={
-                  <ActionLink href="/payouts" variant="primary">
-                    Reset filters
+            description="Choose a ready group or tracked batch to inspect payout context, batch state, and the next finance action."
+          >
+            <EmptyState
+              eyebrow="Empty inspector"
+              title="No payout item is available"
+              description="The inspector shows partner grouping or tracked batch detail once a payout record matches the current view."
+              action={
+                <ActionLink href="/payouts" variant="primary">
+                  Reset filters
                   </ActionLink>
                 }
               />

@@ -94,7 +94,7 @@ export function SettingsPageFrame({
 export function SettingsHubActions() {
   return (
     <>
-      <ActionLink href="/dashboard">Back to overview</ActionLink>
+      <ActionLink href="/dashboard">Open dashboard</ActionLink>
       <ActionLink href="/onboarding" variant="primary">
         Open launch checklist
       </ActionLink>

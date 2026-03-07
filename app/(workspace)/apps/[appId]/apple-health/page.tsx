@@ -72,7 +72,7 @@ export default async function AppleHealthPage({
       title: "Normalized event visibility",
       description: readiness.latestEvent
         ? `Latest normalized event is ${readiness.latestEvent.eventType} with ${readiness.latestEvent.eventStatus} processing and ${readiness.latestEvent.attributionStatus} attribution.`
-        : "No normalized event exists yet. Receipt-only storage is still possible in this MVP when verification or decode is incomplete.",
+        : "No normalized event exists yet. Receipt-only storage is still possible in the current product when verification or decode is incomplete.",
       tone: readiness.latestEvent ? "success" : "primary",
       statusLabel: readiness.latestEvent ? "Visible" : "Receipt-only",
       actions: (
@@ -97,12 +97,12 @@ export default async function AppleHealthPage({
       <PageHeader
         eyebrow="Program"
         title={`Apple Health for ${appName}`}
-        description="Treat Apple notification intake like an operational surface. This page shows real receipt and normalized-event readiness without overstating verification or downstream automation."
+        description="Review Apple intake as an operational surface: ingest readiness, recent receipt posture, normalized event visibility, and the next action an operator should take."
         actions={
           <>
             <ActionLink href="/events">Open events</ActionLink>
             <ActionLink href="/dashboard" variant="primary">
-              Open overview
+              Open dashboard
             </ActionLink>
           </>
         }
@@ -149,7 +149,7 @@ export default async function AppleHealthPage({
           detail={
             readiness.latestEvent
               ? `${readiness.latestEvent.eventType} is visible with ${readiness.latestEvent.state} operational state.`
-              : "Receipt intake can be live before the MVP safely produces a normalized event."
+              : "Receipt intake can be live before the product safely produces a normalized event."
           }
           tone={readiness.latestEvent ? "success" : "primary"}
         />
@@ -183,11 +183,42 @@ export default async function AppleHealthPage({
         </SectionCard>
       ) : (
         <>
+          <SurfaceCard>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Readiness posture
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  {readiness.readinessDetail}
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Latest receipt
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  {readiness.latestReceipt
+                    ? `${formatOperationalTimestamp(readiness.latestReceipt.received_at)} with ${receiptVerificationStatus} verification and ${receiptProcessingStatus} processing.`
+                    : "No Apple receipt has been stored for this app yet."}
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Current product boundary
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  Receipt capture and best-effort normalization are live. Full Apple signature verification and historical reconciliation remain out of scope.
+                </p>
+              </div>
+            </div>
+          </SurfaceCard>
+
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
             <ListTable
               eyebrow="Readiness"
               title="Apple intake operational checklist"
-              description="Keep the readiness picture concrete: where receipts land, how normalization looks, and where the MVP still stops short of full verification or downstream automation."
+              description="Keep the readiness picture concrete: where receipts land, how normalization looks, and which follow-up the operator should take next."
             >
               {readinessSteps.map((step) => (
                 <InlineActionRow
@@ -203,7 +234,7 @@ export default async function AppleHealthPage({
             <SectionCard
               eyebrow="Guidance"
               title="What operators should expect here"
-              description="This surface should answer the practical questions an internal operator will ask while Apple notification work is still maturing."
+              description="This surface should answer the practical questions an internal operator will ask while Apple receipt handling remains intentionally narrow."
               items={[
                 "Has this app started receiving Apple receipts yet?",
                 "Did the latest receipt normalize into an internal event row?",
@@ -246,7 +277,7 @@ export default async function AppleHealthPage({
                 <div className="rounded-[24px] border border-border bg-surface p-5">
                   <StatusBadge tone="warning">Verification</StatusBadge>
                   <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink">
-                    MVP verification status
+                    Verification posture
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-ink-muted">
                     {readiness.latestReceipt
@@ -272,16 +303,16 @@ export default async function AppleHealthPage({
 
             <SectionCard
               eyebrow="Current state"
-              title="Current MVP boundary"
-              description="This MVP intentionally stops at receipt capture, best-effort normalization, and honest readiness visibility."
+              title="Current product boundary"
+              description="The current product intentionally stops at receipt capture, best-effort normalization, and honest readiness visibility."
             >
               <EmptyState
                 eyebrow="Still intentionally limited"
-                title="Receipt capture is real; full verification is not"
+                title="Receipt capture is real; deeper Apple validation is not"
                 description="The public Apple endpoint now stores the raw signed payload server-side, records the current verification posture, and creates normalized events only when the payload can be interpreted safely. Full cryptographic validation, historical reconciliation, attribution actions, and payout behavior remain out of scope."
                 action={
                   <>
-                    <ActionLink href="/events">Review event log</ActionLink>
+                    <ActionLink href="/events">Review events</ActionLink>
                     <ActionLink href="/settings">Open settings</ActionLink>
                   </>
                 }

@@ -107,9 +107,9 @@ export default async function PayoutBatchesPage({
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Operations"
+        eyebrow="Finance"
         title="Payout batches"
-        description="Use the batch register as the finance-safe record of what has been drafted, exported, and marked paid. This stays separate from commission review."
+        description="Use the batch register as the finance-safe record of what has been drafted, exported, and marked paid without collapsing those states together."
         actions={
           <>
             <ActionLink href="/payouts">Open payouts</ActionLink>
@@ -120,7 +120,7 @@ export default async function PayoutBatchesPage({
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Real batch register</StatusBadge>
+          <StatusBadge tone="primary">Batch register</StatusBadge>
           <StatusBadge tone="warning">Manual export confirmation</StatusBadge>
           <StatusBadge>Paid state remains explicit</StatusBadge>
         </div>
@@ -142,7 +142,7 @@ export default async function PayoutBatchesPage({
         <StatCard
           label="Draft"
           value={String(data.batches.filter((batch) => batch.status === "draft").length)}
-          detail="Draft batches are still editable payout shells."
+          detail="Draft batches are still editable payout records and not yet exported."
           tone="warning"
         />
         <StatCard
@@ -161,6 +161,35 @@ export default async function PayoutBatchesPage({
         />
       </div>
 
+      <SurfaceCard>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Batch posture
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {data.batches.length} payout batches are visible across draft, exported, and paid states.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Register purpose
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              Use this page to confirm tracked batch state, not to review commissions or create new partner groupings.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Next action
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              Confirm export first, then confirm payment only after remittance is complete.
+            </p>
+          </div>
+        </div>
+      </SurfaceCard>
+
       {!data.hasFinanceAccess ? (
         <SurfaceCard>
           <EmptyState
@@ -169,7 +198,7 @@ export default async function PayoutBatchesPage({
             description="Payout batch visibility is limited to owner, admin, or finance roles."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -178,7 +207,7 @@ export default async function PayoutBatchesPage({
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.8fr)]">
           <div className="space-y-4">
             <FilterBar
-              title="Sticky filters"
+              title="Batch filters"
               description="Read the payout register by batch state without leaving the list-and-detail flow."
             >
               <FilterChipLink
@@ -209,7 +238,7 @@ export default async function PayoutBatchesPage({
 
             <ListTable
               eyebrow="Batch register"
-              title="Real payout batches"
+              title="Payout batch register"
               description="Every row here reflects a real batch, its current tracking state, and the amount carried inside it."
             >
               <div className="hidden grid-cols-[minmax(0,1.2fr)_120px_120px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
@@ -225,7 +254,7 @@ export default async function PayoutBatchesPage({
                     <EmptyState
                       eyebrow="No matches"
                       title="No payout batches match this state"
-                      description="Reset the filter to return to the full payout register."
+                      description="Reset the current filter to return to the full payout register."
                       action={
                         <ActionLink href="/payout-batches" variant="primary">
                           Reset filters
@@ -330,7 +359,7 @@ export default async function PayoutBatchesPage({
               {selectedBatch.status !== "exported" && selectedBatch.status !== "paid" ? (
                 <SurfaceCard className="bg-surface">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                    Mark exported
+                    Export confirmation
                   </p>
                   <form action={markPayoutBatchExportedAction} className="mt-5 space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -370,7 +399,7 @@ export default async function PayoutBatchesPage({
               {selectedBatch.status !== "paid" ? (
                 <SurfaceCard className="bg-surface">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                    Mark paid
+                    Payment confirmation
                   </p>
                   <form action={markPayoutBatchPaidAction} className="mt-5 space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -401,15 +430,15 @@ export default async function PayoutBatchesPage({
             <DetailPanel
               eyebrow="Batch inspector"
               title="No batch selected"
-              description="Reset the filters to inspect a payout batch."
-            >
-              <EmptyState
-                eyebrow="Empty inspector"
-                title="No payout batch is visible"
-                description="The inspector will show tracked batch detail once a real payout batch matches the current view."
-                action={
-                  <ActionLink href="/payout-batches" variant="primary">
-                    Reset filters
+            description="Select a payout batch to review its item register, export state, and payment confirmation."
+          >
+            <EmptyState
+              eyebrow="Empty inspector"
+              title="No payout batch is visible"
+              description="The inspector shows tracked batch detail once a payout batch matches the current view."
+              action={
+                <ActionLink href="/payout-batches" variant="primary">
+                  Reset filters
                   </ActionLink>
                 }
               />

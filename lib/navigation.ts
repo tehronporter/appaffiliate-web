@@ -20,7 +20,13 @@ export const workspaceNavGroups: NavGroup[] = [
       {
         href: "/dashboard",
         label: "Dashboard",
-        description: "Performance snapshot and workspace health.",
+        description: "Workspace health, queue posture, and launch readiness.",
+        match: "exact",
+      },
+      {
+        href: "/onboarding",
+        label: "Launch checklist",
+        description: "Readiness across apps, partners, finance, and controls.",
         match: "exact",
       },
     ],
@@ -29,24 +35,19 @@ export const workspaceNavGroups: NavGroup[] = [
     title: "Program",
     items: [
       {
-        href: "/onboarding",
-        label: "Onboarding",
-        description: "Launch checklist for apps, partners, and readiness.",
-      },
-      {
         href: "/partners",
         label: "Partners",
-        description: "Directory for creators, affiliates, and owners.",
+        description: "Partner records, ownership context, and program coverage.",
       },
       {
         href: "/codes",
         label: "Codes",
-        description: "Referral code ownership and coverage.",
+        description: "Promo code ownership, status, and linked apps.",
       },
       {
         href: "/apps/demo-app/apple-health",
         label: "Apple Health",
-        description: "App-specific setup and implementation notes.",
+        description: "Apple ingest readiness and receipt health by app.",
         activePrefixes: ["/apps/"],
       },
     ],
@@ -57,32 +58,62 @@ export const workspaceNavGroups: NavGroup[] = [
       {
         href: "/events",
         label: "Events",
-        description: "Inspect raw intake, normalized records, and pipeline states.",
+        description: "Inspect event flow and attributed state safely.",
       },
       {
         href: "/unattributed",
-        label: "Needs Attribution",
-        description: "Resolve unattributed installs, trials, and purchases.",
-      },
-      {
-        href: "/commissions",
-        label: "Commissions",
-        description: "Review earnings states and payout readiness.",
-      },
-      {
-        href: "/payouts",
-        label: "Payouts",
-        description: "Batching and finance handoff.",
+        label: "Unattributed",
+        description: "Resolve items that still need partner or code attribution.",
       },
     ],
   },
   {
-    title: "Settings",
+    title: "Finance",
+    items: [
+      {
+        href: "/commissions",
+        label: "Commissions",
+        description: "Review commission state before payout preparation.",
+      },
+      {
+        href: "/payouts",
+        label: "Payouts",
+        description: "Track payout status across approved records.",
+      },
+      {
+        href: "/payout-batches",
+        label: "Payout batches",
+        description: "Group payout-ready work into exportable batches.",
+      },
+      {
+        href: "/settings/exports",
+        label: "Exports",
+        description: "Finance-ready exports and download history.",
+        match: "exact",
+        activePrefixes: ["/settings/exports"],
+      },
+    ],
+  },
+  {
+    title: "Controls",
     items: [
       {
         href: "/settings",
-        label: "Workspace Settings",
-        description: "Org-level controls, roles, and future configuration.",
+        label: "Settings",
+        description: "Organization details, team context, and rules.",
+        match: "exact",
+        activePrefixes: [
+          "/settings/organization",
+          "/settings/team",
+          "/settings/rules",
+        ],
+      },
+      {
+        href: "/settings/audit",
+        label: "Audit",
+        description: "Activity history for internal workflow changes.",
+        match: "exact",
+        activePrefixes: ["/settings/audit"],
       },
     ],
   },

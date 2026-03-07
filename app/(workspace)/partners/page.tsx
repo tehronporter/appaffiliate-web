@@ -176,16 +176,18 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
     filteredPartners[0] ??
     null;
   const banner = noticeCopy(notice);
+  const missingEmailCount = data.partners.filter((partner) => !partner.contactEmail).length;
+  const withoutCodesCount = data.partners.filter((partner) => partner.assignedCodes === 0).length;
 
   return (
     <PageContainer>
       <PageHeader
         eyebrow="Program"
         title="Partners"
-        description="Manage real workspace partners as an operational source of truth: lifecycle, contact coverage, code ownership, and the notes operators need to keep attribution review grounded."
+        description="Keep the partner directory clear enough to support attribution review, code ownership, and everyday program operations without turning it into a loose contact list."
         actions={
           <>
-            <ActionLink href="/dashboard">Back to overview</ActionLink>
+            <ActionLink href="/dashboard">Open dashboard</ActionLink>
             <ActionLink href="/codes" variant="primary">
               Review codes
             </ActionLink>
@@ -193,9 +195,9 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Real workspace directory</StatusBadge>
-          <StatusBadge tone="warning">Manual-first updates</StatusBadge>
-          <StatusBadge>Org-scoped partner records</StatusBadge>
+          <StatusBadge tone="primary">Partner directory</StatusBadge>
+          <StatusBadge tone="warning">Manual updates stay explicit</StatusBadge>
+          <StatusBadge>Organization-scoped records</StatusBadge>
         </div>
       </PageHeader>
 
@@ -213,37 +215,70 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
 
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard
+          label="Total"
+          value={String(data.partners.length)}
+          detail="Every partner record stays visible as part of the program source of truth."
+          tone="primary"
+        />
+        <StatCard
           label="Active"
           value={String(data.stats.active)}
-          detail="Live partners remain easy to review alongside their current code coverage."
+          detail="These relationships are currently live and should have clear code ownership where relevant."
           tone="success"
         />
         <StatCard
           label="Pending"
           value={String(data.stats.pending)}
-          detail="Pending records stay visible until operators are ready to move them live."
+          detail="Use pending status while a relationship is being prepared or verified."
           tone="warning"
         />
         <StatCard
-          label="Inactive"
-          value={String(data.stats.inactive)}
-          detail="Inactive relationships remain available for historical attribution context."
-          tone="primary"
-        />
-        <StatCard
-          label="Archived"
-          value={String(data.stats.archived)}
-          detail="Archived partner history remains visible without implying active ownership."
-          tone="danger"
+          label="Coverage gaps"
+          value={String(withoutCodesCount)}
+          detail={`${missingEmailCount} partners are also missing a contact email in the current view.`}
+          tone={withoutCodesCount > 0 || missingEmailCount > 0 ? "warning" : "success"}
         />
       </div>
+
+      <SurfaceCard>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Current partner posture
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {data.stats.active} active, {data.stats.pending} pending, {data.stats.inactive} inactive, and {data.stats.archived} archived partner records are visible in this workspace.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Coverage to review
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {withoutCodesCount > 0
+                ? `${withoutCodesCount} partner records still have no assigned codes.`
+                : "Every visible partner already has at least one assigned code."}
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Contact detail
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {missingEmailCount > 0
+                ? `${missingEmailCount} partner records still need a contact email.`
+                : "Every visible partner has a contact email on file."}
+            </p>
+          </div>
+        </div>
+      </SurfaceCard>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-4">
           <SectionCard
             eyebrow="Create"
             title="Add partner"
-            description="Keep partner creation narrow: basic contact detail, lifecycle state, and internal notes."
+            description="Add the minimum partner detail needed for code ownership and day-to-day program review."
           >
             <form action={createPartnerAction} className="space-y-4">
               <PartnerFormFields />
@@ -259,8 +294,8 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           </SectionCard>
 
           <FilterBar
-            title="Sticky filters"
-            description="Review partners by lifecycle state without leaving the directory flow."
+            title="Directory filters"
+            description="Keep lifecycle review narrow without leaving the list-and-detail flow."
           >
             <FilterChipLink
               href={buildHref({ status: "all", partner: selectedPartner?.id })}
@@ -297,7 +332,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           <ListTable
             eyebrow="Directory"
             title="Workspace partner records"
-            description="Use the directory to review the current state of partner coverage and assigned code volume."
+            description="Review partner coverage, contact detail, and assigned code volume in one place."
           >
             <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_90px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Partner</span>
@@ -318,7 +353,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
                     }
                     description={
                       data.hasWorkspaceAccess
-                        ? "Create the first partner or reset the lifecycle filter to widen the directory."
+                        ? "Create the first partner or widen the current lifecycle filter to return to the full directory."
                         : "An internal workspace membership is required before partner records can be read."
                     }
                     action={
@@ -371,7 +406,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
             title={selectedPartner.name}
             description={
               selectedPartner.notes ??
-              "No internal note has been added for this partner yet."
+              "No internal note has been added yet. Use this space for the minimal context operators need during review."
             }
             status={
               <StatusBadge tone={statusTone(selectedPartner.status)}>
@@ -381,7 +416,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           >
             <SectionCard
               title="Operational context"
-              description="Keep the real partner context visible before any change is made."
+              description="Keep the current relationship context visible before changing lifecycle or contact detail."
               items={[
                 `Contact email: ${selectedPartner.contactEmail ?? "No email on file"}.`,
                 `Partner type: ${selectedPartner.partnerType}.`,
@@ -396,7 +431,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
 
             <SectionCard
               title="Update partner"
-              description="Make narrow lifecycle or contact updates without expanding into portal or payout setup."
+              description="Update lifecycle, contact detail, or internal notes without expanding this page into portal or payout setup."
             >
               <form action={updatePartnerAction} className="space-y-4">
                 <input type="hidden" name="partnerId" value={selectedPartner.id} />
@@ -421,12 +456,12 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           <DetailPanel
             eyebrow="Partner detail"
             title="No partner selected"
-            description="Create a partner or reset filters to inspect a record."
+            description="Select a partner from the directory to review contact coverage, lifecycle, and linked code context."
           >
             <EmptyState
               eyebrow="Empty detail"
               title="No partner record is available"
-              description="The detail panel will show contact, lifecycle, and code coverage once a partner is available in the current view."
+              description="The detail panel shows contact, lifecycle, and assigned code context once a partner matches the current view."
               action={
                 <ActionLink href="/partners" variant="primary">
                   Reset filters

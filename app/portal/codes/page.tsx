@@ -5,25 +5,42 @@ import {
   SectionCard,
   StatCard,
   StatusBadge,
+  SurfaceCard,
 } from "@/components/admin-ui";
 import { PartnerPortalBoundary } from "@/components/partner-portal-boundary";
 import { listPortalCodes } from "@/lib/services/portal";
 
+function codeTone(status: string) {
+  if (status === "Active") {
+    return "success" as const;
+  }
+
+  if (status === "Inactive") {
+    return "neutral" as const;
+  }
+
+  return "primary" as const;
+}
+
 export default async function PartnerPortalCodesPage() {
   const data = await listPortalCodes();
   const boundary = <PartnerPortalBoundary viewer={data.viewer} />;
+  const appCount = new Set(data.codes.map((code) => code.appName)).size;
 
   return (
-    <PageContainer className="py-8 lg:py-10">
+    <PageContainer className="max-w-[1180px] py-8 lg:py-10">
       <PageHeader
         eyebrow="Partner portal"
-        title="Your codes"
+        title="Codes"
         description="Review the codes currently linked to your partner record. This view stays read-only and excludes internal admin metadata."
       >
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone="success">Read-only</StatusBadge>
           {data.viewer.isLinkedToPartner ? (
-            <StatusBadge tone="primary">{data.codes.length} codes visible</StatusBadge>
+            <>
+              <StatusBadge tone="primary">{data.codes.length} codes visible</StatusBadge>
+              <StatusBadge>{appCount} apps linked</StatusBadge>
+            </>
           ) : data.viewer.hasPortalRole ? (
             <StatusBadge tone="warning">Partner link required</StatusBadge>
           ) : data.viewer.isAuthenticated ? (
@@ -42,26 +59,57 @@ export default async function PartnerPortalCodesPage() {
             <StatCard
               label="Active codes"
               value={String(data.stats.activeCodes)}
-              detail="Active code count for the current partner mapping."
+              detail="Codes marked active for your current partner mapping."
               tone="success"
             />
             <StatCard
               label="Approved items"
               value={String(data.stats.approvedCount)}
-              detail="Approved commission items tied to your currently visible codes."
+              detail="Approved commission items tied to your visible codes."
               tone="primary"
             />
             <StatCard
               label="Paid items"
               value={String(data.stats.paidCount)}
-              detail="Paid commission items tied to your currently visible codes."
-              tone="warning"
+              detail="Paid commission items tied to your visible codes."
+              tone="success"
             />
           </div>
 
+          <SurfaceCard>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Code coverage
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  {data.codes.length > 0
+                    ? `${data.codes.length} linked codes are visible across ${appCount} app${appCount === 1 ? "" : "s"}.`
+                    : "No linked codes are visible yet."}
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Performance context
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  Attributed event and payout status appears here as lightweight context, not as an internal operations view.
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  What stays out
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  Internal ownership notes, admin-only routing context, and workspace controls stay outside the portal.
+                </p>
+              </div>
+            </div>
+          </SurfaceCard>
+
           <SectionCard
             title="Code directory"
-            description="Only safe code fields and lightweight performance context are shown here."
+            description="Only partner-safe code fields and lightweight performance context are shown here."
           >
             {data.codes.length === 0 ? (
               <EmptyState
@@ -83,7 +131,7 @@ export default async function PartnerPortalCodesPage() {
                           {code.appName} • {code.codeType}
                         </p>
                       </div>
-                      <StatusBadge tone="primary">{code.status}</StatusBadge>
+                      <StatusBadge tone={codeTone(code.status)}>{code.status}</StatusBadge>
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                       <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">

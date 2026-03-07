@@ -129,6 +129,8 @@ function buildChecklist(params: {
 }) {
   const ingestReadyApps = params.rules.appleReadiness.filter((app) => app.ingestReady).length;
   const totalApps = params.rules.appleReadiness.length;
+  const linkedCodeCount = params.rules.activeOwnedCodeCount;
+  const unassignedCodeCount = params.rules.activeUnassignedCodeCount;
   const receiptIssues =
     params.overview.monitoring.failedReceiptCount +
     params.overview.monitoring.pendingReceiptCount;
@@ -140,7 +142,7 @@ function buildChecklist(params: {
   const checklist: LaunchReadinessCheck[] = [
     {
       id: "workspace-identity",
-      title: "Organization and team readiness",
+      title: "Organization and team basics",
       status:
         params.organization.organizationName && params.team.visibleMemberCount > 0
           ? "ready"
@@ -157,7 +159,7 @@ function buildChecklist(params: {
     },
     {
       id: "apple-ingest",
-      title: "Apple ingest readiness",
+      title: "App and Apple readiness",
       status:
         totalApps === 0
           ? "blocked"
@@ -181,8 +183,31 @@ function buildChecklist(params: {
       href: params.appleHealthHref,
     },
     {
+      id: "partner-code-coverage",
+      title: "Partner and code coverage",
+      status:
+        linkedCodeCount === 0
+          ? "blocked"
+          : unassignedCodeCount > 0
+            ? "attention"
+            : "ready",
+      label:
+        linkedCodeCount === 0
+          ? "No linked codes yet"
+          : unassignedCodeCount > 0
+            ? `${linkedCodeCount} linked • ${unassignedCodeCount} unassigned`
+            : `${linkedCodeCount} linked codes`,
+      detail:
+        linkedCodeCount === 0
+          ? "Create at least one partner-linked code before launch so attribution review has clear ownership context."
+          : unassignedCodeCount > 0
+            ? `${linkedCodeCount} active codes are already linked to partners. ${unassignedCodeCount} active codes still need assignment.`
+            : "Active promo codes are already linked to partners in the current workspace view.",
+      href: "/codes",
+    },
+    {
       id: "attribution-backlog",
-      title: "Attribution queue posture",
+      title: "Attribution queue",
       status: params.overview.monitoring.queueVolume > 0 ? "attention" : "ready",
       label:
         params.overview.monitoring.queueVolume > 0
@@ -196,7 +221,7 @@ function buildChecklist(params: {
     },
     {
       id: "finance-review",
-      title: "Finance review and payout posture",
+      title: "Commission review and payout posture",
       status: !params.overview.financeSummary.hasFinanceAccess
         ? "informational"
         : financeAttentionCount > 0
@@ -228,7 +253,7 @@ function buildChecklist(params: {
     },
     {
       id: "billing",
-      title: "Billing readiness",
+      title: "Billing planning",
       status: "informational",
       label: params.billingReadiness.label,
       detail: params.billingReadiness.notes[0],

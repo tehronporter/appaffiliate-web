@@ -5,6 +5,7 @@ import {
   SectionCard,
   StatCard,
   StatusBadge,
+  SurfaceCard,
 } from "@/components/admin-ui";
 import { PartnerPortalBoundary } from "@/components/partner-portal-boundary";
 import { listPortalPerformance } from "@/lib/services/portal";
@@ -34,11 +35,11 @@ export default async function PartnerPortalPerformancePage() {
   const boundary = <PartnerPortalBoundary viewer={data.viewer} />;
 
   return (
-    <PageContainer className="py-8 lg:py-10">
+    <PageContainer className="max-w-[1180px] py-8 lg:py-10">
       <PageHeader
         eyebrow="Partner portal"
-        title="Performance and earnings"
-        description="This view shows attributed events and the current commission status for your partner account. Amounts remain status-led so pending items do not look final."
+        title="Performance"
+        description="Review attributed activity and the current commission status for your partner account. Amounts remain status-led so items under review do not look final."
       >
         <div className="flex flex-wrap gap-3">
           {data.viewer.isLinkedToPartner ? (
@@ -47,7 +48,7 @@ export default async function PartnerPortalPerformancePage() {
                 {data.stats.pendingReviewCount} under review
               </StatusBadge>
               <StatusBadge tone="primary">
-                {data.stats.includedInPayoutCount} in payout batches
+                {data.stats.includedInPayoutCount} included in payout
               </StatusBadge>
               <StatusBadge tone="success">{data.stats.paidCount} paid</StatusBadge>
             </>
@@ -73,28 +74,57 @@ export default async function PartnerPortalPerformancePage() {
               tone="success"
             />
             <StatCard
-              label="In payout"
+              label="Included in payout"
               value={String(data.stats.includedInPayoutCount)}
-              detail={`Current payout-batch value: ${data.stats.includedInPayoutValueLabel}.`}
+              detail={`Current payout value: ${data.stats.includedInPayoutValueLabel}.`}
               tone="primary"
             />
             <StatCard
               label="Paid"
               value={String(data.stats.paidCount)}
               detail={`Current paid value: ${data.stats.paidValueLabel}.`}
-              tone="warning"
+              tone="success"
             />
           </div>
 
+          <SurfaceCard>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  How to read this page
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  Under review means the item is visible but not finalized. Approved, included in payout, and paid reflect the latest safe status available to your portal account.
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Amount visibility
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  Amounts stay read-only here. If an item is still under review, it may not show a final amount yet.
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Portal boundary
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  Internal review notes, finance commentary, and admin-only reasoning stay outside the portal.
+                </p>
+              </div>
+            </div>
+          </SurfaceCard>
+
           <SectionCard
             title="Attributed activity"
-            description="Statuses stay intentionally simple: under review, approved, included in payout batch, or paid."
+            description="Statuses stay intentionally simple: under review, approved, included in payout, or paid."
           >
             {data.items.length === 0 ? (
               <EmptyState
                 eyebrow="No performance yet"
                 title="No attributed events are visible yet"
-                description="Once events are attributed to your partner record, they will appear here with their commission and payout status."
+                description="Once events are attributed to your partner record, they will appear here with their status and any safe amount visibility."
               />
             ) : (
               <div className="space-y-3">
@@ -126,7 +156,7 @@ export default async function PartnerPortalPerformancePage() {
                           Batch
                         </p>
                         <p className="mt-2 text-sm text-ink">
-                          {item.payoutBatchName ?? "Not batched"}
+                          {item.payoutBatchName ?? "Not included yet"}
                         </p>
                       </div>
                       <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
@@ -134,7 +164,7 @@ export default async function PartnerPortalPerformancePage() {
                           Batch status
                         </p>
                         <p className="mt-2 text-sm text-ink">
-                          {item.payoutBatchStatusLabel ?? "Not in payout"}
+                          {item.payoutBatchStatusLabel ?? "Not available yet"}
                         </p>
                       </div>
                     </div>

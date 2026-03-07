@@ -5,6 +5,7 @@ import {
   SectionCard,
   StatCard,
   StatusBadge,
+  SurfaceCard,
 } from "@/components/admin-ui";
 import { PartnerPortalBoundary } from "@/components/partner-portal-boundary";
 import { listPortalPayouts } from "@/lib/services/portal";
@@ -30,11 +31,11 @@ export default async function PartnerPortalPayoutsPage() {
   const boundary = <PartnerPortalBoundary viewer={data.viewer} />;
 
   return (
-    <PageContainer className="py-8 lg:py-10">
+    <PageContainer className="max-w-[1180px] py-8 lg:py-10">
       <PageHeader
         eyebrow="Partner portal"
         title="Payout history"
-        description="Review payout batches that already include your partner items. This remains a read-only history surface and does not expose admin export or remittance controls."
+        description="Review payout batches that already include your partner items. This remains a read-only history surface and does not expose internal export or remittance controls."
       >
         <div className="flex flex-wrap gap-3">
           {data.viewer.isLinkedToPartner ? (
@@ -60,11 +61,11 @@ export default async function PartnerPortalPayoutsPage() {
             <StatCard
               label="Approved"
               value={data.stats.approvedValueLabel}
-              detail="Approved items are visible even before they are placed into a payout batch."
+              detail="Approved items are visible even before they are included in payout."
               tone="primary"
             />
             <StatCard
-              label="In payout"
+              label="Included in payout"
               value={data.stats.includedInPayoutValueLabel}
               detail="These amounts are already inside payout batches but are not yet marked paid."
               tone="warning"
@@ -77,6 +78,35 @@ export default async function PartnerPortalPayoutsPage() {
             />
           </div>
 
+          <SurfaceCard>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Payout status
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  Included in payout means your items are already inside a payout batch. Paid means the batch has been marked paid.
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  History only
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  This page is for payout visibility only. It does not include internal export controls or remittance workflow details.
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Reference details
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-muted">
+                  External references appear only when a safe payout reference exists for the visible batch.
+                </p>
+              </div>
+            </div>
+          </SurfaceCard>
+
           <SectionCard
             title="Batch history"
             description="Only batches that include your partner items appear here."
@@ -85,7 +115,7 @@ export default async function PartnerPortalPayoutsPage() {
               <EmptyState
                 eyebrow="No payouts yet"
                 title="No payout batches are visible yet"
-                description="Once approved commission items are moved into payout batches, those batches will appear here with their status and amount."
+                description="Once approved commission items are included in payout batches, those batches will appear here with their status and amount."
               />
             ) : (
               <div className="space-y-3">
@@ -123,7 +153,7 @@ export default async function PartnerPortalPayoutsPage() {
                           Reference
                         </p>
                         <p className="mt-2 text-sm text-ink">
-                          {payout.externalReference ?? "No external reference"}
+                          {payout.externalReference ?? "Not available"}
                         </p>
                       </div>
                     </div>

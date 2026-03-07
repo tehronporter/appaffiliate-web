@@ -78,12 +78,12 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           Sign in
         </p>
         <h2 className="text-2xl font-semibold tracking-tight text-ink">
-          Use your Supabase email and password
+          Use your invited email and password
         </h2>
         <p className="text-sm leading-6 text-ink-muted">
-          Sign in with an existing Auth user from your Supabase project. This
-          remains a controlled access flow for internal operators and linked
-          partner users, not a public signup surface.
+          Sign in with the account already provisioned for you. AppAffiliate
+          uses the same entry point for invited internal users and linked
+          partner users.
         </p>
       </div>
 
@@ -94,7 +94,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+            className="aa-field"
             placeholder="you@example.com"
             autoComplete="email"
             required
@@ -108,7 +108,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+            className="aa-field"
             placeholder="Enter your password"
             autoComplete="current-password"
             required
@@ -125,7 +125,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         <button
           type="submit"
           disabled={isSubmitting || isCheckingSession}
-          className="w-full rounded-full border border-primary bg-primary px-4 py-3 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)] disabled:cursor-not-allowed disabled:border-border-strong disabled:bg-border-strong"
+          className="aa-button aa-button-primary w-full py-3"
         >
           {isCheckingSession
             ? "Checking session..."
@@ -136,16 +136,16 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       </form>
 
       <div className="mt-6 rounded-3xl border border-border bg-surface p-4">
-        <p className="text-sm font-medium text-ink">Current MVP note</p>
+        <p className="text-sm font-medium text-ink">Access note</p>
         <p className="mt-2 text-sm leading-6 text-ink-muted">
-          Signup and invite acceptance are intentionally skipped here to keep
-          admin and partner access focused and predictable.
+          Public signup is not enabled. If you do not already have invited
+          access, use the request-access page instead.
         </p>
       </div>
 
       <p className="mt-6 text-sm text-ink-muted">
         <Link href="/" className="font-medium text-primary hover:opacity-80">
-          Back to home
+          Back to site
         </Link>
       </p>
     </div>

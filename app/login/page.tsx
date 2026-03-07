@@ -25,25 +25,25 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <PublicShell
       eyebrow="Access"
       title="Sign in to AppAffiliate"
-      description="Use the current AppAffiliate sign-in flow: Supabase email and password auth, a synced server cookie, and route protection for both the internal workspace and the partner portal."
+      description="Invited internal users and linked partners use the same sign-in page. After sign-in, AppAffiliate routes each account into the right workspace or portal."
     >
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           label="Flow"
-          value="Email"
-          detail="Supabase email and password sign-in is the current access path for both internal and partner-linked accounts."
+          value="Invited access"
+          detail="Sign-in is available for existing internal and partner-linked accounts only."
           tone="primary"
         />
         <StatCard
           label="Protection"
           value="Server checked"
-          detail="The dashboard now redirects back here when there is no valid auth cookie."
+          detail="Protected routes redirect back here when there is no valid session."
           tone="success"
         />
         <StatCard
           label="Scope"
-          value="Internal MVP"
-          detail="Roles exist for both workspace and partner access, but signup, invites, billing, org switching, and deep account management still stay out of scope."
+          value="Separate surfaces"
+          detail="Internal workspace access and partner portal access stay distinct even though they share one sign-in page."
           tone="warning"
         />
       </div>
@@ -53,19 +53,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
         <div className="space-y-6">
           <SectionCard
-            title="What is implemented"
-            description="The auth layer stays intentionally narrow and predictable for internal and partner-facing access."
+            title="What to expect"
+            description="The access flow stays intentionally narrow and predictable."
             items={[
-              "Client-side Supabase sign-in with basic loading and error handling.",
-              "A small route handler keeps a server-readable auth cookie in sync.",
-              "Authenticated users are redirected back to the route they were trying to open.",
+              "Sign in with the invited email and password already provisioned for your account.",
+              "A synced server-side session keeps protected routes readable after login.",
+              "After sign-in, AppAffiliate sends you back to the route you were trying to open.",
             ]}
           />
           <SectionCard
-            title="What is still out of scope"
-            description="The rest of the auth model can be added later without rewriting this page."
+            title="Not yet available"
+            description="Access is still rollout-led rather than self-serve."
             items={[
-              "No signup flow or email confirmation UI yet.",
+              "No public signup or self-serve invite acceptance yet.",
               "No password reset, invites, or magic links yet.",
               "No deep account, billing, or profile management yet.",
             ]}

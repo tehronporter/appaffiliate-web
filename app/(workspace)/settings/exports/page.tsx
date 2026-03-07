@@ -12,7 +12,7 @@ export default async function SettingsExportsPage() {
   return (
     <SettingsPageFrame
       activeSection="exports"
-      title="Export settings"
+      title="Exports"
       description="Keep finance exports manual, review-safe, and directly tied to real commission and payout records. Downloading a file does not imply remittance is complete."
       actions={
         <>
@@ -22,7 +22,7 @@ export default async function SettingsExportsPage() {
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Real finance exports</StatusBadge>
+          <StatusBadge tone="primary">Finance exports</StatusBadge>
           <StatusBadge tone="warning">Manual CSV handoff</StatusBadge>
           <StatusBadge>Download and payment stay separate</StatusBadge>
         </div>
@@ -59,7 +59,7 @@ export default async function SettingsExportsPage() {
             description="The export surface remains internal and finance-first."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -80,13 +80,13 @@ export default async function SettingsExportsPage() {
                   href="/settings/exports/download?scope=commission-register"
                   className="inline-flex items-center justify-center rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
                 >
-                  Download commission CSV
+                  Download commission export
                 </a>
                 <a
                   href="/settings/exports/download?scope=payout-tracking"
                   className="inline-flex items-center justify-center rounded-full border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-ink transition hover:border-border-strong hover:bg-surface"
                 >
-                  Download payout CSV
+                  Download payout export
                 </a>
               </>
             }
@@ -137,11 +137,11 @@ export default async function SettingsExportsPage() {
 
           <SectionCard
             title="Operational boundary"
-            description="This slice is intentionally narrow: export the records, then complete remittance outside the product."
+            description="This surface is intentionally narrow: export the records, then complete remittance outside the product."
             items={[
               "CSV download does not mark a batch paid.",
               "Exported and paid remain separate payout states.",
-              "Retained file history and scheduled export jobs are intentionally not part of the current MVP.",
+              "Retained file history and scheduled export jobs are intentionally not part of the current product.",
             ]}
           />
         </div>

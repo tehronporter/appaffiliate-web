@@ -46,6 +46,14 @@ function queueTone(status: "open" | "in_review" | "resolved" | "ignored"): Statu
   return "warning";
 }
 
+function queueLabel(status: "open" | "in_review" | "resolved" | "ignored") {
+  if (status === "in_review") {
+    return "In review";
+  }
+
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
 function buildHref(params: { reason: string; item?: string }) {
   const search = new URLSearchParams();
 
@@ -106,13 +114,16 @@ export default async function UnattributedPage({
     filteredItems[0] ??
     null;
   const banner = noticeCopy(notice);
+  const suggestedMatchCount = data.items.filter(
+    (item) => item.suggestedPartnerId || item.suggestedCodeId,
+  ).length;
 
   return (
     <PageContainer>
       <PageHeader
         eyebrow="Operations"
-        title="Needs attribution"
-        description="Treat unattributed events like a first-class operational queue: show the real event context, the safest candidate match, and the minimum manual actions needed to resolve or review them."
+        title="Unattributed"
+        description="Work the unattributed queue with the minimum context needed to review ownership safely: event detail, candidate matches, and careful manual actions."
         actions={
           <>
             <ActionLink href="/events">Open events</ActionLink>
@@ -123,9 +134,9 @@ export default async function UnattributedPage({
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="warning">Reason-coded review</StatusBadge>
+          <StatusBadge tone="warning">Reason-coded queue</StatusBadge>
           <StatusBadge tone="primary">Candidate matches visible</StatusBadge>
-          <StatusBadge>Manual-first attribution</StatusBadge>
+          <StatusBadge>Manual attribution only</StatusBadge>
         </div>
       </PageHeader>
 
@@ -157,16 +168,47 @@ export default async function UnattributedPage({
         <StatCard
           label="Unresolved"
           value={String(data.stats.unresolved)}
-          detail="Manual resolution remains honest until enough context exists to attribute safely."
+          detail={`${suggestedMatchCount} items already show a suggested partner or code match.`}
           tone="danger"
         />
       </div>
 
+      <SurfaceCard>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Queue posture
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {data.stats.queueSize} items are visible, with {data.stats.inReview} already in review and {data.stats.unresolved} still unresolved.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Suggested matches
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {suggestedMatchCount > 0
+                ? `${suggestedMatchCount} queue items already show a suggested partner or code.`
+                : "No current queue items show a safe suggested match yet."}
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Review model
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              Start review first, then apply manual attribution only when the current match is credible.
+            </p>
+          </div>
+        </div>
+      </SurfaceCard>
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-4">
           <FilterBar
-            title="Sticky filters"
-            description="Review the unattributed queue by reason code without leaving the list-and-detail flow."
+            title="Queue filters"
+            description="Review the queue by reason code without leaving the list-and-detail flow."
           >
             <FilterChipLink
               href={buildHref({ reason: "all", item: selectedItem?.eventId })}
@@ -188,7 +230,7 @@ export default async function UnattributedPage({
           <ListTable
             eyebrow="Queue"
             title="Real unattributed items"
-            description="Use the queue to review real unattributed normalized events and the safest candidate match available."
+            description="Review real unattributed events and the safest candidate match available for each row."
           >
             <div className="hidden grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Event</span>
@@ -246,7 +288,7 @@ export default async function UnattributedPage({
                   </div>
                   <div className="flex justify-start md:justify-end">
                     <StatusBadge tone={queueTone(item.queueStatus)}>
-                      {item.queueStatus}
+                      {queueLabel(item.queueStatus)}
                     </StatusBadge>
                   </div>
                 </Link>
@@ -262,7 +304,7 @@ export default async function UnattributedPage({
             description={selectedItem.reasonDetail}
             status={
               <StatusBadge tone={queueTone(selectedItem.queueStatus)}>
-                {selectedItem.queueStatus}
+                {queueLabel(selectedItem.queueStatus)}
               </StatusBadge>
             }
           >
@@ -300,7 +342,7 @@ export default async function UnattributedPage({
 
             <SectionCard
               title="Review actions"
-              description="Keep actions conservative: start review, then resolve only when the selected match is credible."
+              description="Keep actions careful: start review first, then apply attribution only when the current match is credible."
             >
               <form action={markUnattributedReviewAction} className="space-y-4">
                 <input type="hidden" name="eventId" value={selectedItem.eventId} />
@@ -318,7 +360,7 @@ export default async function UnattributedPage({
                     type="submit"
                     className="rounded-full border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-ink transition hover:border-border-strong hover:bg-surface"
                   >
-                    Mark in review
+                    Start review
                   </button>
                 </div>
               </form>
@@ -372,7 +414,7 @@ export default async function UnattributedPage({
                     type="submit"
                     className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
                   >
-                    Save manual attribution
+                    Apply attribution
                   </button>
                 </div>
               </form>
@@ -382,12 +424,12 @@ export default async function UnattributedPage({
           <DetailPanel
             eyebrow="Suggested match inspector"
             title="No queue item selected"
-            description="Reset the filters to inspect an unattributed event."
+            description="Select an unattributed item to review queue context, candidate matches, and careful manual actions."
           >
             <EmptyState
               eyebrow="Empty inspector"
               title="No unattributed item is available"
-              description="The inspector will show real queue context and manual review actions once an item is available in the current view."
+              description="The inspector shows queue context and manual review actions once an item matches the current view."
               action={
                 <ActionLink href="/unattributed" variant="primary">
                   Reset filters

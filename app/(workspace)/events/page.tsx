@@ -51,6 +51,14 @@ function stateTone(state: EventOperationalState): StatusTone {
   return "warning";
 }
 
+function stateLabel(state: EventOperationalState) {
+  if (state === "failed") {
+    return "Failed";
+  }
+
+  return state.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function buildHref(params: { state: string; event?: string }) {
   const search = new URLSearchParams();
 
@@ -105,20 +113,20 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
       <PageHeader
         eyebrow="Operations"
         title="Events"
-        description="Review the real event pipeline as a system of record: what normalized successfully, what still needs attribution, and where operators should investigate without exposing raw Apple payloads in the browser."
+        description="Review the normalized event stream as an operational record: what is attributed, what still needs review, and where follow-up should happen next."
         actions={
           <>
-            <ActionLink href="/unattributed">Needs attribution</ActionLink>
-            <ActionLink href="/dashboard" variant="primary">
-              Open overview
+            <ActionLink href="/unattributed">Review queue</ActionLink>
+            <ActionLink href="/apps/demo-app/apple-health" variant="primary">
+              Apple health
             </ActionLink>
           </>
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Live normalized rows</StatusBadge>
-          <StatusBadge tone="warning">Verification boundary explicit</StatusBadge>
-          <StatusBadge>Receipt references retained server-side</StatusBadge>
+          <StatusBadge tone="primary">Normalized event register</StatusBadge>
+          <StatusBadge tone="warning">Sanitized browser view</StatusBadge>
+          <StatusBadge>Receipt references stay server-side</StatusBadge>
         </div>
       </PageHeader>
 
@@ -132,7 +140,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         <StatCard
           label="Unattributed"
           value={String(eventData.stats.unattributed)}
-          detail="These normalized rows are waiting on later attribution handling."
+          detail="These rows still need code or partner review before they become fully attributed."
           tone="warning"
         />
         <StatCard
@@ -149,11 +157,40 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         />
       </div>
 
+      <SurfaceCard>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Current event posture
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {eventData.stats.attributed} attributed, {eventData.stats.unattributed} unattributed, and {eventData.stats.failed} failed rows are visible in the current workspace view.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Review boundary
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              The browser shows only safe operational metadata and receipt references, not raw Apple payloads.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Next best follow-up
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              Use the unattributed queue for ownership review and Apple health for app-level receipt posture.
+            </p>
+          </div>
+        </div>
+      </SurfaceCard>
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
         <div className="space-y-4">
           <FilterBar
-            title="Sticky filters"
-            description="Review the real pipeline by operational state without leaving the list-and-detail flow."
+            title="Event filters"
+            description="Review the pipeline by operational state without leaving the list-and-detail flow."
           >
             <FilterChipLink
               href={buildHref({ state: "all", event: selectedEvent?.id })}
@@ -190,7 +227,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
           <ListTable
             eyebrow="Event register"
             title="Latest normalized events"
-            description="Use the list to review the current event stream produced by real normalization work."
+            description="Scan the current normalized event stream and open the inspector when a row needs closer review."
           >
             <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Event</span>
@@ -211,7 +248,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                     }
                     description={
                       eventData.hasWorkspaceAccess
-                        ? "Apple receipts that cannot be normalized safely yet will remain receipt-only until later hardening. Once a normalized row exists, it will appear here."
+                        ? "Receipt rows that cannot be normalized safely yet remain outside this browser view. Normalized rows will appear here as soon as they are available."
                         : "The workspace event register becomes available after the current user has an active organization membership."
                     }
                     action={
@@ -248,7 +285,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                     {formatOperationalTimestamp(event.receivedAt ?? event.occurredAt)}
                   </div>
                   <div className="flex justify-start md:justify-end">
-                    <StatusBadge tone={stateTone(event.state)}>{event.state}</StatusBadge>
+                    <StatusBadge tone={stateTone(event.state)}>{stateLabel(event.state)}</StatusBadge>
                   </div>
                 </Link>
               ))}
@@ -261,11 +298,11 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             eyebrow="Inspector"
             title={selectedEvent.eventType.replaceAll("_", " ")}
             description={`${selectedEvent.appName} in ${selectedEvent.environment}. Processing is ${selectedEvent.eventStatus} and attribution is ${selectedEvent.attributionStatus}.`}
-            status={
-              <StatusBadge tone={stateTone(selectedEvent.state)}>
-                {selectedEvent.state}
-              </StatusBadge>
-            }
+              status={
+                <StatusBadge tone={stateTone(selectedEvent.state)}>
+                  {stateLabel(selectedEvent.state)}
+                </StatusBadge>
+              }
           >
             <SectionCard
               title="Pipeline summary"
@@ -325,9 +362,9 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                   title={
                     selectedEvent.reasonCode
                       ? `Review ${selectedEvent.reasonCode} before moving the event downstream.`
-                      : "Keep the app readiness and attribution follow-up path visible."
+                      : "Keep app readiness and attribution follow-up visible."
                   }
-                  description="This MVP stores and normalizes receipts, but the browser only shows sanitized operational metadata rather than raw signed payload material."
+                  description="The current product stores and normalizes receipts, but the browser only shows sanitized operational metadata rather than raw signed payload material."
                   badge={
                     <StatusBadge tone={stateTone(selectedEvent.state)}>
                       {selectedEvent.state}
@@ -349,12 +386,12 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
           <DetailPanel
             eyebrow="Inspector"
             title="No event selected"
-            description="Reset the filters to inspect the latest normalized event record."
+            description="Select an event from the register to review safe metadata and operational next steps."
           >
             <EmptyState
               eyebrow="Empty inspector"
               title="Nothing matches the current event view"
-              description="The inspector will show normalized metadata and safe receipt references once an event matches the selected filters."
+              description="The inspector shows normalized metadata and safe receipt references once an event matches the current filters."
               action={
                 <ActionLink href="/events" variant="primary">
                   Reset filters

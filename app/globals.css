@@ -1,23 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #edf1f5;
-  --foreground: #152033;
-  --primary: #1e4f8f;
-  --primary-soft: #e4edf9;
+  --background: #f5f7fa;
+  --foreground: #141a24;
+  --primary: #2e53ff;
+  --primary-soft: #f4f7ff;
   --success: #2f7a62;
-  --warning: #b47921;
+  --warning: #a96e21;
   --danger: #b25154;
-  --surface: #f6f8fb;
-  --surface-muted: #eef2f7;
+  --surface: #f8fafc;
+  --surface-muted: #f2f5f8;
   --surface-elevated: #ffffff;
-  --border: #d3dbe7;
-  --border-strong: #bcc8d8;
-  --ink: #152033;
-  --ink-muted: #5f6c7f;
-  --ink-subtle: #7d8898;
-  --shadow-soft: 0 18px 40px rgba(21, 32, 51, 0.08);
-  --shadow-strong: 0 24px 64px rgba(21, 32, 51, 0.12);
+  --border: #e5eaf0;
+  --border-strong: #d2dae5;
+  --ink: #141a24;
+  --ink-muted: #5b6678;
+  --ink-subtle: #7c8798;
+  --shadow-soft: 0 18px 48px rgba(17, 24, 39, 0.05);
+  --shadow-strong: 0 24px 64px rgba(17, 24, 39, 0.08);
+  --radius-card: 24px;
+  --radius-soft: 20px;
+  --radius-pill: 999px;
 }
 
 @theme inline {
@@ -39,8 +42,8 @@
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-ink-subtle: var(--ink-subtle);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 * {
@@ -54,14 +57,126 @@ html {
 body {
   background: var(--background);
   color: var(--ink);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  line-height: 1.5;
 }
 
 a {
   text-decoration: none;
 }
 
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, white);
+}
+
 ::selection {
   background: color-mix(in srgb, var(--primary) 85%, black);
   color: #ffffff;
+}
+
+.aa-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.aa-button:hover {
+  border-color: var(--border-strong);
+}
+
+.aa-button-primary {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.aa-button-primary:hover {
+  border-color: color-mix(in srgb, var(--primary) 88%, black);
+  background: color-mix(in srgb, var(--primary) 88%, black);
+}
+
+.aa-button-secondary {
+  background: var(--surface-elevated);
+  color: var(--ink);
+}
+
+.aa-button-secondary:hover {
+  background: var(--surface);
+}
+
+.aa-button-success {
+  border-color: var(--success);
+  background: var(--success);
+  color: #ffffff;
+}
+
+.aa-button-success:hover {
+  border-color: color-mix(in srgb, var(--success) 88%, black);
+  background: color-mix(in srgb, var(--success) 88%, black);
+}
+
+.aa-button-danger {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.aa-button-danger:hover {
+  border-color: color-mix(in srgb, var(--danger) 88%, black);
+  background: color-mix(in srgb, var(--danger) 88%, black);
+}
+
+.aa-button:disabled {
+  cursor: not-allowed;
+  border-color: var(--border-strong);
+  background: var(--border-strong);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.aa-field {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  padding: 0.8rem 1rem;
+  font-size: 0.875rem;
+  color: var(--ink);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.aa-field:hover {
+  border-color: var(--border-strong);
+}
+
+.aa-field:focus {
+  border-color: var(--primary);
+  background: var(--surface-elevated);
+}
+
+.aa-field::placeholder {
+  color: var(--ink-subtle);
 }

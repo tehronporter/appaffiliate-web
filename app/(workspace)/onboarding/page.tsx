@@ -1,15 +1,17 @@
+import { redirect } from "next/navigation";
+
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
   EmptyState,
   InlineActionRow,
   ListTable,
   PageHeader,
-  SectionCard,
   StatCard,
   StatusBadge,
   SurfaceCard,
 } from "@/components/admin-ui";
-import { getLaunchReadinessData } from "@/lib/services/launch-readiness";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { getLaunchReadinessData, type LaunchReadinessCheck } from "@/lib/services/launch-readiness";
 
 function toneForStatus(status: "ready" | "attention" | "blocked" | "informational") {
   if (status === "ready") {
@@ -27,7 +29,41 @@ function toneForStatus(status: "ready" | "attention" | "blocked" | "informationa
   return "primary" as const;
 }
 
+function actionLabelForCheck(check: LaunchReadinessCheck) {
+  if (check.href.startsWith("/apps/")) {
+    return "Open Apple health";
+  }
+
+  if (check.href === "/codes") {
+    return "Review codes";
+  }
+
+  if (check.href === "/unattributed") {
+    return "Review queue";
+  }
+
+  if (check.href === "/payouts") {
+    return "Review finance";
+  }
+
+  if (check.href === "/settings/exports") {
+    return "Open exports";
+  }
+
+  if (check.href.startsWith("/settings")) {
+    return "Open settings";
+  }
+
+  return "Open";
+}
+
 export default async function OnboardingPage() {
+  const user = await getAuthenticatedUser();
+
+  if (!user) {
+    redirect("/login?redirectTo=/onboarding");
+  }
+
   const launch = await getLaunchReadinessData();
   const completionPercent =
     launch.totalChecks > 0
@@ -37,16 +73,25 @@ export default async function OnboardingPage() {
     launch.checklist.find(
       (check) => check.status === "blocked" || check.status === "attention",
     ) ?? null;
+  const needsAction = launch.checklist.filter(
+    (check) => check.status === "blocked" || check.status === "attention",
+  );
+  const readyChecks = launch.checklist.filter((check) => check.status === "ready");
+  const planningChecks = launch.checklist.filter(
+    (check) => check.status === "informational",
+  );
+  const readyApps = launch.rules?.appleReadiness.filter((app) => app.ingestReady).length ?? 0;
+  const totalApps = launch.rules?.appleReadiness.length ?? 0;
 
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Program"
+        eyebrow="Overview"
         title="Launch checklist"
-        description="Treat onboarding as the internal MVP launch checklist: confirm org and team context, verify Apple intake and queue posture, review finance state, and keep billing scoped honestly as launch planning only."
+        description="Use this page to move from workspace setup into live operating readiness. Each step is backed by current state and points to the next surface that should be reviewed."
         actions={
           <>
-            <ActionLink href="/dashboard">Back to overview</ActionLink>
+            <ActionLink href="/dashboard">Open dashboard</ActionLink>
             <ActionLink href="/settings" variant="primary">
               Open settings
             </ActionLink>
@@ -57,155 +102,280 @@ export default async function OnboardingPage() {
           <StatusBadge tone={toneForStatus(launch.overallStatus)}>
             {launch.overallLabel}
           </StatusBadge>
-          <StatusBadge tone="primary">
-            {launch.totalChecks} launch checks
-          </StatusBadge>
+          <StatusBadge tone="primary">{completionPercent}% complete</StatusBadge>
           <StatusBadge>{launch.billingReadiness.label}</StatusBadge>
         </div>
       </PageHeader>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          label="Completion"
-          value={`${completionPercent}%`}
-          detail={`${launch.completedChecks} of ${launch.totalChecks} actionable launch checks are currently calm.`}
-          tone={toneForStatus(launch.overallStatus)}
-        />
-        <StatCard
-          label="Organization"
-          value={launch.organizationName ?? "Access required"}
-          detail="Launch readiness stays org-scoped and internal-only."
-          tone="primary"
-        />
-        <StatCard
-          label="Next priority"
-          value={nextPriority?.title ?? "Smoke test docs"}
-          detail={nextPriority?.detail ?? "Core launch checks are calm. Finish the smoke pass and runbook review."}
-          tone={nextPriority ? toneForStatus(nextPriority.status) : "success"}
-        />
-      </div>
-
       {!launch.hasWorkspaceAccess ? (
-        <SectionCard
-          title="Internal workspace access required"
-          description="Launch readiness remains an internal operator surface."
-        >
+        <SurfaceCard>
           <EmptyState
             eyebrow="Access required"
-            title="Sign in with an internal workspace membership"
-            description="Launch checks cannot be evaluated until the current user has internal workspace access."
+            title="Internal workspace access is required first"
+            description="Launch readiness can only be reviewed from an internal workspace membership. Sign in with the correct role before using this checklist."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
-        </SectionCard>
+        </SurfaceCard>
       ) : (
         <>
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-            <ListTable
-              eyebrow="Launch checklist"
-              title="Move from internal setup to launch readiness"
-              description="Each checklist row is backed by current data and points to the route where the operator can verify or fix the issue."
-            >
-              {launch.checklist.map((check) => (
-                <InlineActionRow
-                  key={check.id}
-                  title={check.title}
-                  description={check.detail}
-                  badge={
-                    <StatusBadge tone={toneForStatus(check.status)}>{check.label}</StatusBadge>
-                  }
-                  actions={
-                    <ActionLink
-                      href={check.href}
-                      variant={check.status === "ready" ? "secondary" : "primary"}
-                    >
-                      Open
-                    </ActionLink>
-                  }
-                />
-              ))}
-            </ListTable>
-
-            <SectionCard
-              eyebrow="Operator notes"
-              title="Keep launch review calm"
-              description="The checklist should help an operator finish launch prep, not turn into a wizard."
-              items={[
-                "Use settings and audit to confirm org, team, and current operational health.",
-                "Use Apple health, events, and the unattributed queue to confirm intake is readable and exceptions are manageable.",
-                "Use commissions, payouts, payout batches, and exports to confirm finance posture before handoff.",
-                "Treat billing as an internal planning note only until a real billing model exists.",
-              ]}
-            />
-          </div>
-
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <SurfaceCard>
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                Launch signals
+                Progress
               </p>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[24px] border border-border bg-surface p-5">
-                  <StatusBadge tone="success">Apple intake</StatusBadge>
-                  <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink">
-                    Recent receipts
-                  </h2>
-                  <p className="mt-2 text-sm leading-6 text-ink-muted">
-                    {launch.overview.monitoring.recentReceiptCount} recent receipt rows are visible, with{" "}
-                    {launch.overview.monitoring.failedReceiptCount} failed and{" "}
-                    {launch.overview.monitoring.pendingReceiptCount} still pending.
-                  </p>
-                </div>
+              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink">
+                Move from setup into launch-ready operations
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-ink-muted">
+                The checklist favors the few items that actually affect launch posture: workspace basics, app and Apple readiness, partner and code coverage, queue health, finance review, and export access.
+              </p>
 
-                <div className="rounded-[24px] border border-border bg-surface p-5">
-                  <StatusBadge tone="warning">Queue posture</StatusBadge>
-                  <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink">
-                    Unattributed backlog
-                  </h2>
-                  <p className="mt-2 text-sm leading-6 text-ink-muted">
-                    {launch.overview.monitoring.queueVolume} items remain open and{" "}
-                    {launch.overview.monitoring.inReviewQueueCount} are already in review.
+              <div className="mt-6 rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                    Checklist progress
+                  </p>
+                  <p className="text-sm font-medium text-primary">
+                    {launch.completedChecks} of {launch.totalChecks} complete
                   </p>
                 </div>
-
-                <div className="rounded-[24px] border border-border bg-surface p-5">
-                  <StatusBadge tone="primary">Finance</StatusBadge>
-                  <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink">
-                    Review and payout state
-                  </h2>
-                  <p className="mt-2 text-sm leading-6 text-ink-muted">
-                    {launch.overview.financeSummary.hasFinanceAccess
-                      ? `${launch.overview.financeSummary.pendingReviewCount} commission reviews remain pending, with ${launch.overview.financeSummary.draftBatchCount} draft batches and ${launch.overview.financeSummary.exportedBatchCount} exported batches still open.`
-                      : "Finance-sensitive counts are hidden for the current role. Validate them with an owner, admin, or finance account during launch smoke testing."}
-                  </p>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-border">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${completionPercent}%` }}
+                  />
                 </div>
-
-                <div className="rounded-[24px] border border-border bg-surface p-5">
-                  <StatusBadge tone="primary">Billing</StatusBadge>
-                  <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink">
-                    Billing planning only
-                  </h2>
-                  <p className="mt-2 text-sm leading-6 text-ink-muted">
-                    In-product billing is not active. Launch planning should assume billing and collection remain off-platform for this MVP.
-                  </p>
-                </div>
+                <p className="mt-4 text-sm leading-7 text-ink-muted">
+                  {launch.overallDetail}
+                </p>
               </div>
             </SurfaceCard>
 
-            <SectionCard
-              eyebrow="Runbook reminders"
-              title="Keep the launch sequence explicit"
-              description="Short reminders help operators stay consistent without turning the UI into a documentation center."
-              items={[
-                "Apply database migrations in filename order before smoke testing the app.",
-                "Confirm at least one app has an ingest key and that recent receipt health is readable before accepting live Apple traffic.",
-                "Review unattributed backlog before finance review so queue growth does not surprise operators after launch.",
-                "Export finance CSVs only after reviewing commission state and payout batch posture, then confirm remittance separately.",
-              ]}
+            <SurfaceCard>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+                Next step
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink">
+                {nextPriority?.title ?? "Checklist is calm"}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-ink-muted">
+                {nextPriority?.detail ??
+                  "No blocked or attention-level checks are visible right now. Finish smoke testing and keep the checklist available as a periodic launch-readiness review."}
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {nextPriority ? (
+                  <ActionLink href={nextPriority.href} variant="primary">
+                    {actionLabelForCheck(nextPriority)}
+                  </ActionLink>
+                ) : (
+                  <ActionLink href="/dashboard" variant="primary">
+                    Open dashboard
+                  </ActionLink>
+                )}
+                <ActionLink href={launch.appleHealthHref}>Apple health</ActionLink>
+              </div>
+              <div className="mt-6 space-y-3">
+                {planningChecks.map((check) => (
+                  <div
+                    key={check.id}
+                    className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                        {check.title}
+                      </p>
+                      <StatusBadge tone="primary">{check.label}</StatusBadge>
+                    </div>
+                    <p className="mt-2 text-sm leading-7 text-ink-muted">{check.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </SurfaceCard>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-3">
+            <StatCard
+              label="Apps"
+              value={totalApps > 0 ? `${readyApps}/${totalApps} ready` : "No apps yet"}
+              detail={
+                totalApps > 0
+                  ? "Visible app lanes are checked against ingest-key coverage and recent receipt health."
+                  : "Add the first app before launch readiness can move past intake setup."
+              }
+              tone={totalApps > 0 && readyApps === totalApps ? "success" : "warning"}
             />
+            <StatCard
+              label="Codes"
+              value={
+                launch.rules
+                  ? `${launch.rules.activeOwnedCodeCount} linked`
+                  : "Access required"
+              }
+              detail={
+                launch.rules
+                  ? launch.rules.activeUnassignedCodeCount > 0
+                    ? `${launch.rules.activeUnassignedCodeCount} active codes still need partner ownership.`
+                    : "Partner-linked code coverage is already in place."
+                  : "Code coverage appears once workspace access is available."
+              }
+              tone={
+                !launch.rules || launch.rules.activeOwnedCodeCount === 0
+                  ? "warning"
+                  : launch.rules.activeUnassignedCodeCount > 0
+                    ? "warning"
+                    : "success"
+              }
+            />
+            <StatCard
+              label="Finance"
+              value={
+                launch.overview.financeSummary.hasFinanceAccess
+                  ? `${launch.overview.financeSummary.pendingReviewCount} pending`
+                  : "Role-limited"
+              }
+              detail={
+                launch.overview.financeSummary.hasFinanceAccess
+                  ? `${launch.overview.financeSummary.draftBatchCount} draft and ${launch.overview.financeSummary.exportedBatchCount} exported payout batches remain open.`
+                  : "Use an owner, admin, or finance role to validate final finance posture before launch."
+              }
+              tone="primary"
+            />
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+            <ListTable
+              eyebrow="Required before launch"
+              title="Items that still need action"
+              description="Focus here first. These checks are blocked or still need review before the workspace is fully calm."
+            >
+              {needsAction.length > 0 ? (
+                needsAction.map((check) => (
+                  <InlineActionRow
+                    key={check.id}
+                    title={check.title}
+                    description={check.detail}
+                    badge={
+                      <StatusBadge tone={toneForStatus(check.status)}>{check.label}</StatusBadge>
+                    }
+                    actions={
+                      <ActionLink href={check.href} variant="primary">
+                        {actionLabelForCheck(check)}
+                      </ActionLink>
+                    }
+                  />
+                ))
+              ) : (
+                <div className="p-5">
+                  <EmptyState
+                    eyebrow="Required before launch"
+                    title="No blocking setup items are visible"
+                    description="The checklist is calm for the current workspace view. Keep this page for verification and continue with routine review from the dashboard."
+                    action={<ActionLink href="/dashboard">Open dashboard</ActionLink>}
+                  />
+                </div>
+              )}
+            </ListTable>
+
+            <SurfaceCard>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+                Setup sequence
+              </p>
+              <div className="mt-5 space-y-3">
+                {[
+                  {
+                    title: "Workspace basics",
+                    detail: launch.organization?.organizationName
+                      ? `${launch.organization.organizationName} is visible and ${launch.team?.visibleMemberCount ?? 0} workspace members are in view.`
+                      : "Confirm organization details and internal team access first.",
+                  },
+                  {
+                    title: "App and Apple readiness",
+                    detail:
+                      totalApps > 0
+                        ? `${readyApps} of ${totalApps} visible apps are ingest-ready. Open Apple health to review recent receipts.`
+                        : "Add the first app and ingest key before launch review.",
+                  },
+                  {
+                    title: "Partners and codes",
+                    detail: launch.rules
+                      ? `${launch.rules.activeOwnedCodeCount} active codes are linked to partners, with ${launch.rules.activeUnassignedCodeCount} still unassigned.`
+                      : "Partner and code coverage appears once workspace access is confirmed.",
+                  },
+                  {
+                    title: "Finance verification",
+                    detail: launch.overview.financeSummary.hasFinanceAccess
+                      ? `${launch.overview.financeSummary.pendingReviewCount} commission reviews remain pending before payout prep is fully calm.`
+                      : "Run the final finance check with an owner, admin, or finance role.",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4"
+                  >
+                    <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                      {item.title}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-ink-muted">{item.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </SurfaceCard>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <ListTable
+              eyebrow="Already in place"
+              title="Checks that are already calm"
+              description="These areas are currently configured or operating without active follow-up in the visible workspace view."
+            >
+              {readyChecks.length > 0 ? (
+                readyChecks.map((check) => (
+                  <InlineActionRow
+                    key={check.id}
+                    title={check.title}
+                    description={check.detail}
+                    badge={<StatusBadge tone="success">{check.label}</StatusBadge>}
+                    actions={<ActionLink href={check.href}>Open</ActionLink>}
+                  />
+                ))
+              ) : (
+                <div className="p-5">
+                  <EmptyState
+                    eyebrow="Already in place"
+                    title="No checks have reached a calm state yet"
+                    description="Work through the required items first. Completed checks will collect here as launch posture improves."
+                  />
+                </div>
+              )}
+            </ListTable>
+
+            <SurfaceCard>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+                Launch planning
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink">
+                Keep the rollout sequence explicit
+              </h2>
+              <div className="mt-5 space-y-3">
+                {[
+                  "Confirm Apple ingest visibility before relying on live receipt flow.",
+                  "Review unattributed backlog before final finance review so open queue work is visible.",
+                  "Use payout batches and exports only after commission state is reviewed.",
+                  "Treat billing as planning only until a real in-product billing model exists.",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4 text-sm leading-7 text-ink-muted"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </SurfaceCard>
           </div>
         </>
       )}

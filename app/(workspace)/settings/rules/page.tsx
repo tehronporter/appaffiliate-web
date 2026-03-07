@@ -21,13 +21,13 @@ export default async function SettingsRulesPage() {
       actions={
         <>
           <SettingsHubActions />
-          <ActionLink href="/unattributed">Open needs attribution</ActionLink>
+          <ActionLink href="/unattributed">Open unattributed</ActionLink>
         </>
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Real rule context</StatusBadge>
-          <StatusBadge tone="warning">Read-only MVP posture</StatusBadge>
+          <StatusBadge tone="success">Live rule context</StatusBadge>
+          <StatusBadge tone="warning">Read-only product posture</StatusBadge>
           <StatusBadge>Apple readiness visible</StatusBadge>
         </div>
       }
@@ -63,7 +63,7 @@ export default async function SettingsRulesPage() {
             description="Sign in with an internal workspace role to inspect attribution and finance posture."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -83,7 +83,7 @@ export default async function SettingsRulesPage() {
 
           <SectionCard
             title="Read-only rule boundary"
-            description="The MVP exposes the stored configuration context here without inventing a new rule-builder surface."
+            description="The current product exposes the stored configuration context here without inventing a new rule-builder surface."
             items={data.readOnlyNotes}
           />
 

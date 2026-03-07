@@ -43,9 +43,9 @@ export default async function SettingsAuditPage() {
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Live audit trail</StatusBadge>
+          <StatusBadge tone="success">Audit trail</StatusBadge>
           <StatusBadge tone="primary">Operational monitoring</StatusBadge>
-          <StatusBadge tone="warning">No separate jobs product</StatusBadge>
+          <StatusBadge tone="warning">Lightweight jobs view</StatusBadge>
         </div>
       }
       stats={[
@@ -80,7 +80,7 @@ export default async function SettingsAuditPage() {
             description="Sign in with an internal workspace role to review activity and operational health."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -97,7 +97,7 @@ export default async function SettingsAuditPage() {
                   <EmptyState
                     eyebrow="No activity yet"
                     title="No audit entries are visible yet"
-                    description="As soon as operators change partner, code, attribution, commission, payout, export, organization, or team state, the entry stream will appear here."
+                    description="Audit history appears here as operators change partner, code, attribution, commission, payout, export, organization, or team state."
                   />
                 ) : null}
 
@@ -145,7 +145,7 @@ export default async function SettingsAuditPage() {
           <div className="grid gap-6 xl:grid-cols-2">
             <SectionCard
               title="Operational health"
-              description="Keep recent Apple ingest, queue, finance, and job signals visible without creating a broad new admin IA."
+              description="Keep recent Apple ingest, queue, finance, and job signals visible without creating a separate jobs product."
               items={[
                 `Recent Apple receipts in view: ${data.monitoring.recentReceiptCount}.`,
                 `Receipts failed in this window: ${data.monitoring.failedReceiptCount}.`,
@@ -205,7 +205,7 @@ export default async function SettingsAuditPage() {
                   <EmptyState
                     eyebrow="Calm window"
                     title="No recent job or receipt rows are visible"
-                    description="That may be normal. Use app health or the event log if you need to confirm whether intake is simply quiet."
+                    description="That may be normal. Use Apple health or the event log if you need to confirm whether intake is simply quiet."
                   />
                 ) : null}
               </div>

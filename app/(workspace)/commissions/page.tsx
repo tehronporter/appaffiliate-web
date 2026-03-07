@@ -126,16 +126,17 @@ export default async function CommissionsPage({
     filteredItems[0] ??
     null;
   const banner = noticeCopy(notice);
+  const reviewableCount = data.stats.pendingReview + data.stats.approved;
 
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Operations"
+        eyebrow="Finance"
         title="Commissions"
-        description="Review attributed events through a finance-safe commission ledger: what was attributed, what amount is being carried, and whether the item is still pending, approved, payout-tracked, or closed."
+        description="Review the commission ledger with enough context to approve, reject, and prepare payout-safe records without losing attribution detail."
         actions={
           <>
-            <ActionLink href="/unattributed">Open unattributed queue</ActionLink>
+            <ActionLink href="/unattributed">Open queue</ActionLink>
             <ActionLink href="/payouts" variant="primary">
               Open payouts
             </ActionLink>
@@ -143,9 +144,9 @@ export default async function CommissionsPage({
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Real attributed-event review</StatusBadge>
-          <StatusBadge tone="warning">Manual approval boundary</StatusBadge>
-          <StatusBadge>Audit-safe ledger states</StatusBadge>
+          <StatusBadge tone="primary">Commission ledger</StatusBadge>
+          <StatusBadge tone="warning">Manual finance approval</StatusBadge>
+          <StatusBadge>Audit-safe review states</StatusBadge>
         </div>
       </PageHeader>
 
@@ -165,7 +166,7 @@ export default async function CommissionsPage({
         <StatCard
           label="Pending review"
           value={String(data.stats.pendingReview)}
-          detail="These items still need a finance decision or a manual commission amount."
+          detail="These items still need a finance decision before they can move toward payout."
           tone="warning"
         />
         <StatCard
@@ -183,7 +184,7 @@ export default async function CommissionsPage({
         <StatCard
           label="Payout-ready"
           value={String(data.stats.payoutReady)}
-          detail="These items are already tracked inside a draft or exported batch."
+          detail="These items are already tracked inside a draft or exported payout batch."
           tone="primary"
         />
         <StatCard
@@ -202,7 +203,7 @@ export default async function CommissionsPage({
             description="Commission review is limited to owner, admin, or finance roles because this surface exposes payout-sensitive data."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -210,9 +211,38 @@ export default async function CommissionsPage({
       ) : (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_minmax(340px,0.82fr)]">
           <div className="space-y-4">
+            <SurfaceCard>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                  <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                    Review posture
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-ink-muted">
+                    {reviewableCount} ledger items are still moving through review or payout preparation.
+                  </p>
+                </div>
+                <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                  <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                    Approval boundary
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-ink-muted">
+                    Approval remains explicit. Rejected items stay visible for finance history and later audit review.
+                  </p>
+                </div>
+                <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+                  <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                    Next best follow-up
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-ink-muted">
+                    Clear pending review first, then move approved items into payout tracking without collapsing those states together.
+                  </p>
+                </div>
+              </div>
+            </SurfaceCard>
+
             <FilterBar
-              title="Sticky filters"
-              description="Keep the ledger readable by explicit finance states instead of mixing approval and payout context."
+              title="Ledger filters"
+              description="Keep review and payout states readable without leaving the list-and-detail flow."
             >
               <FilterChipLink
                 href={buildHref({ state: "all", entry: selectedItem?.id })}
@@ -260,8 +290,8 @@ export default async function CommissionsPage({
 
             <ListTable
               eyebrow="Ledger"
-              title="Real commission register"
-              description="Each row ties directly back to an attributed normalized event and the current payout posture for that event."
+              title="Commission register"
+              description="Each row ties back to an attributed event, its rule context, and the current payout posture for that event."
             >
               <div className="hidden grid-cols-[minmax(0,1.4fr)_140px_140px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
                 <span>Partner / event</span>
@@ -276,7 +306,7 @@ export default async function CommissionsPage({
                     <EmptyState
                       eyebrow="No matches"
                       title="No commission items match this view"
-                      description="Reset the filter to review the full finance queue."
+                      description="Reset the current filter to return to the full commission register."
                       action={
                         <ActionLink href="/commissions" variant="primary">
                           Reset filters
@@ -341,7 +371,7 @@ export default async function CommissionsPage({
             >
               <SectionCard
                 title="Finance context"
-                description="Keep the linked attribution and payout context visible before changing review state."
+                description="Keep attribution, rule, and payout context visible before changing review state."
                 items={[
                   `App: ${selectedItem.appName}.`,
                   `Code: ${selectedItem.codeLabel ?? "No code attached."}`,
@@ -392,7 +422,7 @@ export default async function CommissionsPage({
               {selectedItem.canApprove ? (
                 <SurfaceCard className="bg-surface">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                    Approve item
+                    Approve commission
                   </p>
                   <form action={approveCommissionAction} className="mt-5 space-y-4">
                     <input type="hidden" name="eventId" value={selectedItem.eventId} />
@@ -447,7 +477,7 @@ export default async function CommissionsPage({
               {selectedItem.canReject ? (
                 <SurfaceCard className="bg-surface">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                    Reject item
+                    Reject commission
                   </p>
                   <form action={rejectCommissionAction} className="mt-5 space-y-4">
                     <input type="hidden" name="eventId" value={selectedItem.eventId} />
@@ -475,18 +505,18 @@ export default async function CommissionsPage({
               ) : null}
             </DetailPanel>
           ) : (
-            <DetailPanel
-              eyebrow="Ledger inspector"
-              title="No commission item selected"
-              description="Reset the filters to inspect a commission item."
-            >
-              <EmptyState
-                eyebrow="Empty inspector"
-                title="No commission item is available"
-                description="The inspector will show real attribution, rule, and payout context once an item matches the current view."
-                action={
-                  <ActionLink href="/commissions" variant="primary">
-                    Reset filters
+          <DetailPanel
+            eyebrow="Ledger inspector"
+            title="No commission item selected"
+            description="Select a commission item to review finance context, rule logic, and payout posture."
+          >
+            <EmptyState
+              eyebrow="Empty inspector"
+              title="No commission item is available"
+              description="The inspector shows attribution, rule, and payout context once a commission item matches the current view."
+              action={
+                <ActionLink href="/commissions" variant="primary">
+                  Reset filters
                   </ActionLink>
                 }
               />

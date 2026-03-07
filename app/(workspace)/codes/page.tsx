@@ -53,6 +53,10 @@ function statusTone(status: PromoCodeStatus): StatusTone {
   return "danger";
 }
 
+function statusLabel(status: PromoCodeStatus) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
 function buildHref(params: {
   status: string;
   ownership: string;
@@ -228,25 +232,27 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
     filteredCodes[0] ??
     null;
   const banner = noticeCopy(notice);
+  const unassignedCount = data.codes.filter((code) => !code.ownerAssigned).length;
+  const appCoverageCount = new Set(data.codes.map((code) => code.appId)).size;
 
   return (
     <PageContainer>
       <PageHeader
         eyebrow="Program"
         title="Codes"
-        description="Treat codes as the manual-first attribution register: which app they belong to, whether a partner owns them, and where duplicate active coverage should trigger operator review."
+        description="Use codes as the attribution register for app coverage, partner ownership, and duplicate-active review."
         actions={
           <>
             <ActionLink href="/partners">Open partners</ActionLink>
             <ActionLink href="/unattributed" variant="primary">
-              Review unattributed
+              Review queue
             </ActionLink>
           </>
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Real promo code register</StatusBadge>
-          <StatusBadge tone="warning">Duplicate active warnings</StatusBadge>
+          <StatusBadge tone="primary">Promo code register</StatusBadge>
+          <StatusBadge tone="warning">Duplicate-active review</StatusBadge>
           <StatusBadge>App and partner scoped</StatusBadge>
         </div>
       </PageHeader>
@@ -267,36 +273,69 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
         <StatCard
           label="Active"
           value={String(data.stats.active)}
-          detail="Active codes stay visible because they anchor attribution coverage."
+          detail="Active codes stay visible because they anchor attribution coverage and partner ownership."
           tone="success"
         />
         <StatCard
           label="Assigned"
           value={`${data.stats.assigned}/${data.codes.length}`}
-          detail="Ownership should stay explicit whenever a code already belongs to a partner."
+          detail={`${unassignedCount} codes are still unassigned in the current workspace view.`}
           tone="primary"
         />
         <StatCard
           label="Duplicate active"
           value={String(data.stats.duplicateActive)}
-          detail="Duplicate active lanes should stand out before they create attribution ambiguity."
+          detail={`Codes currently span ${appCoverageCount} apps in the visible register.`}
           tone="warning"
         />
       </div>
+
+      <SurfaceCard>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Ownership posture
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {unassignedCount > 0
+                ? `${unassignedCount} codes still need a partner assignment.`
+                : "Every visible code already has partner ownership assigned."}
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              App coverage
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {appCoverageCount} apps are represented in the current code register.
+            </p>
+          </div>
+          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
+            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Duplicate-active risk
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-muted">
+              {data.stats.duplicateActive > 0
+                ? `${data.stats.duplicateActive} active code lanes still need review for overlap.`
+                : "No duplicate-active code lanes are visible right now."}
+            </p>
+          </div>
+        </div>
+      </SurfaceCard>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-4">
           <SectionCard
             eyebrow="Create"
             title="Add code"
-            description="Create a code against an app, with optional partner ownership, without inventing a broader code system."
+            description="Create the minimum code record needed for app coverage and partner attribution."
           >
             {data.appOptions.length === 0 ? (
               <EmptyState
                 eyebrow="Apps required"
                 title="Create an app before adding codes"
                 description="Codes must belong to a workspace app, so this form becomes useful after at least one app record exists."
-                action={<ActionLink href="/dashboard">Open overview</ActionLink>}
+                action={<ActionLink href="/dashboard">Open dashboard</ActionLink>}
               />
             ) : (
               <form action={createPromoCodeAction} className="space-y-4">
@@ -317,8 +356,8 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
           </SectionCard>
 
           <FilterBar
-            title="Sticky filters"
-            description="Review codes by lifecycle and ownership without leaving the list-and-detail flow."
+            title="Register filters"
+            description="Review lifecycle and ownership without losing the list-and-detail flow."
           >
             <FilterChipLink
               href={buildHref({ status: "all", ownership, code: selectedCode?.id })}
@@ -373,7 +412,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
           <ListTable
             eyebrow="Register"
             title="Workspace codes"
-            description="Use the code register as the real source of truth for app/partner coverage and manual attribution review."
+            description="Review app coverage, partner ownership, and duplicate-active context in one register."
           >
             <div className="hidden grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Code</span>
@@ -394,7 +433,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
                     }
                     description={
                       data.hasWorkspaceAccess
-                        ? "Create the first code or reset filters to widen the register."
+                        ? "Create the first code or widen the current filters to return to the full register."
                         : "An internal workspace membership is required before code records can be read."
                     }
                     action={
@@ -437,7 +476,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
                   <div className="text-sm text-ink-muted">{code.appName}</div>
 
                   <div className="flex justify-start md:justify-end">
-                    <StatusBadge tone={statusTone(code.status)}>{code.status}</StatusBadge>
+                    <StatusBadge tone={statusTone(code.status)}>{statusLabel(code.status)}</StatusBadge>
                   </div>
                 </Link>
               ))}
@@ -456,7 +495,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
             status={
               <div className="flex flex-wrap gap-2">
                 <StatusBadge tone={statusTone(selectedCode.status)}>
-                  {selectedCode.status}
+                  {statusLabel(selectedCode.status)}
                 </StatusBadge>
                 {selectedCode.duplicateActive ? (
                   <StatusBadge tone="danger">Duplicate active</StatusBadge>
@@ -477,7 +516,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
 
             <SectionCard
               title="Update code"
-              description="Make narrow operational changes to status, app, ownership, or channel metadata."
+              description="Update status, app, ownership, or channel context without turning this page into a broad code management system."
             >
               <form action={updatePromoCodeAction} className="space-y-4">
                 <input type="hidden" name="promoCodeId" value={selectedCode.id} />
@@ -506,12 +545,12 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
           <DetailPanel
             eyebrow="Code detail"
             title="No code selected"
-            description="Create a code or reset filters to inspect a record."
+            description="Select a code from the register to review ownership, app context, and duplicate-active risk."
           >
             <EmptyState
               eyebrow="Empty detail"
               title="No code record is available"
-              description="The detail panel will show the app, owner, and duplicate-active context once a code is available in the current view."
+              description="The detail panel shows app, owner, and duplicate-active context once a code matches the current view."
               action={
                 <ActionLink href="/codes" variant="primary">
                   Reset filters

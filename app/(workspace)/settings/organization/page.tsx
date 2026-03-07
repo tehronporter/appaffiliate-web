@@ -40,7 +40,7 @@ export default async function SettingsOrganizationPage({
     <SettingsPageFrame
       activeSection="organization"
       title="Organization settings"
-      description="Keep the organization layer narrow and trustworthy: edit the real display name, show the current ops defaults that are only derived elsewhere, and be explicit about what this MVP still does not store."
+      description="Keep the organization layer narrow and trustworthy: edit the real display name, show the current ops defaults that are only derived elsewhere, and be explicit about what the current product still does not store."
       actions={
         <>
           <SettingsHubActions />
@@ -49,7 +49,7 @@ export default async function SettingsOrganizationPage({
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Real org profile read</StatusBadge>
+          <StatusBadge tone="success">Live organization profile</StatusBadge>
           <StatusBadge tone={data.canManageOrganization ? "primary" : "warning"}>
             {data.canManageOrganization ? "Owner/admin edit access" : "Read-only for your role"}
           </StatusBadge>
@@ -90,7 +90,7 @@ export default async function SettingsOrganizationPage({
             description="Sign in with an internal workspace role to read or manage the organization profile."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -111,7 +111,7 @@ export default async function SettingsOrganizationPage({
                   type="text"
                   defaultValue={data.organizationName ?? ""}
                   disabled={!data.canManageOrganization}
-                  className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
+                  className="aa-field disabled:cursor-not-allowed disabled:opacity-70"
                 />
               </label>
 
@@ -123,7 +123,7 @@ export default async function SettingsOrganizationPage({
                 <button
                   type="submit"
                   disabled={!data.canManageOrganization}
-                  className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)] disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-muted disabled:text-ink-muted"
+                  className="aa-button aa-button-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-muted disabled:text-ink-muted"
                 >
                   Save organization settings
                 </button>

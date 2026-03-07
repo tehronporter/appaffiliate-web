@@ -30,22 +30,16 @@ export function PublicShell({
               AppAffiliate
             </Link>
             <p className="mt-2 text-sm text-ink-muted">
-              Admin operations shell for affiliate programs and attribution.
+              Sign in for invited workspace access or linked partner portal access.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link
-              href="/login"
-              className="rounded-full border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-ink transition hover:border-border-strong hover:bg-surface"
-            >
-              Login
+            <Link href="/request-access" className="aa-button aa-button-secondary">
+              Request access
             </Link>
-            <Link
-              href="/dashboard"
-              className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
-            >
-              Open workspace
+            <Link href="/login" className="aa-button aa-button-primary">
+              Sign in
             </Link>
           </div>
         </div>

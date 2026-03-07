@@ -33,7 +33,7 @@ function sectionStatus(
 
   if (sectionId === "rules") {
     return {
-      label: data.activeRuleCount > 0 ? "Real config context" : "Read-only posture",
+      label: data.activeRuleCount > 0 ? "Live config context" : "Read-only posture",
       tone: data.activeRuleCount > 0 ? ("success" as const) : ("warning" as const),
     };
   }
@@ -77,7 +77,7 @@ export default async function SettingsPage() {
     <SettingsPageFrame
       activeSection="overview"
       title="Workspace settings"
-      description="Use settings as an internal control surface: real organization profile edits where they are safe, read-only policy context where the MVP is intentionally narrow, and one place to see whether operations look healthy."
+      description="Use settings as an internal control surface: real organization profile edits where they are safe, read-only policy context where the product stays intentionally narrow, and one place to see whether operations look healthy."
       actions={<SettingsHubActions />}
       stats={[
         {
@@ -111,7 +111,7 @@ export default async function SettingsPage() {
             description="Partner portal identities and non-member sessions should not inherit internal settings, audit, or monitoring access."
             action={
               <ActionLink href="/dashboard" variant="primary">
-                Return to overview
+                Open dashboard
               </ActionLink>
             }
           />
@@ -157,7 +157,7 @@ export default async function SettingsPage() {
                   : "Finance-only counts stay hidden until an owner, admin, or finance role opens the surface.",
                 data.financeSummary.hasFinanceAccess
                   ? `Draft and exported payout batches: ${data.financeSummary.draftBatchCount} draft, ${data.financeSummary.exportedBatchCount} exported.`
-                  : "Payout batch counts stay on the finance side of the MVP role boundary.",
+                  : "Payout batch counts stay on the finance side of the current role boundary.",
               ]}
               actions={<ActionLink href="/settings/audit">Open audit and monitoring</ActionLink>}
             />

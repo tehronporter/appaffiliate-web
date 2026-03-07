@@ -14,10 +14,13 @@ export type StatusTone =
 
 const badgeToneClasses: Record<StatusTone, string> = {
   neutral: "border-border bg-surface text-ink-muted",
-  primary: "border-primary bg-primary-soft text-primary",
-  success: "border-success bg-success-soft text-success",
-  warning: "border-warning bg-warning-soft text-warning",
-  danger: "border-danger bg-danger-soft text-danger",
+  primary: "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary",
+  success:
+    "border-[color:color-mix(in_srgb,var(--color-success)_18%,white)] bg-success-soft text-success",
+  warning:
+    "border-[color:color-mix(in_srgb,var(--color-warning)_18%,white)] bg-warning-soft text-warning",
+  danger:
+    "border-[color:color-mix(in_srgb,var(--color-danger)_18%,white)] bg-danger-soft text-danger",
 };
 
 type SurfaceCardProps = {
@@ -29,7 +32,7 @@ export function SurfaceCard({ children, className }: SurfaceCardProps) {
   return (
     <div
       className={joinClasses(
-        "rounded-[28px] border border-border bg-surface-elevated p-6 shadow-[var(--shadow-soft)]",
+        "rounded-[var(--radius-card)] border border-border bg-[rgba(255,255,255,0.94)] p-6 shadow-[var(--shadow-soft)] sm:p-7",
         className,
       )}
     >
@@ -56,7 +59,7 @@ export function SectionHeader({
   return (
     <div
       className={joinClasses(
-        "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
+        "flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between",
         className,
       )}
     >
@@ -66,11 +69,11 @@ export function SectionHeader({
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+        <h2 className="mt-2 text-[1.8rem] font-semibold tracking-[-0.03em] text-ink sm:text-[2.15rem]">
           {title}
         </h2>
         {description ? (
-          <p className="mt-3 text-sm leading-7 text-ink-muted sm:text-base">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-ink-muted sm:text-base">
             {description}
           </p>
         ) : null}
@@ -125,7 +128,7 @@ export function StatusBadge({
   return (
     <span
       className={joinClasses(
-        "inline-flex rounded-full border px-3 py-1 text-xs font-medium",
+        "inline-flex rounded-full border px-3.5 py-1 text-xs font-medium tracking-[-0.01em]",
         badgeToneClasses[tone],
         className,
       )}
@@ -151,10 +154,10 @@ export function StatCard({
   return (
     <SurfaceCard>
       <StatusBadge tone={tone}>{label}</StatusBadge>
-      <p className="mt-4 text-3xl font-semibold tracking-tight text-ink">
+      <p className="mt-5 text-[2rem] font-semibold tracking-[-0.04em] text-ink sm:text-[2.15rem]">
         {value}
       </p>
-      <p className="mt-3 text-sm leading-6 text-ink-muted">{detail}</p>
+      <p className="mt-3 text-sm leading-7 text-ink-muted">{detail}</p>
     </SurfaceCard>
   );
 }
@@ -192,7 +195,7 @@ export function SectionCard({
           {items.map((item) => (
             <li
               key={item}
-              className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm leading-6 text-ink-muted"
+              className="rounded-[18px] border border-border bg-surface-muted px-4 py-3 text-sm leading-7 text-ink-muted"
             >
               {item}
             </li>
@@ -223,7 +226,7 @@ export function EmptyState({
   return (
     <div
       className={joinClasses(
-        "rounded-[24px] border border-dashed border-border-strong bg-surface px-5 py-6",
+        "rounded-[22px] border border-border bg-surface-muted px-5 py-6",
         className,
       )}
     >
@@ -232,10 +235,10 @@ export function EmptyState({
           {eyebrow}
         </p>
       ) : null}
-      <h3 className="mt-2 text-lg font-semibold tracking-tight text-ink">
+      <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-ink">
         {title}
       </h3>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-muted">
+      <p className="mt-2 max-w-2xl text-sm leading-7 text-ink-muted">
         {description}
       </p>
       {action ? <div className="mt-4 flex flex-wrap gap-3">{action}</div> : null}
@@ -269,7 +272,7 @@ export function ListTable({
         actions={actions}
       />
 
-      <div className="mt-6 overflow-hidden rounded-[24px] border border-border bg-surface">
+      <div className="mt-6 overflow-hidden rounded-[20px] border border-border bg-[#FBFCFD]">
         {children}
       </div>
     </SurfaceCard>
@@ -294,16 +297,16 @@ export function InlineActionRow({
   return (
     <div
       className={joinClasses(
-        "flex flex-col gap-4 border-b border-border px-4 py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-4 border-b border-border px-5 py-[18px] last:border-b-0 sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-semibold text-ink">{title}</p>
+          <p className="text-sm font-semibold tracking-[-0.01em] text-ink">{title}</p>
           {badge}
         </div>
-        <p className="mt-1 text-sm leading-6 text-ink-muted">{description}</p>
+        <p className="mt-1.5 text-sm leading-7 text-ink-muted">{description}</p>
       </div>
 
       {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
@@ -327,7 +330,7 @@ export function FilterBar({
   return (
     <SurfaceCard
       className={joinClasses(
-        "sticky top-[88px] z-10 border-border bg-[color:color-mix(in_srgb,var(--color-surface-elevated)_94%,white)] backdrop-blur",
+        "sticky top-[92px] z-10 border-border bg-[rgba(255,255,255,0.94)] backdrop-blur",
         className,
       )}
     >
@@ -364,10 +367,10 @@ export function FilterChipLink({
     <Link
       href={href}
       className={joinClasses(
-        "inline-flex rounded-full border px-3 py-1.5 text-xs font-medium transition",
+        "inline-flex rounded-full border px-3.5 py-1.5 text-xs font-medium transition",
         active
-          ? "border-primary bg-primary text-white"
-          : "border-border bg-surface text-ink-muted hover:border-border-strong hover:bg-surface-elevated hover:text-ink",
+          ? "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary"
+          : "border-border bg-white text-ink-muted hover:border-border-strong hover:bg-surface hover:text-ink",
       )}
     >
       {children}
@@ -393,7 +396,7 @@ export function DetailPanel({
   className,
 }: DetailPanelProps) {
   return (
-    <SurfaceCard className={joinClasses("sticky top-[88px]", className)}>
+    <SurfaceCard className={joinClasses("sticky top-[92px]", className)}>
       <div className="flex flex-col gap-4 border-b border-border pb-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -402,7 +405,7 @@ export function DetailPanel({
                 {eyebrow}
               </p>
             ) : null}
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+            <h2 className="mt-2 text-[1.75rem] font-semibold tracking-[-0.03em] text-ink">
               {title}
             </h2>
           </div>

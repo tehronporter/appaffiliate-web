@@ -12,7 +12,7 @@ export function PartnerPortalBoundary({ viewer }: PartnerPortalBoundaryProps) {
       <EmptyState
         eyebrow="Sign in required"
         title="Sign in to open the partner portal"
-        description="Use the same AppAffiliate login flow, then return to the portal to view your own codes, performance, and payout status."
+        description="Sign in with your invited AppAffiliate account, then return to the portal to review your own codes, performance, and payout status."
         action={
           <ActionLink href="/login?redirectTo=/portal" variant="primary">
             Sign in
@@ -25,9 +25,9 @@ export function PartnerPortalBoundary({ viewer }: PartnerPortalBoundaryProps) {
   if (!viewer.hasPortalRole) {
     return (
       <EmptyState
-        eyebrow="Portal boundary"
-        title="This account is not using the partner portal role"
-        description="Internal workspace users stay in the admin app. Partner portal views are limited to linked partner_user accounts."
+        eyebrow="Portal access"
+        title="This account uses the internal workspace"
+        description="Partner portal views are limited to linked partner accounts. Internal workspace users should continue in the admin app."
         action={
           <ActionLink href="/dashboard" variant="primary">
             Open admin workspace
@@ -42,7 +42,7 @@ export function PartnerPortalBoundary({ viewer }: PartnerPortalBoundaryProps) {
       <EmptyState
         eyebrow="Partner access"
         title="No partner profile is linked yet"
-        description="A partner_user membership exists, but the matching partner profile has not been attached to this auth user yet."
+        description="This account has partner portal access, but the matching partner profile has not been linked yet. Your AppAffiliate contact can finish setup."
       />
     );
   }
@@ -52,7 +52,7 @@ export function PartnerPortalBoundary({ viewer }: PartnerPortalBoundaryProps) {
       <EmptyState
         eyebrow="Partner mapping"
         title="Your portal link is still being finalized"
-        description="This account is authenticated for the partner portal, but it has not been mapped to a specific partner record yet. Once the link is added, portal data will appear automatically."
+        description="This account is ready for the partner portal, but it has not been mapped to a specific partner record yet. Once the link is added, your portal data will appear automatically."
       />
     );
   }

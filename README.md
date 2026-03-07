@@ -50,6 +50,11 @@ npm run lint
 
 ## Operator Docs
 
+- [Phase A brand translation](docs/phase-a-brand-translation.md)
+- [Phase B information architecture](docs/phase-b-information-architecture.md)
+- [Phase C messaging and copy strategy](docs/phase-c-messaging-copy-strategy.md)
+- [Phase J design system notes](docs/phase-j-design-system-notes.md)
+- [Phase L launch design review](docs/phase-l-launch-design-review.md)
 - [Final MVP handoff](docs/final-mvp-handoff.md)
 - [Final MVP limitations](docs/final-mvp-limitations.md)
 - [Phase 2 launch runbook](docs/phase-2-launch-runbook.md)
