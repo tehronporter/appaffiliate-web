@@ -145,7 +145,7 @@ type ProcessAppleNotificationReceiptInput = {
 
 type ProcessAppleNotificationReceiptResult = {
   requestId: string;
-  app: Pick<AppleIngestApp, "id" | "slug" | "name" | "organization_id">;
+  app: Pick<AppleIngestApp, "id" | "slug" | "name">;
   receipt: Pick<
     AppleReceiptRecord,
     | "id"
@@ -762,7 +762,6 @@ export async function processAppleNotificationReceipt(
       id: app.id,
       slug: app.slug,
       name: app.name,
-      organization_id: app.organization_id,
     },
     receipt: {
       id: receipt.id,

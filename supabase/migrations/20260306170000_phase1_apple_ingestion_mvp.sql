@@ -1,6 +1,8 @@
--- Phase 1: Apple ingestion MVP slice.
+-- Apple ingestion MVP slice after the completed foundation and UI phases.
 -- Add only the fields needed for public Apple notification intake, durable
 -- receipt storage, idempotent normalization, and app-scoped readiness views.
+
+create extension if not exists pgcrypto;
 
 alter table public.apps
   add column if not exists ingest_key text;
