@@ -2,11 +2,25 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 
-function getRequiredEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "SUPABASE_SERVICE_ROLE_KEY") {
-  const value = process.env[name];
+function getRequiredServiceSupabaseUrl() {
+  const value = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+    throw new Error(
+      "Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL",
+    );
+  }
+
+  return value;
+}
+
+function getRequiredServiceRoleKey() {
+  const value = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!value) {
+    throw new Error(
+      "Missing required environment variable: SUPABASE_SERVICE_ROLE_KEY",
+    );
   }
 
   return value;
@@ -14,8 +28,8 @@ function getRequiredEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "SUPABASE_SERVICE_ROL
 
 export function createServiceSupabaseClient() {
   return createClient(
-    getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    getRequiredServiceSupabaseUrl(),
+    getRequiredServiceRoleKey(),
     {
       auth: {
         autoRefreshToken: false,
