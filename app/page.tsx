@@ -6,6 +6,7 @@ import {
   MarketingComparison,
   MarketingCtaPanel,
   MarketingHero,
+  MarketingHeroVisual,
   MarketingSection,
   MarketingSectionHeading,
   MarketingSteps,
@@ -160,6 +161,13 @@ export default function Home() {
             </>
           }
         >
+          <MarketingHeroVisual
+            src="/branding/appaffiliate3d.png"
+            alt="AppAffiliate 3D brand mark"
+          />
+        </MarketingHero>
+
+        <MarketingSection className="border-b border-border bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)]">
           <MarketingComparison
             eyebrow="Old way vs AppAffiliate"
             title="A better model than paying for promotion and hoping it converts."
@@ -177,7 +185,7 @@ export default function Home() {
               "Reward creators based on real performance, not hype alone.",
             ]}
           />
-        </MarketingHero>
+        </MarketingSection>
 
         <MarketingSection>
           <MarketingSectionHeading

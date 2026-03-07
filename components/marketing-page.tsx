@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -51,7 +52,7 @@ export function MarketingHero({
 }: MarketingHeroProps) {
   return (
     <section className="border-b border-border bg-[radial-gradient(circle_at_top_left,rgba(46,83,255,0.14),transparent_36%),linear-gradient(180deg,#fcfdff_0%,#ffffff_100%)]">
-      <div className="mx-auto grid max-w-[var(--marketing-max-width)] gap-8 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:gap-10 lg:px-12 lg:py-24">
+      <div className="mx-auto grid max-w-[var(--marketing-max-width)] gap-10 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[minmax(0,1.02fr)_minmax(360px,0.98fr)] lg:items-center lg:gap-12 lg:px-12 lg:py-24">
         <div className="max-w-3xl">
           <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-primary">
             {eyebrow}
@@ -76,6 +77,38 @@ export function MarketingHero({
         ) : null}
       </div>
     </section>
+  );
+}
+
+type MarketingHeroVisualProps = {
+  src: string;
+  alt: string;
+  className?: string;
+};
+
+export function MarketingHeroVisual({
+  src,
+  alt,
+  className,
+}: MarketingHeroVisualProps) {
+  return (
+    <div
+      className={joinClasses(
+        "relative mx-auto flex w-full max-w-[540px] items-center justify-center rounded-[32px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[radial-gradient(circle_at_top,rgba(46,83,255,0.12),transparent_62%),linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(244,247,255,0.94)_100%)] p-6 shadow-[var(--shadow-strong)] sm:p-8 lg:ml-auto lg:mr-0 lg:p-10",
+        className,
+      )}
+    >
+      <div className="pointer-events-none absolute inset-x-[10%] bottom-7 h-10 rounded-full bg-[radial-gradient(circle,rgba(19,41,123,0.18)_0%,rgba(19,41,123,0.04)_58%,transparent_78%)] blur-2xl" />
+      <Image
+        src={src}
+        alt={alt}
+        width={2000}
+        height={2000}
+        priority
+        sizes="(min-width: 1280px) 520px, (min-width: 1024px) 42vw, (min-width: 640px) 520px, 88vw"
+        className="relative z-10 h-auto w-full max-w-[460px] drop-shadow-[0_24px_40px_rgba(46,83,255,0.12)]"
+      />
+    </div>
   );
 }
 
@@ -180,33 +213,39 @@ export function MarketingComparison({
 }: MarketingComparisonProps) {
   return (
     <div className="rounded-[28px] border border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-[linear-gradient(180deg,#ffffff_0%,#f6f9ff_100%)] p-6 shadow-[var(--shadow-strong)] sm:p-8">
-      {eyebrow ? (
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
-          {eyebrow}
-        </p>
-      ) : null}
-      <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink sm:text-3xl">
-        {title}
-      </h3>
-      <p className="mt-3 max-w-3xl text-sm leading-7 text-ink-muted sm:text-base">
-        {description}
-      </p>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
+        <div className="max-w-xl">
+          {eyebrow ? (
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink sm:text-3xl">
+            {title}
+          </h3>
+          <p className="mt-3 text-sm leading-7 text-ink-muted sm:text-base">
+            {description}
+          </p>
+        </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <MarketingCard
-          title={leftTitle}
-          description="High spend lands first, then founders hope the campaign turns into real subscriptions."
-          tone="soft"
-        >
-          <MarketingList items={leftItems} />
-        </MarketingCard>
-        <MarketingCard
-          title={rightTitle}
-          description="Tracking, review, and payouts stay tied to the real conversion path so both sides can trust what happened."
-          tone="contrast"
-        >
-          <MarketingList items={rightItems} />
-        </MarketingCard>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <MarketingCard
+            title={leftTitle}
+            description="High spend lands first, then founders hope the campaign turns into real subscriptions."
+            tone="soft"
+            className="h-full"
+          >
+            <MarketingList items={leftItems} />
+          </MarketingCard>
+          <MarketingCard
+            title={rightTitle}
+            description="Tracking, review, and payouts stay tied to the real conversion path so both sides can trust what happened."
+            tone="contrast"
+            className="h-full"
+          >
+            <MarketingList items={rightItems} />
+          </MarketingCard>
+        </div>
       </div>
     </div>
   );

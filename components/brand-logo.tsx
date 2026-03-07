@@ -9,19 +9,19 @@ type BrandLogoSize =
   | "portal";
 
 const logoSizeClasses: Record<BrandLogoSize, string> = {
-  "marketing-header": "w-[148px] sm:w-[164px]",
-  "marketing-footer": "w-[176px] sm:w-[192px]",
-  "public-header": "w-[148px] sm:w-[160px]",
-  workspace: "w-[138px]",
-  portal: "w-[148px] sm:w-[156px]",
+  "marketing-header": "w-[138px] sm:w-[152px]",
+  "marketing-footer": "w-[164px] sm:w-[180px]",
+  "public-header": "w-[138px] sm:w-[150px]",
+  workspace: "w-[126px]",
+  portal: "w-[138px] sm:w-[148px]",
 };
 
 const logoSizes: Record<BrandLogoSize, string> = {
-  "marketing-header": "(min-width: 640px) 164px, 148px",
-  "marketing-footer": "(min-width: 640px) 192px, 176px",
-  "public-header": "(min-width: 640px) 160px, 148px",
-  workspace: "138px",
-  portal: "(min-width: 640px) 156px, 148px",
+  "marketing-header": "(min-width: 640px) 152px, 138px",
+  "marketing-footer": "(min-width: 640px) 180px, 164px",
+  "public-header": "(min-width: 640px) 150px, 138px",
+  workspace: "126px",
+  portal: "(min-width: 640px) 148px, 138px",
 };
 
 function joinClasses(...classes: Array<string | undefined | false>) {
@@ -41,10 +41,10 @@ export function BrandLogo({
 }: BrandLogoProps) {
   return (
     <Image
-      src="/branding/appaffiliate-logo.svg"
+      src="/branding/appaffiliatelogotransparent222.png"
       alt="AppAffiliate"
-      width={480}
-      height={248}
+      width={2000}
+      height={2000}
       priority={priority}
       sizes={logoSizes[size]}
       className={joinClasses("h-auto", logoSizeClasses[size], className)}
