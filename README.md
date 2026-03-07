@@ -1,15 +1,17 @@
 # AppAffiliate Web
 
-This repository contains the Phase 0 AppAffiliate web shell built with Next.js App Router, Tailwind CSS, and Supabase.
+This repository contains the internal AppAffiliate MVP built with Next.js App Router, Tailwind CSS, and Supabase.
 
-Phase 0 focuses on:
+The current operator-facing product includes:
 
-- a public homepage and placeholder product routes
-- Supabase email/password auth
-- a protected dashboard
-- workspace and product baseline schema
-- RLS hardening
-- a small service-layer foundation for future writes
+- Apple ingestion visibility and per-app readiness checks
+- partners, codes, and unattributed manual review flows
+- commissions, payouts, payout batches, and finance exports
+- org-scoped settings, audit history, team context, and lightweight monitoring
+- launch-readiness surfaces for internal rollout checks
+- a separate read-only partner portal for partner-scoped codes, performance, and payouts
+
+The external partner portal remains intentionally separate from the admin workspace and stays read-only in the current MVP.
 
 ## Local Startup
 
@@ -19,15 +21,24 @@ Phase 0 focuses on:
 npm install
 ```
 
-2. Confirm `.env.local` already contains the expected Supabase values.
+2. Confirm `.env.local` contains the expected values:
 
-3. Start the app:
+```bash
+NEXT_PUBLIC_APP_URL=...
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+3. Apply any missing SQL migrations in filename order.
+
+4. Start the app:
 
 ```bash
 npm run dev
 ```
 
-4. Open `http://localhost:3000`.
+5. Open `http://localhost:3000`.
 
 ## Useful Commands
 
@@ -37,7 +48,14 @@ npm run build
 npm run lint
 ```
 
-## Phase 0 Docs
+## Operator Docs
+
+- [Final MVP handoff](docs/final-mvp-handoff.md)
+- [Final MVP limitations](docs/final-mvp-limitations.md)
+- [Phase 2 launch runbook](docs/phase-2-launch-runbook.md)
+- [Phase 2 QA checklist](docs/phase-2-qa-checklist.md)
+
+Historical reference:
 
 - [Phase 0 handoff](docs/phase-0-handoff.md)
 - [Phase 0 QA checklist](docs/phase-0-qa-checklist.md)
@@ -46,20 +64,28 @@ npm run lint
 ## Current Project Shape
 
 - `app/`: App Router pages and route handlers
-- `components/`: shared shell and auth UI components
+- `components/`: shared shell, auth, and operator UI components
 - `lib/`: auth, workspace, Supabase, and service-layer helpers
+- `docs/`: lightweight runbooks and QA checklists
 - `supabase/migrations/`: SQL migrations applied manually in Supabase
 - `supabase/tests/`: SQL verification queries for RLS checks
 
 ## Manual Migration Files
 
-Current Phase 0 migrations:
+Apply these in filename order when bringing up a new environment or reconciling a stale database:
 
 - `supabase/migrations/20260306123000_phase0_workspace_foundation.sql`
 - `supabase/migrations/20260306133000_phase0_product_baseline.sql`
 - `supabase/migrations/20260306143000_phase0_rls_hardening.sql`
 - `supabase/migrations/20260306153000_phase0_service_foundation_policies.sql`
+- `supabase/migrations/20260306170000_phase1_apple_ingestion_mvp.sql`
+- `supabase/migrations/20260307013000_phase2_manual_ops_write_policies.sql`
+- `supabase/migrations/20260307023000_phase2_finance_manual_write_policies.sql`
+- `supabase/migrations/20260307110000_phase2_settings_write_policies.sql`
+- `supabase/migrations/20260307143000_phase2_partner_portal_read_policies.sql`
 
-Apply them manually in Supabase in filename order if your database is not up to date.
+## Launch Notes
 
-<!-- trigger vercel deploy -->
+- Keep service-role usage server-only.
+- Verify Apple ingest setup, unattributed backlog, finance review queues, payout batch posture, and export access before launch.
+- Billing is not active in-product; treat it as an off-platform planning concern until a real billing model exists.

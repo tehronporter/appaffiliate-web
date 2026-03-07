@@ -187,7 +187,7 @@ export default async function AppleHealthPage({
             <ListTable
               eyebrow="Readiness"
               title="Apple intake operational checklist"
-              description="Keep the readiness picture concrete: where receipts land, how normalization looks, and what remains deliberately placeholder-level for now."
+              description="Keep the readiness picture concrete: where receipts land, how normalization looks, and where the MVP still stops short of full verification or downstream automation."
             >
               {readinessSteps.map((step) => (
                 <InlineActionRow
@@ -272,13 +272,13 @@ export default async function AppleHealthPage({
 
             <SectionCard
               eyebrow="Current state"
-              title="What is real versus placeholder"
+              title="Current MVP boundary"
               description="This MVP intentionally stops at receipt capture, best-effort normalization, and honest readiness visibility."
             >
               <EmptyState
                 eyebrow="Still intentionally limited"
                 title="Receipt capture is real; full verification is not"
-                description="The public Apple endpoint now stores the raw signed payload, records placeholder verification state, and creates normalized events only when the unverified payload can be interpreted safely. Full cryptographic validation, historical reconciliation, attribution actions, and payout behavior remain out of scope."
+                description="The public Apple endpoint now stores the raw signed payload server-side, records the current verification posture, and creates normalized events only when the payload can be interpreted safely. Full cryptographic validation, historical reconciliation, attribution actions, and payout behavior remain out of scope."
                 action={
                   <>
                     <ActionLink href="/events">Review event log</ActionLink>

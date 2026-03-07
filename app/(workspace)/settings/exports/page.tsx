@@ -1,90 +1,151 @@
 import { ActionLink } from "@/components/app-shell";
-import { EmptyState, SectionCard } from "@/components/admin-ui";
+import { EmptyState, SectionCard, StatusBadge } from "@/components/admin-ui";
 import {
   SettingsHubActions,
   SettingsPageFrame,
 } from "@/components/settings-shell";
+import { listFinanceExportOverview } from "@/lib/services/finance";
 
-export default function SettingsExportsPage() {
+export default async function SettingsExportsPage() {
+  const data = await listFinanceExportOverview();
+
   return (
     <SettingsPageFrame
       activeSection="exports"
       title="Export settings"
-      description="Keep export behavior review-safe and finance-first: file handoff conventions, retention posture, and the difference between preparing data and confirming payment."
+      description="Keep finance exports manual, review-safe, and directly tied to real commission and payout records. Downloading a file does not imply remittance is complete."
       actions={
         <>
           <SettingsHubActions />
-          <ActionLink href="/payouts">Open payouts</ActionLink>
+          <ActionLink href="/payout-batches">Open payout batches</ActionLink>
         </>
+      }
+      badges={
+        <div className="flex flex-wrap gap-3">
+          <StatusBadge tone="primary">Real finance exports</StatusBadge>
+          <StatusBadge tone="warning">Manual CSV handoff</StatusBadge>
+          <StatusBadge>Download and payment stay separate</StatusBadge>
+        </div>
       }
       stats={[
         {
-          label: "Export mode",
-          value: "Manual",
-          detail: "Phase 1 keeps exports intentionally operator-led and conservative.",
-          tone: "warning",
-        },
-        {
-          label: "Retention",
-          value: "Defined",
-          detail: "The shell reserves a place for file history and retention expectations.",
+          label: "Commission rows",
+          value: String(data.commissionRows),
+          detail: "The commission register export reflects real attributed-event review records.",
           tone: "primary",
         },
         {
-          label: "Finance handoff",
-          value: "Separate",
-          detail: "Export completion still does not imply remittance or payout completion.",
+          label: "Payout rows",
+          value: String(data.payoutRows),
+          detail: "Tracked payout rows come from real payout batches and batch items.",
+          tone: "warning",
+        },
+        {
+          label: "Tracked entries",
+          value: String(data.payoutTrackedEntries),
+          detail: "These rows are already inside payout tracking or marked paid.",
           tone: "success",
         },
       ]}
     >
-      <div className="grid gap-6 xl:grid-cols-2">
+      {!data.hasFinanceAccess ? (
         <SectionCard
-          title="Export conventions"
-          description="Operators need a stable place to document how payout exports should look before jobs are automated."
-          items={[
-            "File naming, period labels, and batch identifiers belong here.",
-            "Exports should reflect reviewed commission states only.",
-            "CSV handoff and downstream payment confirmation remain separate operational steps.",
-          ]}
-        />
-
-        <SectionCard
-          title="Retention and review"
-          description="Export history should stay auditable without turning this surface into a generic file browser."
-          items={[
-            "Retained exports need timestamps, actor context, and batch linkage.",
-            "Re-export behavior should remain explicit when finance asks for a correction.",
-            "Readability matters more than volume because operators are checking trust boundaries here.",
-          ]}
-        />
-
-        <SectionCard
-          title="Scheduled exports"
-          description="Empty-state treatment matters until real export jobs exist."
+          title="Finance access required"
+          description="Exports are limited to owner, admin, or finance roles because they expose payout-sensitive records."
         >
           <EmptyState
-            eyebrow="No schedules"
-            title="No export automation is configured yet"
-            description="Phase 1 keeps exports manual and review-safe. Phase 2 can add scheduled jobs without changing the route structure."
+            eyebrow="Access required"
+            title="You do not have access to finance exports"
+            description="The export surface remains internal and finance-first."
             action={
-              <ActionLink href="/commissions" variant="primary">
-                Review commission ledger
+              <ActionLink href="/dashboard" variant="primary">
+                Return to overview
               </ActionLink>
             }
           />
         </SectionCard>
+      ) : (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <SectionCard
+            title="Download finance-safe CSVs"
+            description="Use narrow manual downloads instead of broad reporting exports."
+            items={[
+              "Commission register includes review state, basis context, and payout linkage.",
+              "Payout tracking export reflects real batch, item, and payment posture.",
+              "Every download is logged as an internal finance export action.",
+            ]}
+            actions={
+              <>
+                <a
+                  href="/settings/exports/download?scope=commission-register"
+                  className="inline-flex items-center justify-center rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
+                >
+                  Download commission CSV
+                </a>
+                <a
+                  href="/settings/exports/download?scope=payout-tracking"
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-ink transition hover:border-border-strong hover:bg-surface"
+                >
+                  Download payout CSV
+                </a>
+              </>
+            }
+          />
 
-        <SectionCard
-          title="Phase 2 wires next"
-          description="This route is ready for real export infrastructure."
-          items={[
-            "Connect retained export history and downloadable files.",
-            "Add export confirmation records and error reporting.",
-            "Keep payout mark-as-paid controls separate even after export jobs exist.",
-          ]}
-        />
-      </div>
+          <SectionCard
+            title="Current export posture"
+            description="Keep the current review and payout context visible before handing data to finance."
+            items={[
+              `Approved commission entries not yet batched: ${data.approvedEntries}.`,
+              `Tracked payout entries: ${data.payoutTrackedEntries}.`,
+              `Commission export rows available: ${data.commissionRows}.`,
+              `Payout export rows available: ${data.payoutRows}.`,
+            ]}
+          />
+
+          <SectionCard
+            title="Recent payout batches"
+            description="Recent batch context helps operators confirm what the current payout export is expected to include."
+          >
+            {data.recentBatches.length === 0 ? (
+              <EmptyState
+                eyebrow="No tracked batches"
+                title="No payout batches exist yet"
+                description="Create a payout batch from approved commission items before exporting payout tracking data."
+                action={
+                  <ActionLink href="/payouts" variant="primary">
+                    Open payouts
+                  </ActionLink>
+                }
+              />
+            ) : (
+              <div className="space-y-3">
+                {data.recentBatches.map((batch) => (
+                  <div
+                    key={batch.id}
+                    className="rounded-2xl border border-border bg-surface px-4 py-3"
+                  >
+                    <p className="text-sm font-semibold text-ink">{batch.name}</p>
+                    <p className="mt-1 text-sm text-ink-muted">
+                      {batch.totalAmountLabel} • {batch.status}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title="Operational boundary"
+            description="This slice is intentionally narrow: export the records, then complete remittance outside the product."
+            items={[
+              "CSV download does not mark a batch paid.",
+              "Exported and paid remain separate payout states.",
+              "Retained file history and scheduled export jobs are intentionally not part of the current MVP.",
+            ]}
+          />
+        </div>
+      )}
     </SettingsPageFrame>
   );
 }

@@ -1,90 +1,218 @@
 import { ActionLink } from "@/components/app-shell";
-import { EmptyState, SectionCard } from "@/components/admin-ui";
+import {
+  EmptyState,
+  InlineActionRow,
+  SectionCard,
+  StatusBadge,
+} from "@/components/admin-ui";
 import {
   SettingsHubActions,
   SettingsPageFrame,
 } from "@/components/settings-shell";
+import { getAuditSettingsData } from "@/lib/services/settings";
 
-export default function SettingsAuditPage() {
+function toneForStatus(status: string) {
+  if (status === "failed" || status === "danger") {
+    return "danger" as const;
+  }
+
+  if (status === "pending" || status === "running" || status === "exported") {
+    return "warning" as const;
+  }
+
+  if (status === "processed" || status === "succeeded" || status === "paid") {
+    return "success" as const;
+  }
+
+  return "primary" as const;
+}
+
+export default async function SettingsAuditPage() {
+  const data = await getAuditSettingsData();
+
   return (
     <SettingsPageFrame
       activeSection="audit"
-      title="Audit settings"
-      description="Reserve a clean review surface for operator history, policy changes, and finance-safe confirmation trails so trust can scale with the product."
+      title="Audit and monitoring"
+      description="Read the real operator trail beside the lightweight operational health view: partner and code changes, manual review actions, finance approvals, payout lifecycle events, export downloads, recent receipt health, and failed jobs."
       actions={
         <>
           <SettingsHubActions />
           <ActionLink href="/events">Open events</ActionLink>
         </>
       }
+      badges={
+        <div className="flex flex-wrap gap-3">
+          <StatusBadge tone="success">Live audit trail</StatusBadge>
+          <StatusBadge tone="primary">Operational monitoring</StatusBadge>
+          <StatusBadge tone="warning">No separate jobs product</StatusBadge>
+        </div>
+      }
       stats={[
         {
-          label: "Trail coverage",
-          value: "Planned",
-          detail: "The shell defines where operator history will live before the event stream is wired.",
+          label: "Recent entries",
+          value: String(data.totalEntries),
+          detail: "Audit keeps the current manual and finance workflow history readable in one place.",
           tone: "primary",
         },
         {
-          label: "Exceptions",
-          value: "0",
-          detail: "Empty exception states should remain readable and useful.",
-          tone: "success",
+          label: "Manual review actions",
+          value: String(data.manualReviewCount),
+          detail: "Queue review and manual attribution changes stay visible instead of becoming silent state transitions.",
+          tone: "warning",
         },
         {
-          label: "Payment proofs",
-          value: "Separate",
-          detail: "Export and mark-as-paid confirmations should remain distinct in audit history too.",
-          tone: "warning",
+          label: "Finance actions",
+          value: String(data.financeActionCount),
+          detail: "Commission approvals, payout lifecycle changes, and export downloads remain distinct.",
+          tone: "success",
         },
       ]}
     >
-      <div className="grid gap-6 xl:grid-cols-2">
+      {!data.hasWorkspaceAccess ? (
         <SectionCard
-          title="Audit lanes"
-          description="The trail should match the product story that already exists in Phase 1."
-          items={[
-            "Track operator review across events, needs attribution, commissions, and payouts.",
-            "Keep settings changes visible beside operational review history, not buried elsewhere.",
-            "Preserve the difference between export preparation and payment confirmation in the audit trail.",
-          ]}
-        />
-
-        <SectionCard
-          title="Exception review"
-          description="Audit surfaces should make empty and warning states feel intentional, not neglected."
-          items={[
-            "Escalated attribution items should leave a visible review trail.",
-            "Held commissions and archived-program matches should remain explainable after the fact.",
-            "Route-level copy should stay operational and specific rather than generic or promotional.",
-          ]}
-        />
-
-        <SectionCard
-          title="Recent exceptions"
-          description="Phase 1 keeps this view stable even when there is nothing to show yet."
+          title="Internal workspace access required"
+          description="Audit and monitoring are internal-only because they expose operator history and finance-safe signals."
         >
           <EmptyState
-            eyebrow="No exceptions"
-            title="No audit exceptions are surfaced in this mock window"
-            description="Real activity history comes later, but the empty state is already shaped like a trustworthy review surface."
+            eyebrow="Access required"
+            title="No internal audit view is available"
+            description="Sign in with an internal workspace role to review activity and operational health."
             action={
-              <ActionLink href="/settings/exports" variant="primary">
-                Review export boundary
+              <ActionLink href="/dashboard" variant="primary">
+                Return to overview
               </ActionLink>
             }
           />
         </SectionCard>
+      ) : (
+        <>
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+            <SectionCard
+              title="Recent audit history"
+              description="Keep the timeline readable and operational instead of turning it into a generic event firehose."
+            >
+              <div className="space-y-3">
+                {data.recentEntries.length === 0 ? (
+                  <EmptyState
+                    eyebrow="No activity yet"
+                    title="No audit entries are visible yet"
+                    description="As soon as operators change partner, code, attribution, commission, payout, export, organization, or team state, the entry stream will appear here."
+                  />
+                ) : null}
 
-        <SectionCard
-          title="Phase 2 wires next"
-          description="The route is ready for live history without reworking the shell."
-          items={[
-            "Connect actor, timestamp, and before-or-after metadata for settings and operations changes.",
-            "Add audit filtering by route, action type, and review outcome.",
-            "Tie payout confirmations and export actions back to the underlying batch and ledger records.",
-          ]}
-        />
-      </div>
+                {data.recentEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="rounded-2xl border border-border bg-surface px-4 py-3"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-ink">{entry.summary}</p>
+                        <p className="mt-1 text-sm text-ink-muted">
+                          {entry.actorLabel}
+                          {entry.actorRoleLabel ? ` • ${entry.actorRoleLabel}` : ""}
+                        </p>
+                      </div>
+                      <StatusBadge tone={entry.tone}>{entry.actionLabel}</StatusBadge>
+                    </div>
+                    <p className="mt-3 text-sm text-ink-muted">
+                      {entry.entityLabel} •{" "}
+                      {new Date(entry.createdAt).toLocaleString("en-US", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                        timeZone: "UTC",
+                      })}{" "}
+                      UTC
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard
+              title="Coverage summary"
+              description="These counts help operators judge whether the main internal workflows are leaving the expected trail."
+              items={[
+                `Partner and code change entries in view: ${data.partnerChangeCount}.`,
+                `Manual review and attribution entries in view: ${data.manualReviewCount}.`,
+                `Finance workflow entries in view: ${data.financeActionCount}.`,
+                `Explicit export download entries in view: ${data.exportEventCount}.`,
+              ]}
+            />
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <SectionCard
+              title="Operational health"
+              description="Keep recent Apple ingest, queue, finance, and job signals visible without creating a broad new admin IA."
+              items={[
+                `Recent Apple receipts in view: ${data.monitoring.recentReceiptCount}.`,
+                `Receipts failed in this window: ${data.monitoring.failedReceiptCount}.`,
+                `Receipts still pending processing: ${data.monitoring.pendingReceiptCount}.`,
+                `Queue items still open: ${data.monitoring.queueVolume}.`,
+                data.monitoring.financeSummary.hasFinanceAccess
+                  ? `Commission review pending: ${data.monitoring.financeSummary.pendingReviewCount}.`
+                  : "Finance-sensitive monitoring stays hidden until a finance-safe role opens the route.",
+                data.monitoring.financeSummary.hasFinanceAccess
+                  ? `Payout batches in motion: ${data.monitoring.financeSummary.draftBatchCount} draft and ${data.monitoring.financeSummary.exportedBatchCount} exported.`
+                  : "Draft and exported payout batch counts remain part of the finance-safe monitoring subset.",
+              ]}
+            />
+
+            <SectionCard
+              title="Recent jobs and receipts"
+              description="Show the newest operational rows only, then send operators back to the source workflow when action is needed."
+            >
+              <div className="space-y-3">
+                {data.monitoring.recentJobs.slice(0, 3).map((job) => (
+                  <InlineActionRow
+                    key={job.id}
+                    title={job.jobName}
+                    description={
+                      job.errorMessage
+                        ? job.errorMessage
+                        : `${job.scope} job created ${new Date(job.createdAt).toLocaleString("en-US", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                            timeZone: "UTC",
+                          })} UTC.`
+                    }
+                    badge={<StatusBadge tone={toneForStatus(job.status)}>{job.status}</StatusBadge>}
+                  />
+                ))}
+
+                {data.monitoring.recentReceipts.slice(0, 3).map((receipt) => (
+                  <InlineActionRow
+                    key={receipt.id}
+                    title={receipt.appName}
+                    description={
+                      receipt.errorMessage
+                        ? receipt.errorMessage
+                        : `${receipt.notificationType} with ${receipt.verificationStatus} verification posture.`
+                    }
+                    badge={
+                      <StatusBadge tone={toneForStatus(receipt.processedStatus)}>
+                        {receipt.processedStatus}
+                      </StatusBadge>
+                    }
+                    actions={<ActionLink href="/events">Open events</ActionLink>}
+                  />
+                ))}
+
+                {data.monitoring.recentJobs.length === 0 &&
+                data.monitoring.recentReceipts.length === 0 ? (
+                  <EmptyState
+                    eyebrow="Calm window"
+                    title="No recent job or receipt rows are visible"
+                    description="That may be normal. Use app health or the event log if you need to confirm whether intake is simply quiet."
+                  />
+                ) : null}
+              </div>
+            </SectionCard>
+          </div>
+        </>
+      )}
     </SettingsPageFrame>
   );
 }

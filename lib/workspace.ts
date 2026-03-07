@@ -109,7 +109,7 @@ export async function getCurrentPartnerUser(
 
   const { data, error } = await supabase
     .from("partner_users")
-    .select("id, organization_id, user_id, display_name, partner_name")
+    .select("id, organization_id, user_id, partner_id, display_name, partner_name")
     .eq("organization_id", membership.organization_id)
     .eq("user_id", user.id)
     .maybeSingle<PartnerUserRecord>();

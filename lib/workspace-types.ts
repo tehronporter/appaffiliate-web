@@ -32,6 +32,7 @@ export type PartnerUserRecord = {
   id: string;
   organization_id: string;
   user_id: string;
+  partner_id: string | null;
   display_name: string | null;
   partner_name: string | null;
 };

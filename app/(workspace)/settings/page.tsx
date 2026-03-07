@@ -11,102 +11,220 @@ import {
   SettingsPageFrame,
 } from "@/components/settings-shell";
 import { settingsSections } from "@/lib/settings-navigation";
+import { getLaunchReadinessData } from "@/lib/services/launch-readiness";
 
-export default function SettingsPage() {
+function sectionStatus(
+  sectionId: string,
+  data: Awaited<ReturnType<typeof getLaunchReadinessData>>["overview"],
+) {
+  if (sectionId === "organization") {
+    return {
+      label: "Editable + honest read-only",
+      tone: "success" as const,
+    };
+  }
+
+  if (sectionId === "team") {
+    return {
+      label: data.visibleMemberCount > 0 ? "Live membership context" : "No visible members",
+      tone: data.visibleMemberCount > 0 ? ("primary" as const) : ("warning" as const),
+    };
+  }
+
+  if (sectionId === "rules") {
+    return {
+      label: data.activeRuleCount > 0 ? "Real config context" : "Read-only posture",
+      tone: data.activeRuleCount > 0 ? ("success" as const) : ("warning" as const),
+    };
+  }
+
+  if (sectionId === "exports") {
+    return {
+      label: data.financeSummary.hasFinanceAccess ? "Finance-gated live" : "Finance role required",
+      tone: data.financeSummary.hasFinanceAccess
+        ? ("success" as const)
+        : ("warning" as const),
+    };
+  }
+
+  return {
+    label: data.auditEntryCount > 0 ? "Live history" : "Ready for first entries",
+    tone: data.auditEntryCount > 0 ? ("primary" as const) : ("warning" as const),
+  };
+}
+
+function toneForCheck(status: "ready" | "attention" | "blocked" | "informational") {
+  if (status === "ready") {
+    return "success" as const;
+  }
+
+  if (status === "blocked") {
+    return "danger" as const;
+  }
+
+  if (status === "attention") {
+    return "warning" as const;
+  }
+
+  return "primary" as const;
+}
+
+export default async function SettingsPage() {
+  const launch = await getLaunchReadinessData();
+  const data = launch.overview;
+
   return (
     <SettingsPageFrame
       activeSection="overview"
       title="Workspace settings"
-      description="Keep organization, team, rules, exports, and audit controls shallow, explicit, and one click away so Phase 1 feels intentionally complete without pretending the deeper systems are wired yet."
+      description="Use settings as an internal control surface: real organization profile edits where they are safe, read-only policy context where the MVP is intentionally narrow, and one place to see whether operations look healthy."
       actions={<SettingsHubActions />}
       stats={[
         {
-          label: "Settings shells",
-          value: String(settingsSections.length),
-          detail: "Each remaining admin setting now has a stable home instead of living behind one placeholder.",
-          tone: "success",
-        },
-        {
-          label: "Portal boundary",
-          value: "Separate",
-          detail: "Partner-facing screens stay outside the admin shell and settings remain internal.",
+          label: "Organization",
+          value: data.organizationName ?? "Access required",
+          detail: "Organization identity is live and org-scoped instead of shell-only.",
           tone: "primary",
         },
         {
-          label: "Phase 2 wires",
-          value: "Mapped",
-          detail: "Every settings route calls out what the next real integration step is.",
-          tone: "warning",
+          label: "Launch status",
+          value: launch.overallLabel,
+          detail: launch.overallDetail,
+          tone: toneForCheck(launch.overallStatus),
+        },
+        {
+          label: "Visible members",
+          value: String(data.visibleMemberCount),
+          detail: "The team surface reflects the real workspace membership directory allowed by the current auth model.",
+          tone: "success",
         },
       ]}
     >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
-        <SurfaceCard>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-            Settings map
-          </p>
-          <div className="mt-4 overflow-hidden rounded-[22px] border border-border bg-surface">
-            {settingsSections.map((section) => (
-              <InlineActionRow
-                key={section.id}
-                title={section.title}
-                description={section.description}
-                badge={<StatusBadge tone="warning">Mock only</StatusBadge>}
-                actions={
-                  <ActionLink href={section.href} variant="primary">
-                    Open
-                  </ActionLink>
-                }
-              />
-            ))}
+      {!data.hasWorkspaceAccess ? (
+        <SectionCard
+          title="Internal workspace access required"
+          description="These controls remain internal-only because they expose organization, operations, and finance context."
+        >
+          <EmptyState
+            eyebrow="Access required"
+            title="Sign in with an internal workspace membership"
+            description="Partner portal identities and non-member sessions should not inherit internal settings, audit, or monitoring access."
+            action={
+              <ActionLink href="/dashboard" variant="primary">
+                Return to overview
+              </ActionLink>
+            }
+          />
+        </SectionCard>
+      ) : (
+        <>
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+            <SurfaceCard>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+                Settings map
+              </p>
+              <div className="mt-4 overflow-hidden rounded-[22px] border border-border bg-surface">
+                {settingsSections.map((section) => {
+                  const status = sectionStatus(section.id, data);
+
+                  return (
+                    <InlineActionRow
+                      key={section.id}
+                      title={section.title}
+                      description={section.description}
+                      badge={<StatusBadge tone={status.tone}>{status.label}</StatusBadge>}
+                      actions={
+                        <ActionLink href={section.href} variant="primary">
+                          Open
+                        </ActionLink>
+                      }
+                    />
+                  );
+                })}
+              </div>
+            </SurfaceCard>
+
+            <SectionCard
+              title="Launch-readiness snapshot"
+              description="Keep the lightweight operational signals close to the settings index so internal operators can tell whether the admin surfaces are calm before drilling into route-specific detail."
+              items={[
+                `Overall launch posture: ${launch.overallLabel}.`,
+                `Recent Apple receipts in view: ${data.monitoring.recentReceiptCount}.`,
+                `Receipts currently failed or pending: ${data.monitoring.failedReceiptCount + data.monitoring.pendingReceiptCount}.`,
+                `Unattributed queue still open: ${data.monitoring.queueVolume}.`,
+                data.financeSummary.hasFinanceAccess
+                  ? `Finance review still pending: ${data.financeSummary.pendingReviewCount}.`
+                  : "Finance-only counts stay hidden until an owner, admin, or finance role opens the surface.",
+                data.financeSummary.hasFinanceAccess
+                  ? `Draft and exported payout batches: ${data.financeSummary.draftBatchCount} draft, ${data.financeSummary.exportedBatchCount} exported.`
+                  : "Payout batch counts stay on the finance side of the MVP role boundary.",
+              ]}
+              actions={<ActionLink href="/settings/audit">Open audit and monitoring</ActionLink>}
+            />
           </div>
-        </SurfaceCard>
 
-        <div className="grid gap-6">
-          <SectionCard
-            title="Route audit"
-            description="The remaining Phase 1 routes should now be reachable either from the workspace nav, this settings map, or the portal boundary link."
-            actions={<ActionLink href="/portal">Open portal</ActionLink>}
-            items={[
-              "Workspace nav covers dashboard, onboarding, program, operations, and settings.",
-              "This hub links organization, team, rules, exports, and audit in one place.",
-              "The partner portal placeholder is linked separately so external workflows never inherit admin chrome.",
-            ]}
-          />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <SectionCard
+              title="Launch checklist"
+              description="Use these live checks to decide what the next operator action should be before launch."
+            >
+              <div className="space-y-3">
+                {launch.checklist.map((check) => (
+                  <InlineActionRow
+                    key={check.id}
+                    title={check.title}
+                    description={check.detail}
+                    badge={<StatusBadge tone={toneForCheck(check.status)}>{check.label}</StatusBadge>}
+                    actions={<ActionLink href={check.href}>Open</ActionLink>}
+                  />
+                ))}
+              </div>
+            </SectionCard>
 
-          <SectionCard
-            title="State and copy audit"
-            description="Phase 1 uses consistent review language across empty states, warnings, mock-only surfaces, and next-step notes."
-            items={[
-              "Settings routes use the same mock-only and Phase 2 badges instead of ad hoc disclaimers.",
-              "Operational pages keep review-safe language around attribution, ledger, export, and payout states.",
-              "The tone stays calm and system-of-record oriented instead of slipping into marketing analytics language.",
-            ]}
-          />
+            <SectionCard
+              title="Recent operational signals"
+              description="These signals stay intentionally shallow: enough to spot work that needs attention without creating a separate jobs product."
+            >
+              <div className="space-y-3">
+                {data.monitoring.recentReceipts.slice(0, 3).map((receipt) => (
+                  <div
+                    key={receipt.id}
+                    className="rounded-2xl border border-border bg-surface px-4 py-3"
+                  >
+                    <p className="text-sm font-semibold text-ink">{receipt.appName}</p>
+                    <p className="mt-1 text-sm text-ink-muted">
+                      {receipt.notificationType} • {receipt.processedStatus} • {receipt.verificationStatus}
+                    </p>
+                  </div>
+                ))}
 
-          <SectionCard
-            title="Phase 2 wires next"
-            description="This is the checklist for turning the settings shell into real controls later."
-            items={settingsSections.map((section) => section.phase2Next)}
-          />
-        </div>
-      </div>
+                {data.monitoring.recentReceipts.length === 0 ? (
+                  <EmptyState
+                    eyebrow="No receipt traffic"
+                    title="No Apple receipts are visible in the current window"
+                    description="This may be normal for a quiet app. Operators can confirm ingest readiness on the rules page or an app-specific Apple health view."
+                    action={
+                      <ActionLink href="/settings/rules" variant="primary">
+                        Review rules and readiness
+                      </ActionLink>
+                    }
+                  />
+                ) : null}
+              </div>
+            </SectionCard>
 
-      <SectionCard
-        title="Portal boundary"
-        description="The partner portal remains intentionally read-only and separate during Phase 1."
-      >
-        <EmptyState
-          eyebrow="Separate surface"
-          title="External partner workflows still stop at the placeholder"
-          description="Phase 1 reserves the route, the shell, and the copy boundary. Phase 2 can add partner auth, reporting, and payout visibility without mixing those tools into admin settings."
-          action={
-            <ActionLink href="/portal" variant="primary">
-              Review portal placeholder
-            </ActionLink>
-          }
-        />
-      </SectionCard>
+            <SectionCard
+              title="Billing and runbook posture"
+              description="Keep billing honest and the final operator sequence explicit without expanding the app into a billing product."
+              items={[
+                ...launch.billingReadiness.notes,
+                "Apply database migrations in filename order before launch smoke testing.",
+                "Confirm Apple ingest, unattributed backlog, finance review, and export access before calling the workspace launch-ready.",
+              ]}
+            />
+          </div>
+        </>
+      )}
     </SettingsPageFrame>
   );
 }

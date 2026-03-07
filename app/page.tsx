@@ -35,9 +35,9 @@ const routeCards = [
 export default function Home() {
   return (
     <PublicShell
-      eyebrow="Phase 1 foundation"
+      eyebrow="Internal MVP"
       title="A calm operating shell for AppAffiliate."
-      description="Phase 1 establishes design tokens, a shared admin workspace, and a route-group foundation that keeps Overview, Program, Operations, and Settings shallow and easy to extend."
+      description="AppAffiliate now ships an internal operator workspace for Apple ingestion, partners, codes, attribution review, commissions, payouts, exports, settings, audit, and launch-readiness checks."
       actions={
         <>
           <ActionLink href="/login">View login</ActionLink>
@@ -50,20 +50,20 @@ export default function Home() {
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           label="Status"
-          value="Phase 1"
-          detail="Shared layout, navigation, and route-group foundations are now in place."
+          value="Launch-ready MVP"
+          detail="Internal workflows, finance controls, and launch-readiness surfaces are wired into the live workspace."
           tone="primary"
         />
         <StatCard
           label="Shell"
           value="Workspace"
-          detail="Admin routes now share one calm, finance-first operational frame."
+          detail="Operator routes share one calm, finance-first operational frame."
           tone="success"
         />
         <StatCard
           label="Boundary"
-          value="/portal reserved"
-          detail="A future partner portal can stay separate from internal admin tools."
+          value="/portal live"
+          detail="The read-only partner portal stays separate from internal admin tools."
           tone="warning"
         />
       </div>
@@ -78,39 +78,40 @@ export default function Home() {
             affiliate operations.
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-7 text-white/78">
-            The shell keeps things intentionally light: shared tokens, route-aware
-            navigation, and enough structure to start wiring in partner records,
-            attribution checks, and finance workflows without reworking the frame.
+            The product stays intentionally narrow: internal Apple receipt ops,
+            partner and code management, manual attribution review, finance
+            approvals, payout tracking, export controls, and launch-ready
+            settings without unnecessary enterprise scope.
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
               <p className="text-sm font-semibold text-white">What is ready now</p>
               <ul className="mt-4 space-y-3 text-sm leading-6 text-white/75">
-                <li>Tokenized colors and surfaces for the admin product.</li>
-                <li>Shared workspace shell across protected and placeholder routes.</li>
-                <li>Route groups that keep admin and future partner portal concerns separate.</li>
+                <li>Apple ingestion monitoring with sanitized receipt visibility.</li>
+                <li>Partners, codes, unattributed review, commissions, payouts, and exports.</li>
+                <li>Settings, audit, team context, launch controls, and a read-only partner portal.</li>
               </ul>
             </div>
             <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
-              <p className="text-sm font-semibold text-white">What comes next</p>
+              <p className="text-sm font-semibold text-white">Current product boundaries</p>
               <ul className="mt-4 space-y-3 text-sm leading-6 text-white/75">
-                <li>Supabase-backed partner, code, and commission records.</li>
-                <li>Real onboarding and attribution review workflows.</li>
-                <li>Finance-grade payout and reconciliation behavior.</li>
+                <li>Partner portal stays separate and read-only.</li>
+                <li>Billing remains off-platform and not active in-product.</li>
+                <li>Manual operations stay explicit instead of hidden behind automation.</li>
               </ul>
             </div>
           </div>
         </SurfaceCard>
 
         <SectionCard
-          title="Starter notes"
-          description="The current shell is designed to be easy to extend without introducing complexity too early."
+          title="Operator notes"
+          description="The workspace is built for internal launch operations, not as a broad all-in-one admin suite."
           items={[
-            "All admin routes now share the same shell and top-level navigation model.",
-            "No new persistence, commission logic, or payout logic was added in this phase.",
-            "Apple Health and Needs Attribution are positioned as first-class destinations.",
-            "The future partner portal remains intentionally outside the admin workspace frame.",
+            "Core internal routes share one shell and shallow navigation model.",
+            "Apple health, unattributed review, finance exports, and settings remain first-class destinations.",
+            "Permission checks, audit trails, and org scoping stay explicit across operator actions.",
+            "The partner portal remains intentionally outside the internal workspace frame.",
           ]}
         />
       </div>
@@ -122,12 +123,12 @@ export default function Home() {
               Route map
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-              Explore the workspace story
+              Explore the operator workspace
             </h2>
           </div>
           <p className="max-w-xl text-sm leading-6 text-ink-muted">
-            Each route is intentionally lightweight so the product structure is
-            visible before real product logic is added.
+            Each route is intentionally focused so operators can move quickly
+            between intake, attribution, finance, and launch controls.
           </p>
         </div>
 

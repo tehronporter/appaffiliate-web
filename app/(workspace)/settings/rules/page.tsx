@@ -1,90 +1,174 @@
 import { ActionLink } from "@/components/app-shell";
-import { EmptyState, SectionCard } from "@/components/admin-ui";
+import {
+  EmptyState,
+  SectionCard,
+  StatusBadge,
+} from "@/components/admin-ui";
 import {
   SettingsHubActions,
   SettingsPageFrame,
 } from "@/components/settings-shell";
+import { getRulesSettingsData } from "@/lib/services/settings";
 
-export default function SettingsRulesPage() {
+export default async function SettingsRulesPage() {
+  const data = await getRulesSettingsData();
+
   return (
     <SettingsPageFrame
       activeSection="rules"
       title="Rules settings"
-      description="Keep attribution and review rules legible. This should read like operating policy for a system of record, not like a growth experiment control panel."
+      description="Use this page as a read model for the live attribution and finance posture: current queue pressure, stored commission rules, code ownership coverage, and app-level Apple ingest readiness."
       actions={
         <>
           <SettingsHubActions />
           <ActionLink href="/unattributed">Open needs attribution</ActionLink>
         </>
       }
+      badges={
+        <div className="flex flex-wrap gap-3">
+          <StatusBadge tone="success">Real rule context</StatusBadge>
+          <StatusBadge tone="warning">Read-only MVP posture</StatusBadge>
+          <StatusBadge>Apple readiness visible</StatusBadge>
+        </div>
+      }
       stats={[
         {
-          label: "Ownership order",
-          value: "Codes first",
-          detail: "Promo code ownership remains the clearest MVP source of truth for attribution.",
+          label: "Active rules",
+          value: String(data.activeRuleCount),
+          detail: "Stored commission rules are read directly from the workspace tables.",
           tone: "success",
         },
         {
-          label: "Custom overrides",
-          value: "0",
-          detail: "No persisted exceptions are wired yet, but the empty state is deliberate.",
-          tone: "primary",
+          label: "Queue open",
+          value: String(data.unresolvedQueueCount),
+          detail: "Manual attribution review still acts as the conservative backstop for ambiguous events.",
+          tone: "warning",
         },
         {
-          label: "Review posture",
-          value: "Conservative",
-          detail: "Ambiguous records should stay visible for operator review rather than auto-resolving.",
-          tone: "warning",
+          label: "Active currencies",
+          value: data.currencies.length ? data.currencies.join(", ") : "None",
+          detail: "Finance defaults come from active rule definitions instead of fake global settings.",
+          tone: "primary",
         },
       ]}
     >
-      <div className="grid gap-6 xl:grid-cols-2">
+      {!data.hasWorkspaceAccess ? (
         <SectionCard
-          title="Attribution precedence"
-          description="Rules should stay visible in the same plain language operators already see in codes and needs-attribution."
-          items={[
-            "Active code ownership should outrank looser campaign signals whenever possible.",
-            "Archived programs can remain match candidates, but they require explicit operator confirmation.",
-            "Duplicate active code lanes should stay reviewable rather than silently breaking ties.",
-          ]}
-        />
-
-        <SectionCard
-          title="Exclusions and holds"
-          description="Operational rules should preserve trust by showing why records are ignored, held, or escalated."
-          items={[
-            "Ignored events remain visible for audit and reconciliation context.",
-            "Held commissions should stay in the ledger with finance-safe explanations.",
-            "Export and payout steps should only see records that have passed the review boundary.",
-          ]}
-        />
-
-        <SectionCard
-          title="Custom overrides"
-          description="Phase 1 intentionally avoids a sprawling rules builder."
+          title="Internal workspace access required"
+          description="Rules and review posture remain internal-only because they expose attribution and finance context."
         >
           <EmptyState
-            eyebrow="No overrides"
-            title="No custom attribution overrides are configured"
-            description="The shell makes room for exceptions later without forcing policy logic into page-local copy or ad hoc forms."
+            eyebrow="Access required"
+            title="No internal rule context is available"
+            description="Sign in with an internal workspace role to inspect attribution and finance posture."
             action={
-              <ActionLink href="/codes" variant="primary">
-                Review code ownership
+              <ActionLink href="/dashboard" variant="primary">
+                Return to overview
               </ActionLink>
             }
           />
         </SectionCard>
+      ) : (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <SectionCard
+            title="Attribution review posture"
+            description="Keep the operational context readable before anyone touches manual attribution."
+            items={[
+              `Unresolved queue items: ${data.unresolvedQueueCount}.`,
+              `Items already in review: ${data.inReviewQueueCount}.`,
+              `Active partner-owned codes: ${data.activeOwnedCodeCount}.`,
+              `Active codes without a partner owner: ${data.activeUnassignedCodeCount}.`,
+            ]}
+          />
 
-        <SectionCard
-          title="Phase 2 wires next"
-          description="The shell is ready for persisted policy controls."
-          items={[
-            "Connect stored attribution precedence and exclusion settings.",
-            "Record override actor, timestamp, and rationale in audit history.",
-            "Feed rule changes back into needs-attribution and ledger review safely.",
-          ]}
-        />
-      </div>
+          <SectionCard
+            title="Read-only rule boundary"
+            description="The MVP exposes the stored configuration context here without inventing a new rule-builder surface."
+            items={data.readOnlyNotes}
+          />
+
+          <SectionCard
+            title="Commission rules in storage"
+            description="These are the live stored rule definitions the finance review helpers already reference."
+          >
+            <div className="space-y-3">
+              {data.commissionRules.length === 0 ? (
+                <EmptyState
+                  eyebrow="No stored rules"
+                  title="No commission rules are configured yet"
+                  description="The commission review flow still stays operational without a broad rule builder by keeping approval manual."
+                />
+              ) : null}
+
+              {data.commissionRules.map((rule) => (
+                <div
+                  key={rule.id}
+                  className="rounded-2xl border border-border bg-surface px-4 py-3"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-ink">{rule.name}</p>
+                      <p className="mt-1 text-sm text-ink-muted">{rule.scopeLabel}</p>
+                    </div>
+                    <StatusBadge tone={rule.status === "Active" ? "success" : "warning"}>
+                      {rule.status}
+                    </StatusBadge>
+                  </div>
+                  <p className="mt-3 text-sm text-ink-muted">
+                    {rule.payoutLabel} • Updated {new Date(rule.updatedAt).toLocaleDateString("en-US")}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Apple ingestion readiness"
+            description="Operators can confirm which app lanes are ready to receive and process Apple notifications without opening a separate admin IA."
+          >
+            <div className="space-y-3">
+              {data.appleReadiness.length === 0 ? (
+                <EmptyState
+                  eyebrow="No apps"
+                  title="No apps are available for readiness review"
+                  description="Create the app records before expecting Apple ingest posture or rule scoping to appear."
+                />
+              ) : null}
+
+              {data.appleReadiness.map((app) => (
+                <div
+                  key={app.id}
+                  className="rounded-2xl border border-border bg-surface px-4 py-3"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-ink">{app.appName}</p>
+                      <p className="mt-1 text-sm text-ink-muted">{app.healthLabel}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <StatusBadge tone={app.ingestReady ? "success" : "warning"}>
+                        {app.ingestReady ? "Ingest key assigned" : "Ingest key missing"}
+                      </StatusBadge>
+                      <ActionLink href={`/apps/${app.slug}/apple-health`}>
+                        Open app health
+                      </ActionLink>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-ink-muted">
+                    {app.latestReceiptAt
+                      ? `Latest receipt seen ${new Date(app.latestReceiptAt).toLocaleString("en-US", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                          timeZone: "UTC",
+                        })} UTC.`
+                      : "No Apple receipts have been stored for this app yet."}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        </div>
+      )}
     </SettingsPageFrame>
   );
 }

@@ -74,7 +74,7 @@ export type WorkspaceEventView = {
   amountMinor: number | null;
   reasonCode: string | null;
   appleNotificationReceiptId: string | null;
-  payload: Record<string, unknown>;
+  payloadSummary: Record<string, unknown>;
 };
 
 export type WorkspaceEventsData = {
@@ -114,8 +114,49 @@ function mapOperationalState(row: NormalizedEventRow): EventOperationalState {
   return "unattributed";
 }
 
-function normalizePayload(value: Record<string, unknown> | null) {
-  return value ?? {};
+function buildPayloadSummary(value: Record<string, unknown> | null) {
+  if (!value) {
+    return {};
+  }
+
+  const summary: Record<string, unknown> = {};
+
+  if (typeof value.notificationType === "string") {
+    summary.notificationType = value.notificationType;
+  }
+
+  if (typeof value.notificationSubtype === "string") {
+    summary.notificationSubtype = value.notificationSubtype;
+  }
+
+  if (typeof value.verificationStatus === "string") {
+    summary.verificationStatus = value.verificationStatus;
+  }
+
+  if (
+    value.rawClaimsAvailable &&
+    typeof value.rawClaimsAvailable === "object" &&
+    !Array.isArray(value.rawClaimsAvailable)
+  ) {
+    summary.rawClaimsAvailable = value.rawClaimsAvailable;
+  }
+
+  const additionalKeys = Object.keys(value).filter(
+    (key) =>
+      key !== "notificationType" &&
+      key !== "notificationSubtype" &&
+      key !== "verificationStatus" &&
+      key !== "rawClaimsAvailable" &&
+      key !== "requestId" &&
+      key !== "receiptId" &&
+      key !== "notificationUuid",
+  );
+
+  if (additionalKeys.length > 0) {
+    summary.additionalKeys = additionalKeys.sort();
+  }
+
+  return summary;
 }
 
 function normalizeTextLabel(value: string | null | undefined, fallback: string) {
@@ -166,7 +207,7 @@ function toWorkspaceEventView(
     amountMinor: row.amount_minor,
     reasonCode: row.reason_code,
     appleNotificationReceiptId: row.apple_notification_receipt_id,
-    payload: normalizePayload(row.payload),
+    payloadSummary: buildPayloadSummary(row.payload),
   };
 }
 
@@ -392,7 +433,7 @@ export async function getAppleHealthReadinessData(appIdentifier: string) {
   const warningNote =
     latestReceipt.last_error ??
     (latestReceipt.verification_status === "placeholder_unverified"
-      ? "Receipts are being stored, but Apple signature verification is still placeholder-only in this MVP."
+      ? "Receipts are being stored, but full Apple signature verification is not active in this MVP yet."
       : null);
 
   if (latestEvent) {

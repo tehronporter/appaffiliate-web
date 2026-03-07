@@ -80,16 +80,16 @@ export function SidebarNav() {
 
       <div className="rounded-[28px] border border-border bg-surface-muted p-5">
         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle">
-          Future extension
+          External boundary
         </p>
         <h3 className="mt-3 text-base font-semibold text-ink">Partner portal</h3>
         <p className="mt-2 text-sm leading-6 text-ink-muted">
           Routes under <span className="font-medium text-ink">{PARTNER_PORTAL_BASE_PATH}</span>{" "}
-          are reserved for external partner-facing screens so admin tools stay
-          separate from creator workflows.
+          now provide a separate, read-only partner experience so admin tools
+          stay distinct from creator-facing reporting.
         </p>
         <div className="mt-4">
-          <ActionLink href="/portal">Open placeholder</ActionLink>
+          <ActionLink href="/portal">Open partner portal</ActionLink>
         </div>
       </div>
     </div>

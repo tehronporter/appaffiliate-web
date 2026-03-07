@@ -14,91 +14,39 @@ import {
   SurfaceCard,
   type StatusTone,
 } from "@/components/admin-ui";
-
-type CodeStatus = "active" | "paused" | "archived";
+import {
+  createPromoCodeAction,
+  updatePromoCodeAction,
+} from "@/app/(workspace)/codes/actions";
+import {
+  listWorkspacePromoCodes,
+  type PromoCodeStatus,
+  type PromoCodeType,
+} from "@/lib/services/codes";
 
 type CodesPageProps = {
   searchParams: Promise<{
     status?: string;
     ownership?: string;
     code?: string;
+    notice?: string;
   }>;
 };
 
-const codeRows = [
-  {
-    slug: "northstar-20",
-    code: "NORTHSTAR20",
-    owner: "Northstar Fitness",
-    ownerAssigned: true,
-    app: "Northstar Coach",
-    channel: "Creator launch",
-    status: "active" as CodeStatus,
-    shareLink: "appaffiliate.app/northstar20",
-    qrStatus: "Ready",
-    duplicateActive: false,
-    note: "Primary creator code for iOS launch traffic.",
-  },
-  {
-    slug: "motion-health",
-    code: "MOTIONHEALTH",
-    owner: "Motion Daily",
-    ownerAssigned: true,
-    app: "Motion Daily",
-    channel: "Apple Health pilot",
-    status: "active" as CodeStatus,
-    shareLink: "appaffiliate.app/motionhealth",
-    qrStatus: "Pending refresh",
-    duplicateActive: true,
-    note: "Overlaps with a newer health pilot code and needs cleanup.",
-  },
-  {
-    slug: "motion-ios",
-    code: "MOTIONIOS",
-    owner: "Motion Daily",
-    ownerAssigned: true,
-    app: "Motion Daily",
-    channel: "Apple Health pilot",
-    status: "active" as CodeStatus,
-    shareLink: "appaffiliate.app/motionios",
-    qrStatus: "Ready",
-    duplicateActive: true,
-    note: "Second active code in the same partner/app lane.",
-  },
-  {
-    slug: "meridian-evergreen",
-    code: "MERIDIANFIT",
-    owner: "Studio Meridian",
-    ownerAssigned: true,
-    app: "Meridian Studio",
-    channel: "Always-on",
-    status: "paused" as CodeStatus,
-    shareLink: "appaffiliate.app/meridianfit",
-    qrStatus: "Ready",
-    duplicateActive: false,
-    note: "Paused until fall evergreen campaign resumes.",
-  },
-  {
-    slug: "atlas-legacy",
-    code: "ATLASRUN",
-    owner: "Unassigned history",
-    ownerAssigned: false,
-    app: "Atlas Run",
-    channel: "Archived event",
-    status: "archived" as CodeStatus,
-    shareLink: "appaffiliate.app/atlasrun",
-    qrStatus: "Legacy",
-    duplicateActive: false,
-    note: "Retained only for attribution history and old QR inventory.",
-  },
-];
+const VALID_STATUSES = new Set<PromoCodeStatus>([
+  "draft",
+  "active",
+  "paused",
+  "expired",
+  "archived",
+]);
 
-function statusTone(status: CodeStatus): StatusTone {
+function statusTone(status: PromoCodeStatus): StatusTone {
   if (status === "active") {
     return "success";
   }
 
-  if (status === "paused") {
+  if (status === "draft" || status === "paused") {
     return "warning";
   }
 
@@ -112,11 +60,11 @@ function buildHref(params: {
 }) {
   const search = new URLSearchParams();
 
-  if (params.status && params.status !== "all") {
+  if (params.status !== "all") {
     search.set("status", params.status);
   }
 
-  if (params.ownership && params.ownership !== "all") {
+  if (params.ownership !== "all") {
     search.set("ownership", params.ownership);
   }
 
@@ -125,15 +73,148 @@ function buildHref(params: {
   }
 
   const query = search.toString();
-
   return query ? `/codes?${query}` : "/codes";
 }
 
-export default async function CodesPage({ searchParams }: CodesPageProps) {
-  const { status = "all", ownership = "all", code: selectedCodeSlug } =
-    await searchParams;
+function noticeCopy(notice: string | undefined) {
+  if (notice === "code-created") {
+    return {
+      tone: "success" as const,
+      title: "Code created",
+      detail: "The promo code register now includes the new record.",
+    };
+  }
 
-  const filteredCodes = codeRows.filter((code) => {
+  if (notice === "code-updated") {
+    return {
+      tone: "success" as const,
+      title: "Code updated",
+      detail: "The code details were saved successfully.",
+    };
+  }
+
+  if (notice === "code-error") {
+    return {
+      tone: "danger" as const,
+      title: "Code change failed",
+      detail: "Review the submitted fields and confirm the app/code combination is unique.",
+    };
+  }
+
+  return null;
+}
+
+function CodeFormFields(props: {
+  appOptions: Array<{ id: string; label: string }>;
+  partnerOptions: Array<{ id: string; label: string }>;
+  defaultAppId?: string;
+  defaultPartnerId?: string | null;
+  defaultCode?: string;
+  defaultStatus?: PromoCodeStatus;
+  defaultCodeType?: PromoCodeType;
+  defaultChannel?: string | null;
+}) {
+  return (
+    <div className="grid gap-4">
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-ink">App</span>
+        <select
+          name="appId"
+          required
+          defaultValue={props.defaultAppId ?? props.appOptions[0]?.id ?? ""}
+          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+        >
+          {props.appOptions.map((app) => (
+            <option key={app.id} value={app.id}>
+              {app.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-ink">Partner</span>
+        <select
+          name="partnerId"
+          defaultValue={props.defaultPartnerId ?? "none"}
+          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+        >
+          <option value="none">Unassigned</option>
+          {props.partnerOptions.map((partner) => (
+            <option key={partner.id} value={partner.id}>
+              {partner.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-ink">Code</span>
+        <input
+          name="code"
+          type="text"
+          required
+          defaultValue={props.defaultCode ?? ""}
+          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm uppercase text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+        />
+      </label>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Status</span>
+          <select
+            name="status"
+            defaultValue={props.defaultStatus ?? "active"}
+            className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          >
+            <option value="draft">Draft</option>
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="expired">Expired</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Type</span>
+          <select
+            name="codeType"
+            defaultValue={props.defaultCodeType ?? "promo"}
+            className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          >
+            <option value="promo">Promo</option>
+            <option value="referral">Referral</option>
+            <option value="campaign">Campaign</option>
+            <option value="vanity">Vanity</option>
+          </select>
+        </label>
+      </div>
+
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-ink">Channel</span>
+        <input
+          name="channel"
+          type="text"
+          defaultValue={props.defaultChannel ?? ""}
+          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+        />
+      </label>
+    </div>
+  );
+}
+
+export default async function CodesPage({ searchParams }: CodesPageProps) {
+  const {
+    status: rawStatus = "all",
+    ownership = "all",
+    code: selectedCodeId,
+    notice,
+  } = await searchParams;
+  const status = VALID_STATUSES.has(rawStatus as PromoCodeStatus)
+    ? (rawStatus as PromoCodeStatus)
+    : "all";
+  const data = await listWorkspacePromoCodes();
+  const filteredCodes = data.codes.filter((code) => {
     const matchesStatus = status === "all" || code.status === status;
     const matchesOwnership =
       ownership === "all" ||
@@ -142,127 +223,147 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
 
     return matchesStatus && matchesOwnership;
   });
-
   const selectedCode =
-    filteredCodes.find((code) => code.slug === selectedCodeSlug) ??
+    filteredCodes.find((code) => code.id === selectedCodeId) ??
     filteredCodes[0] ??
     null;
-
-  const activeCount = codeRows.filter((code) => code.status === "active").length;
-  const assignedCount = codeRows.filter((code) => code.ownerAssigned).length;
-  const duplicateCount = codeRows.filter((code) => code.duplicateActive).length;
+  const banner = noticeCopy(notice);
 
   return (
     <PageContainer>
       <PageHeader
         eyebrow="Program"
         title="Codes"
-        description="Treat promo codes as the MVP source of truth for attribution: who owns each code, where it routes, whether it is active, and where duplicate or stale coverage needs operator review."
+        description="Treat codes as the manual-first attribution register: which app they belong to, whether a partner owns them, and where duplicate active coverage should trigger operator review."
         actions={
           <>
             <ActionLink href="/partners">Open partners</ActionLink>
             <ActionLink href="/unattributed" variant="primary">
-              Open needs attribution
+              Review unattributed
             </ActionLink>
           </>
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Ownership-first review</StatusBadge>
-          <StatusBadge tone="warning">Duplicate active checks visible</StatusBadge>
-          <StatusBadge>Share helpers included</StatusBadge>
+          <StatusBadge tone="primary">Real promo code register</StatusBadge>
+          <StatusBadge tone="warning">Duplicate active warnings</StatusBadge>
+          <StatusBadge>App and partner scoped</StatusBadge>
         </div>
       </PageHeader>
 
+      {banner ? (
+        <SurfaceCard>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-ink">{banner.title}</p>
+              <p className="mt-1 text-sm text-ink-muted">{banner.detail}</p>
+            </div>
+            <StatusBadge tone={banner.tone}>{banner.title}</StatusBadge>
+          </div>
+        </SurfaceCard>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
-          label="Active codes"
-          value={String(activeCount)}
-          detail="Active codes should remain easy to audit because they anchor attribution coverage."
+          label="Active"
+          value={String(data.stats.active)}
+          detail="Active codes stay visible because they anchor attribution coverage."
           tone="success"
         />
         <StatCard
-          label="Assigned ownership"
-          value={`${assignedCount}/${codeRows.length}`}
-          detail="Every assigned code should map cleanly to a partner and an app-level operating lane."
+          label="Assigned"
+          value={`${data.stats.assigned}/${data.codes.length}`}
+          detail="Ownership should stay explicit whenever a code already belongs to a partner."
           tone="primary"
         />
         <StatCard
-          label="Duplicate warnings"
-          value={String(duplicateCount)}
-          detail="Duplicate active coverage should stand out before it creates attribution ambiguity."
+          label="Duplicate active"
+          value={String(data.stats.duplicateActive)}
+          detail="Duplicate active lanes should stand out before they create attribution ambiguity."
           tone="warning"
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-4">
+          <SectionCard
+            eyebrow="Create"
+            title="Add code"
+            description="Create a code against an app, with optional partner ownership, without inventing a broader code system."
+          >
+            {data.appOptions.length === 0 ? (
+              <EmptyState
+                eyebrow="Apps required"
+                title="Create an app before adding codes"
+                description="Codes must belong to a workspace app, so this form becomes useful after at least one app record exists."
+                action={<ActionLink href="/dashboard">Open overview</ActionLink>}
+              />
+            ) : (
+              <form action={createPromoCodeAction} className="space-y-4">
+                <CodeFormFields
+                  appOptions={data.appOptions}
+                  partnerOptions={data.partnerOptions}
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
+                  >
+                    Create code
+                  </button>
+                </div>
+              </form>
+            )}
+          </SectionCard>
+
           <FilterBar
             title="Sticky filters"
-            description="Keep code review anchored around status and ownership without leaving the list surface."
+            description="Review codes by lifecycle and ownership without leaving the list-and-detail flow."
           >
             <FilterChipLink
-              href={buildHref({
-                status: "all",
-                ownership,
-                code: selectedCode?.slug,
-              })}
+              href={buildHref({ status: "all", ownership, code: selectedCode?.id })}
               active={status === "all"}
             >
               All states
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({
-                status: "active",
-                ownership,
-                code: selectedCode?.slug,
-              })}
+              href={buildHref({ status: "active", ownership, code: selectedCode?.id })}
               active={status === "active"}
             >
               Active
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({
-                status: "paused",
-                ownership,
-                code: selectedCode?.slug,
-              })}
+              href={buildHref({ status: "draft", ownership, code: selectedCode?.id })}
+              active={status === "draft"}
+            >
+              Draft
+            </FilterChipLink>
+            <FilterChipLink
+              href={buildHref({ status: "paused", ownership, code: selectedCode?.id })}
               active={status === "paused"}
             >
               Paused
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({
-                status: "archived",
-                ownership,
-                code: selectedCode?.slug,
-              })}
+              href={buildHref({ status: "archived", ownership, code: selectedCode?.id })}
               active={status === "archived"}
             >
               Archived
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({ status, ownership: "all", code: selectedCode?.slug })}
+              href={buildHref({ status, ownership: "all", code: selectedCode?.id })}
               active={ownership === "all"}
             >
               All ownership
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({
-                status,
-                ownership: "assigned",
-                code: selectedCode?.slug,
-              })}
+              href={buildHref({ status, ownership: "assigned", code: selectedCode?.id })}
               active={ownership === "assigned"}
             >
               Assigned
             </FilterChipLink>
             <FilterChipLink
-              href={buildHref({
-                status,
-                ownership: "unassigned",
-                code: selectedCode?.slug,
-              })}
+              href={buildHref({ status, ownership: "unassigned", code: selectedCode?.id })}
               active={ownership === "unassigned"}
             >
               Unassigned
@@ -270,9 +371,9 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
           </FilterBar>
 
           <ListTable
-            eyebrow="Code register"
-            title="Ownership and status review"
-            description="Use the code register as the first operational source of truth for attribution coverage, partner assignment, and share-ready distribution."
+            eyebrow="Register"
+            title="Workspace codes"
+            description="Use the code register as the real source of truth for app/partner coverage and manual attribution review."
           >
             <div className="hidden grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Code</span>
@@ -285,69 +386,73 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
               {filteredCodes.length === 0 ? (
                 <div className="p-5">
                   <EmptyState
-                    eyebrow="No matches"
-                    title="No codes match these filters"
-                    description="Clear one of the sticky filters to return to the broader register view."
+                    eyebrow={data.hasWorkspaceAccess ? "No codes yet" : "Access required"}
+                    title={
+                      data.hasWorkspaceAccess
+                        ? "No code records match this view"
+                        : "Sign in to review codes"
+                    }
+                    description={
+                      data.hasWorkspaceAccess
+                        ? "Create the first code or reset filters to widen the register."
+                        : "An internal workspace membership is required before code records can be read."
+                    }
                     action={
-                      <ActionLink href="/codes" variant="primary">
-                        Reset filters
-                      </ActionLink>
+                      data.hasWorkspaceAccess ? (
+                        <ActionLink href="/codes" variant="primary">
+                          Reset filters
+                        </ActionLink>
+                      ) : null
                     }
                   />
                 </div>
               ) : null}
 
-              {filteredCodes.map((code) => {
-                const isSelected = code.slug === selectedCode?.slug;
-
-                return (
-                  <Link
-                    key={code.slug}
-                    href={buildHref({ status, ownership, code: code.slug })}
-                    className={`grid gap-4 px-5 py-4 transition md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] md:items-center ${
-                      isSelected
-                        ? "bg-primary-soft/40"
-                        : "hover:bg-surface"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base font-semibold text-ink">{code.code}</h3>
-                        {code.duplicateActive ? (
-                          <StatusBadge tone="danger">Duplicate active</StatusBadge>
-                        ) : null}
-                      </div>
-                      <p className="mt-1 text-sm leading-6 text-ink-muted">
-                        {code.channel}
-                      </p>
+              {filteredCodes.map((code) => (
+                <Link
+                  key={code.id}
+                  href={buildHref({ status, ownership, code: code.id })}
+                  className={`grid gap-4 px-5 py-4 transition md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] md:items-center ${
+                    code.id === selectedCode?.id
+                      ? "bg-primary-soft/40"
+                      : "hover:bg-surface"
+                  }`}
+                >
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-base font-semibold text-ink">{code.code}</h3>
+                      {code.duplicateActive ? (
+                        <StatusBadge tone="danger">Duplicate active</StatusBadge>
+                      ) : null}
                     </div>
+                    <p className="mt-1 text-sm text-ink-muted">
+                      {code.channel ?? "No channel note yet"}
+                    </p>
+                  </div>
 
-                    <div>
-                      <p className="text-sm font-medium text-ink">{code.owner}</p>
-                      <p className="mt-1 text-sm text-ink-muted">
-                        {code.ownerAssigned ? "Partner assigned" : "Needs owner"}
-                      </p>
-                    </div>
+                  <div className="text-sm text-ink-muted">
+                    {code.partnerName ?? "Unassigned"}
+                  </div>
 
-                    <div className="text-sm text-ink-muted">{code.app}</div>
+                  <div className="text-sm text-ink-muted">{code.appName}</div>
 
-                    <div className="flex justify-start gap-2 md:justify-end">
-                      <StatusBadge tone={statusTone(code.status)}>
-                        {code.status}
-                      </StatusBadge>
-                    </div>
-                  </Link>
-                );
-              })}
+                  <div className="flex justify-start md:justify-end">
+                    <StatusBadge tone={statusTone(code.status)}>{code.status}</StatusBadge>
+                  </div>
+                </Link>
+              ))}
             </div>
           </ListTable>
         </div>
 
         {selectedCode ? (
           <DetailPanel
-            eyebrow="Detail inspection"
+            eyebrow="Code detail"
             title={selectedCode.code}
-            description={selectedCode.note}
+            description={
+              selectedCode.channel ??
+              "No channel note has been added for this code yet."
+            }
             status={
               <div className="flex flex-wrap gap-2">
                 <StatusBadge tone={statusTone(selectedCode.status)}>
@@ -360,94 +465,53 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
             }
           >
             <SectionCard
-              title="Ownership and routing"
-              description="Keep the operator view grounded in the core attribution facts."
+              title="Operational context"
+              description="Keep the app and ownership context visible before editing the code record."
               items={[
-                `Owner: ${selectedCode.owner}.`,
-                `Assignment state: ${selectedCode.ownerAssigned ? "Assigned" : "Needs assignment"}.`,
-                `App: ${selectedCode.app}.`,
-                `Channel: ${selectedCode.channel}.`,
+                `App: ${selectedCode.appName}.`,
+                `Partner: ${selectedCode.partnerName ?? "Unassigned"}.`,
+                `Type: ${selectedCode.codeType}.`,
+                `Channel: ${selectedCode.channel ?? "No channel note yet"}.`,
               ]}
             />
 
-            <SurfaceCard className="bg-surface">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                Share helpers
-              </p>
-              <div className="mt-4 space-y-4">
-                <div className="rounded-[22px] border border-border bg-surface-elevated p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-ink">Share link</p>
-                      <p className="mt-1 text-sm text-ink-muted">{selectedCode.shareLink}</p>
-                    </div>
-                    <StatusBadge tone="primary">Ready to copy</StatusBadge>
-                  </div>
-                </div>
-
-                <div className="rounded-[22px] border border-border bg-surface-elevated p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-ink">QR helper</p>
-                      <p className="mt-1 text-sm text-ink-muted">
-                        Keep QR assets and destination validation close to the code record.
-                      </p>
-                    </div>
-                    <StatusBadge
-                      tone={
-                        selectedCode.qrStatus === "Ready"
-                          ? "success"
-                          : selectedCode.qrStatus === "Pending refresh"
-                            ? "warning"
-                            : "primary"
-                      }
-                    >
-                      {selectedCode.qrStatus}
-                    </StatusBadge>
-                  </div>
-                </div>
-              </div>
-            </SurfaceCard>
-
-            {selectedCode.duplicateActive ? (
-              <SectionCard
-                title="Duplicate active warning"
-                description="Active overlaps should be visible before they blur attribution ownership."
-              >
-                <EmptyState
-                  eyebrow="Operator warning"
-                  title="Another active code overlaps this lane"
-                  description="Review Motion Daily's active Apple Health pilot codes and decide which one should remain active. Duplicate live coverage can create uncertainty around source-of-truth ownership."
-                  action={
-                    <>
-                      <ActionLink href="/partners">Review partner</ActionLink>
-                      <ActionLink href="/unattributed">Open needs attribution</ActionLink>
-                    </>
-                  }
+            <SectionCard
+              title="Update code"
+              description="Make narrow operational changes to status, app, ownership, or channel metadata."
+            >
+              <form action={updatePromoCodeAction} className="space-y-4">
+                <input type="hidden" name="promoCodeId" value={selectedCode.id} />
+                <CodeFormFields
+                  appOptions={data.appOptions}
+                  partnerOptions={data.partnerOptions}
+                  defaultAppId={selectedCode.appId}
+                  defaultPartnerId={selectedCode.partnerId}
+                  defaultCode={selectedCode.code}
+                  defaultStatus={selectedCode.status}
+                  defaultCodeType={selectedCode.codeType}
+                  defaultChannel={selectedCode.channel}
                 />
-              </SectionCard>
-            ) : (
-              <SectionCard
-                title="Review posture"
-                description="This code currently reads as clean from an operational review perspective."
-                items={[
-                  "Ownership is visible in the list and detail view.",
-                  "Share and QR helper blocks stay attached to the code record.",
-                  "The detail panel keeps cleanup actions close without creating edit-page sprawl.",
-                ]}
-              />
-            )}
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
+                  >
+                    Save changes
+                  </button>
+                </div>
+              </form>
+            </SectionCard>
           </DetailPanel>
         ) : (
           <DetailPanel
-            eyebrow="Detail inspection"
+            eyebrow="Code detail"
             title="No code selected"
-            description="Adjust the sticky filters or reset the register to inspect a code record."
+            description="Create a code or reset filters to inspect a record."
           >
             <EmptyState
-              eyebrow="Empty detail panel"
-              title="Nothing matches the current register view"
-              description="This detail panel will show ownership, share helpers, and duplicate warning states once a code matches the selected filters."
+              eyebrow="Empty detail"
+              title="No code record is available"
+              description="The detail panel will show the app, owner, and duplicate-active context once a code is available in the current view."
               action={
                 <ActionLink href="/codes" variant="primary">
                   Reset filters

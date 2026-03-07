@@ -25,6 +25,7 @@ type SettingsPageFrameProps = {
   description: string;
   actions?: ReactNode;
   stats?: SettingsStat[];
+  badges?: ReactNode;
   children: ReactNode;
 };
 
@@ -34,6 +35,7 @@ export function SettingsPageFrame({
   description,
   actions,
   stats,
+  badges,
   children,
 }: SettingsPageFrameProps) {
   return (
@@ -45,11 +47,13 @@ export function SettingsPageFrame({
         actions={actions}
       >
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-3">
-            <StatusBadge tone="warning">Mock only in Phase 1</StatusBadge>
-            <StatusBadge tone="primary">Phase 2 wires called out</StatusBadge>
-            <StatusBadge>Internal admin settings</StatusBadge>
-          </div>
+          {badges ?? (
+            <div className="flex flex-wrap gap-3">
+              <StatusBadge tone="success">Live where backed</StatusBadge>
+              <StatusBadge tone="warning">Read-only where not yet modeled</StatusBadge>
+              <StatusBadge>Internal admin settings</StatusBadge>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <FilterChipLink href="/settings" active={activeSection === "overview"}>
@@ -91,8 +95,8 @@ export function SettingsHubActions() {
   return (
     <>
       <ActionLink href="/dashboard">Back to overview</ActionLink>
-      <ActionLink href="/portal" variant="primary">
-        Open partner portal placeholder
+      <ActionLink href="/onboarding" variant="primary">
+        Open launch checklist
       </ActionLink>
     </>
   );

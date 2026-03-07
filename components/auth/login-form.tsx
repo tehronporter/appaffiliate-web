@@ -81,8 +81,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           Use your Supabase email and password
         </h2>
         <p className="text-sm leading-6 text-ink-muted">
-          Keep this simple for Phase 1. Sign in with an existing Auth user from
-          your Supabase project.
+          Sign in with an existing Auth user from your Supabase project. This
+          remains a controlled access flow for internal operators and linked
+          partner users, not a public signup surface.
         </p>
       </div>
 
@@ -135,10 +136,10 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       </form>
 
       <div className="mt-6 rounded-3xl border border-border bg-surface p-4">
-        <p className="text-sm font-medium text-ink">Phase 1 note</p>
+        <p className="text-sm font-medium text-ink">Current MVP note</p>
         <p className="mt-2 text-sm leading-6 text-ink-muted">
-          Signup is intentionally skipped for now to keep the auth foundation
-          focused and predictable.
+          Signup and invite acceptance are intentionally skipped here to keep
+          admin and partner access focused and predictable.
         </p>
       </div>
 

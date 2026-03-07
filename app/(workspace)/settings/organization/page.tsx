@@ -1,90 +1,163 @@
 import { ActionLink } from "@/components/app-shell";
-import { EmptyState, SectionCard } from "@/components/admin-ui";
+import {
+  EmptyState,
+  SectionCard,
+  StatusBadge,
+} from "@/components/admin-ui";
 import {
   SettingsHubActions,
   SettingsPageFrame,
 } from "@/components/settings-shell";
+import { updateOrganizationSettingsAction } from "@/app/(workspace)/settings/actions";
+import { getOrganizationSettingsData } from "@/lib/services/settings";
 
-export default function SettingsOrganizationPage() {
+type SettingsOrganizationPageProps = {
+  searchParams: Promise<{
+    notice?: string;
+  }>;
+};
+
+function noticeBadge(notice: string | undefined) {
+  if (notice === "organization-saved") {
+    return <StatusBadge tone="success">Organization settings saved</StatusBadge>;
+  }
+
+  if (notice === "organization-error") {
+    return <StatusBadge tone="danger">Organization update failed</StatusBadge>;
+  }
+
+  return null;
+}
+
+export default async function SettingsOrganizationPage({
+  searchParams,
+}: SettingsOrganizationPageProps) {
+  const { notice } = await searchParams;
+  const data = await getOrganizationSettingsData();
+  const noticeChip = noticeBadge(notice);
+
   return (
     <SettingsPageFrame
       activeSection="organization"
       title="Organization settings"
-      description="Reserve a trustworthy home for workspace identity, operator defaults, and the internal-versus-external boundary decisions that should stay stable as the product grows."
+      description="Keep the organization layer narrow and trustworthy: edit the real display name, show the current ops defaults that are only derived elsewhere, and be explicit about what this MVP still does not store."
       actions={
         <>
           <SettingsHubActions />
           <ActionLink href="/settings/team">Open team</ActionLink>
         </>
       }
+      badges={
+        <div className="flex flex-wrap gap-3">
+          <StatusBadge tone="success">Real org profile read</StatusBadge>
+          <StatusBadge tone={data.canManageOrganization ? "primary" : "warning"}>
+            {data.canManageOrganization ? "Owner/admin edit access" : "Read-only for your role"}
+          </StatusBadge>
+          {noticeChip}
+        </div>
+      }
       stats={[
         {
-          label: "Workspace profile",
-          value: "Scoped",
-          detail: "Name, entity posture, and workspace-level defaults have a clear future home.",
+          label: "Display name",
+          value: data.organizationName ?? "Access required",
+          detail: "This is the real organization record backing the current workspace.",
           tone: "primary",
         },
         {
-          label: "Notification mode",
-          value: "Manual",
-          detail: "Phase 1 documents operator expectations without wiring delivery settings yet.",
-          tone: "warning",
+          label: "Managed apps",
+          value: String(data.managedAppCount),
+          detail: "App-level timezone and Apple ingest posture still stay with each app rather than a global org setting.",
+          tone: "success",
         },
         {
-          label: "Portal boundary",
-          value: "Internal",
-          detail: "Organization decisions remain admin-only and do not spill into partner views.",
-          tone: "success",
+          label: "Active currencies",
+          value: data.activeCurrencyLabels.length
+            ? data.activeCurrencyLabels.join(", ")
+            : "None",
+          detail: "Finance defaults shown here are derived from active commission rules, not a fake org-level save.",
+          tone: "warning",
         },
       ]}
     >
-      <div className="grid gap-6 xl:grid-cols-2">
+      {!data.hasWorkspaceAccess ? (
         <SectionCard
-          title="Workspace identity"
-          description="Keep the core organization record calm and operational."
-          items={[
-            "Workspace display name and legal entity posture belong here.",
-            "Default timezone, reporting assumptions, and contact channels should stay explicit.",
-            "Partner-facing branding can reuse these values later without exposing admin-only controls.",
-          ]}
-        />
-
-        <SectionCard
-          title="Default operating posture"
-          description="Document the defaults operators expect before the product starts persisting them."
-          items={[
-            "Health-related notifications should be reviewable before they become automatic.",
-            "Export naming and retention preferences should remain controlled and audit-safe.",
-            "Payout and rules boundaries should be described here, but enforced elsewhere.",
-          ]}
-        />
-
-        <SectionCard
-          title="Mock-only state"
-          description="Phase 1 intentionally avoids live persistence on this screen."
+          title="Internal workspace access required"
+          description="Organization settings remain part of the internal admin surface."
         >
           <EmptyState
-            eyebrow="No live editor"
-            title="Organization profile editing lands in Phase 2"
-            description="The shell exists now so real profile settings can plug in without reworking the information architecture."
+            eyebrow="Access required"
+            title="No internal organization settings are available"
+            description="Sign in with an internal workspace role to read or manage the organization profile."
             action={
-              <ActionLink href="/settings/rules" variant="primary">
-                Review rules boundary
+              <ActionLink href="/dashboard" variant="primary">
+                Return to overview
               </ActionLink>
             }
           />
         </SectionCard>
+      ) : (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <SectionCard
+            title="Workspace identity"
+            description="The organization display name is live and persisted. Keep this surface intentionally smaller than app, partner, or payout setup."
+          >
+            <form action={updateOrganizationSettingsAction} className="space-y-4">
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-ink">
+                  Organization display name
+                </span>
+                <input
+                  name="displayName"
+                  type="text"
+                  defaultValue={data.organizationName ?? ""}
+                  disabled={!data.canManageOrganization}
+                  className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
+                />
+              </label>
 
-        <SectionCard
-          title="Phase 2 wires next"
-          description="The next implementation pass can stay narrow because the shell is already stable."
-          items={[
-            "Connect real workspace profile reads and writes.",
-            "Persist notification and export defaults with audit logging.",
-            "Surface partner-facing branding values without merging partner tools into admin settings.",
-          ]}
-        />
-      </div>
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink-muted">
+                Workspace slug: <span className="font-medium text-ink">{data.organizationSlug}</span>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={!data.canManageOrganization}
+                  className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)] disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-muted disabled:text-ink-muted"
+                >
+                  Save organization settings
+                </button>
+              </div>
+            </form>
+          </SectionCard>
+
+          <SectionCard
+            title="Current derived defaults"
+            description="These settings are real signals from other backed models, but they are not yet configurable here."
+            items={[
+              `App timezones currently in use: ${data.appTimezoneLabels.length ? data.appTimezoneLabels.join(", ") : "No app timezones configured yet"}.`,
+              `Active finance currencies currently in use: ${data.activeCurrencyLabels.length ? data.activeCurrencyLabels.join(", ") : "No active commission rule currencies yet"}.`,
+              "Operational contact details are still intentionally not modeled at the organization level, so this screen does not fake-save them.",
+            ]}
+          />
+
+          <SectionCard
+            title="What remains read-only"
+            description="Be explicit about missing backing models rather than pretending these fields persist."
+            items={data.readOnlyNotes}
+          />
+
+          <SectionCard
+            title="Operator boundary"
+            description="This page should clarify what belongs here versus elsewhere."
+            items={[
+              "Change the workspace display name here.",
+              "Change app-specific timezone or Apple ingest posture from app-level product records, not from a fake global toggle.",
+              "Change commission payout logic from rules and finance surfaces, not from organization copy fields.",
+            ]}
+          />
+        </div>
+      )}
     </SettingsPageFrame>
   );
 }

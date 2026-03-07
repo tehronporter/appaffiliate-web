@@ -75,7 +75,7 @@ function nextActionHref(eventState: EventOperationalState, appSlug: string | nul
     return `/apps/${appSlug}/apple-health`;
   }
 
-  return "/dashboard";
+  return "/settings/rules";
 }
 
 function nextActionLabel(eventState: EventOperationalState) {
@@ -117,7 +117,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
       >
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone="primary">Live normalized rows</StatusBadge>
-          <StatusBadge tone="warning">Verification placeholder explicit</StatusBadge>
+          <StatusBadge tone="warning">Verification boundary explicit</StatusBadge>
           <StatusBadge>Receipt references retained server-side</StatusBadge>
         </div>
       </PageHeader>
@@ -216,7 +216,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                     }
                     action={
                       eventData.hasWorkspaceAccess ? (
-                        <ActionLink href="/apps/demo-app/apple-health" variant="primary">
+                        <ActionLink href="/settings/rules" variant="primary">
                           Review app readiness
                         </ActionLink>
                       ) : null
@@ -287,9 +287,9 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
               </p>
               <div className="mt-4 grid gap-4 xl:grid-cols-2">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Normalized metadata</p>
+                  <p className="text-sm font-semibold text-ink">Operational metadata summary</p>
                   <pre className="mt-3 overflow-x-auto rounded-[22px] border border-border bg-surface-elevated p-4 text-xs leading-6 text-ink-muted">
-                    {JSON.stringify(selectedEvent.payload, null, 2)}
+                    {JSON.stringify(selectedEvent.payloadSummary, null, 2)}
                   </pre>
                 </div>
                 <div>
@@ -327,7 +327,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                       ? `Review ${selectedEvent.reasonCode} before moving the event downstream.`
                       : "Keep the app readiness and attribution follow-up path visible."
                   }
-                  description="This MVP stores and normalizes receipts, but it does not imply attribution, commission approval, or full Apple signature validation."
+                  description="This MVP stores and normalizes receipts, but the browser only shows sanitized operational metadata rather than raw signed payload material."
                   badge={
                     <StatusBadge tone={stateTone(selectedEvent.state)}>
                       {selectedEvent.state}

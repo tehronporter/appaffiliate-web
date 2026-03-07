@@ -25,13 +25,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <PublicShell
       eyebrow="Access"
       title="Sign in to AppAffiliate"
-      description="This is the current auth foundation: a simple email and password login backed by Supabase, with just enough server protection to support the workspace overview."
+      description="Use the current AppAffiliate sign-in flow: Supabase email and password auth, a synced server cookie, and route protection for both the internal workspace and the partner portal."
     >
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           label="Flow"
           value="Email"
-          detail="Supabase email and password sign-in is enabled for the first protected route."
+          detail="Supabase email and password sign-in is the current access path for both internal and partner-linked accounts."
           tone="primary"
         />
         <StatCard
@@ -42,8 +42,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         />
         <StatCard
           label="Scope"
-          value="Phase 1"
-          detail="No roles, billing, org switching, or deep account management are included yet."
+          value="Internal MVP"
+          detail="Roles exist for both workspace and partner access, but signup, invites, billing, org switching, and deep account management still stay out of scope."
           tone="warning"
         />
       </div>
@@ -54,11 +54,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="space-y-6">
           <SectionCard
             title="What is implemented"
-            description="The auth layer is intentionally narrow and beginner-friendly."
+            description="The auth layer stays intentionally narrow and predictable for internal and partner-facing access."
             items={[
               "Client-side Supabase sign-in with basic loading and error handling.",
               "A small route handler keeps a server-readable auth cookie in sync.",
-              "The login page redirects authenticated users away from this screen.",
+              "Authenticated users are redirected back to the route they were trying to open.",
             ]}
           />
           <SectionCard
