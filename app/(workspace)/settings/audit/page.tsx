@@ -11,22 +11,7 @@ import {
   SettingsPageFrame,
 } from "@/components/settings-shell";
 import { getAuditSettingsData } from "@/lib/services/settings";
-
-function toneForStatus(status: string) {
-  if (status === "failed" || status === "danger") {
-    return "danger" as const;
-  }
-
-  if (status === "pending" || status === "running" || status === "exported") {
-    return "warning" as const;
-  }
-
-  if (status === "processed" || status === "succeeded" || status === "paid") {
-    return "success" as const;
-  }
-
-  return "primary" as const;
-}
+import { toneForSystemStatus, toneForWorkspaceLabel } from "@/lib/status-badges";
 
 export default async function SettingsAuditPage() {
   const data = await getAuditSettingsData();
@@ -44,9 +29,9 @@ export default async function SettingsAuditPage() {
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Audit trail</StatusBadge>
-          <StatusBadge tone="primary">Operational monitoring</StatusBadge>
-          <StatusBadge tone="warning">Lightweight jobs view</StatusBadge>
+          <StatusBadge tone="green">Audit trail</StatusBadge>
+          <StatusBadge tone={toneForWorkspaceLabel()}>Operational monitoring</StatusBadge>
+          <StatusBadge tone="amber">Lightweight jobs view</StatusBadge>
         </div>
       }
       stats={[
@@ -54,19 +39,19 @@ export default async function SettingsAuditPage() {
           label: "Recent entries",
           value: String(data.totalEntries),
           detail: "Audit keeps the current manual and finance workflow history readable in one place.",
-          tone: "primary",
+          tone: "blue",
         },
         {
           label: "Manual review actions",
           value: String(data.manualReviewCount),
           detail: "Queue review and manual attribution changes stay visible instead of becoming silent state transitions.",
-          tone: "warning",
+          tone: "amber",
         },
         {
           label: "Finance actions",
           value: String(data.financeActionCount),
           detail: "Commission approvals, payout lifecycle changes, and export downloads remain distinct.",
-          tone: "success",
+          tone: "green",
         },
       ]}
     >
@@ -176,7 +161,9 @@ export default async function SettingsAuditPage() {
                             timeZone: "UTC",
                           })} UTC.`
                     }
-                    badge={<StatusBadge tone={toneForStatus(job.status)}>{job.status}</StatusBadge>}
+                    badge={
+                      <StatusBadge tone={toneForSystemStatus(job.status)}>{job.status}</StatusBadge>
+                    }
                   />
                 ))}
 
@@ -190,7 +177,7 @@ export default async function SettingsAuditPage() {
                         : `${receipt.notificationType} with ${receipt.verificationStatus} verification posture.`
                     }
                     badge={
-                      <StatusBadge tone={toneForStatus(receipt.processedStatus)}>
+                      <StatusBadge tone={toneForSystemStatus(receipt.processedStatus)}>
                         {receipt.processedStatus}
                       </StatusBadge>
                     }

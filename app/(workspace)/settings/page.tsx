@@ -13,6 +13,7 @@ import {
 } from "@/components/settings-shell";
 import { settingsSections } from "@/lib/settings-navigation";
 import { getLaunchReadinessData } from "@/lib/services/launch-readiness";
+import { toneForLaunchStatus, toneForSystemStatus, toneForWorkspaceLabel } from "@/lib/status-badges";
 
 function sectionStatus(
   sectionId: string,
@@ -21,21 +22,21 @@ function sectionStatus(
   if (sectionId === "organization") {
     return {
       label: "Editable + honest read-only",
-      tone: "success" as const,
+      tone: "green" as const,
     };
   }
 
   if (sectionId === "team") {
     return {
       label: data.visibleMemberCount > 0 ? "Live membership context" : "No visible members",
-      tone: data.visibleMemberCount > 0 ? ("primary" as const) : ("warning" as const),
+      tone: data.visibleMemberCount > 0 ? ("green" as const) : ("amber" as const),
     };
   }
 
   if (sectionId === "rules") {
     return {
       label: data.activeRuleCount > 0 ? "Live config context" : "Read-only posture",
-      tone: data.activeRuleCount > 0 ? ("success" as const) : ("warning" as const),
+      tone: data.activeRuleCount > 0 ? ("green" as const) : ("amber" as const),
     };
   }
 
@@ -43,31 +44,15 @@ function sectionStatus(
     return {
       label: data.financeSummary.hasFinanceAccess ? "Finance-gated live" : "Finance role required",
       tone: data.financeSummary.hasFinanceAccess
-        ? ("success" as const)
-        : ("warning" as const),
+        ? ("green" as const)
+        : ("amber" as const),
     };
   }
 
   return {
     label: data.auditEntryCount > 0 ? "Live history" : "Ready for first entries",
-    tone: data.auditEntryCount > 0 ? ("primary" as const) : ("warning" as const),
+    tone: data.auditEntryCount > 0 ? ("blue" as const) : ("amber" as const),
   };
-}
-
-function toneForCheck(status: "ready" | "attention" | "blocked" | "informational") {
-  if (status === "ready") {
-    return "success" as const;
-  }
-
-  if (status === "blocked") {
-    return "danger" as const;
-  }
-
-  if (status === "attention") {
-    return "warning" as const;
-  }
-
-  return "primary" as const;
 }
 
 export default async function SettingsPage() {
@@ -85,19 +70,19 @@ export default async function SettingsPage() {
           label: "Organization",
           value: data.organizationName ?? "Access required",
           detail: "Organization identity is live and org-scoped instead of shell-only.",
-          tone: "primary",
+          tone: toneForWorkspaceLabel(),
         },
         {
           label: "Launch status",
           value: launch.overallLabel,
           detail: launch.overallDetail,
-          tone: toneForCheck(launch.overallStatus),
+          tone: toneForLaunchStatus(launch.overallStatus),
         },
         {
           label: "Visible members",
           value: String(data.visibleMemberCount),
           detail: "The team surface reflects the real workspace membership directory allowed by the current auth model.",
-          tone: "success",
+          tone: "green",
         },
       ]}
     >
@@ -175,7 +160,9 @@ export default async function SettingsPage() {
                     key={check.id}
                     title={check.title}
                     description={check.detail}
-                    badge={<StatusBadge tone={toneForCheck(check.status)}>{check.label}</StatusBadge>}
+                    badge={
+                      <StatusBadge tone={toneForLaunchStatus(check.status)}>{check.label}</StatusBadge>
+                    }
                     actions={<ActionLink href={check.href}>Open</ActionLink>}
                   />
                 ))}
@@ -189,10 +176,17 @@ export default async function SettingsPage() {
               <div className="space-y-3">
                 {data.monitoring.recentReceipts.slice(0, 3).map((receipt) => (
                   <InsetPanel key={receipt.id}>
-                    <p className="text-sm font-semibold text-ink">{receipt.appName}</p>
-                    <p className="mt-1 text-sm text-ink-muted">
-                      {receipt.notificationType} • {receipt.processedStatus} • {receipt.verificationStatus}
-                    </p>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-ink">{receipt.appName}</p>
+                        <p className="mt-1 text-sm text-ink-muted">
+                          {receipt.notificationType} • {receipt.verificationStatus}
+                        </p>
+                      </div>
+                      <StatusBadge tone={toneForSystemStatus(receipt.processedStatus)}>
+                        {receipt.processedStatus}
+                      </StatusBadge>
+                    </div>
                   </InsetPanel>
                 ))}
 

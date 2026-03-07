@@ -8,13 +8,16 @@ import {
   Award,
   PiggyBank,
   Heart,
+  Rocket,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 
 import {
   MarketingCard,
   MarketingCtaPanel,
   MarketingHero,
+  MarketingHeroProofStack,
   MarketingSection,
   MarketingSectionHeading,
   MarketingSteps,
@@ -39,21 +42,21 @@ const steps = [
     number: "01",
     title: "Add your app",
     description:
-      "Connect your iOS app so AppAffiliate can turn creator promotion into a real subscription growth channel.",
+      "Connect your iOS app so AppAffiliate can match creator codes to real subscription events.",
     icon: <AppWindow size={20} strokeWidth={1.5} />,
   },
   {
     number: "02",
     title: "Invite creators",
     description:
-      "Work with creators you already trust instead of defaulting to risky upfront influencer deals.",
+      "Invite the creators you already trust. No upfront deal required.",
     icon: <UserPlus size={20} strokeWidth={1.5} />,
   },
   {
     number: "03",
     title: "Assign codes or links",
     description:
-      "Give each creator a clear trackable path so ownership stays readable from the start.",
+      "Give each creator a code or link so their results trace back to them by default.",
     icon: <Link2 size={20} strokeWidth={1.5} />,
   },
   {
@@ -76,22 +79,40 @@ const outcomes = [
   {
     title: "Less wasted spend",
     description:
-      "You stop paying for creator promotion without knowing whether it turned into real subscriptions.",
+      "You stop paying for creator promotion before knowing whether it turned into subscriptions.",
     icon: <PiggyBank size={20} strokeWidth={1.5} />,
   },
   {
     title: "Fairer creator rewards",
     description:
-      "Creators get paid when their audience actually converts, with clearer visibility into what changed.",
+      "Creators get paid when their audience converts, with less ambiguity about what changed.",
     icon: <Heart size={20} strokeWidth={1.5} />,
   },
   {
     title: "More trust across the workflow",
     description:
-      "Tracking, review, commissions, and payouts stay connected so decisions are easier to explain later.",
+      "Tracking, review, commissions, and payouts stay connected, so decisions stay explainable later.",
     icon: <ShieldCheck size={20} strokeWidth={1.5} />,
   },
 ];
+
+const heroProofItems = [
+  {
+    icon: <Rocket size={16} strokeWidth={1.5} />,
+    title: "Five steps, no training required",
+    description: "Add your app, invite creators, and track real results in under a day.",
+  },
+  {
+    icon: <Users size={16} strokeWidth={1.5} />,
+    title: "Built for lean iOS teams",
+    description: "No dedicated affiliate manager needed. One founder can run the entire channel.",
+  },
+  {
+    icon: <ShieldCheck size={16} strokeWidth={1.5} />,
+    title: "Results you can audit",
+    description: "Every payout ties back to a verified subscription event, not a self-reported metric.",
+  },
+] as const;
 
 export default function HowItWorksPage() {
   return (
@@ -104,9 +125,10 @@ export default function HowItWorksPage() {
     >
       <main>
         <MarketingHero
-          eyebrow="How AppAffiliate works"
+          eyebrow="THE FIVE STEPS"
           title="A simple five-step creator growth system."
-          description="Add your app, invite creators, assign codes or links, track real subscription results, and reward creators based on performance."
+          description="The whole channel runs in one place. No additional tools, no spreadsheets, no manual payout math."
+          wrapVisual={false}
           actions={
             <>
               <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
@@ -118,27 +140,13 @@ export default function HowItWorksPage() {
             </>
           }
         >
-          <div className="grid gap-3">
-            {[
-              "Built for iOS founders and lean app teams",
-              "Designed around real subscription outcomes",
-              "Keeps creator rewards and payout trust connected",
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-[var(--radius-input)] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+          <MarketingHeroProofStack items={heroProofItems} />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="The sequence"
             title="Each step is easy to scan and easier to trust."
-            description="The workflow is intentionally short. Founders should understand how the model works in a few minutes, not after reading internal docs."
+            description="The workflow is intentionally short. Founders should understand it in a few minutes, not after reading internal docs."
           />
 
           <div className="mt-10">
@@ -148,9 +156,8 @@ export default function HowItWorksPage() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="Why that matters"
-            title="The system works because the economics are clearer."
-            description="The point is not just to track creator activity. The point is to run creator promotion as a performance channel instead of a guessing game."
+            title="It works because the economics make sense."
+            description="The point is not just to track creator activity. It is to run creator promotion as a performance channel instead of a guessing game."
           />
 
           <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -168,7 +175,7 @@ export default function HowItWorksPage() {
         <MarketingSection>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Next step"
+              eyebrow="GET STARTED"
               title="See whether the model fits your app."
               description="If you want to grow through creators without risky upfront influencer spend, review the product and request access."
               primaryHref="/request-access"

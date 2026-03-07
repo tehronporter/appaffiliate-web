@@ -32,9 +32,9 @@ export function SupportCard({
   );
 
   const classes = joinClasses(
-    "block rounded-[20px] border border-border bg-[rgba(255,255,255,0.96)] p-5 shadow-[var(--shadow-soft)] transition sm:p-6",
+    "block rounded-[12px] border border-border bg-white p-5 transition-colors sm:p-6",
     href &&
-      "hover:border-border-strong hover:bg-white hover:shadow-[var(--shadow-strong)] focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white",
+      "hover:border-border-strong focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)]",
     className,
   );
 
@@ -70,7 +70,7 @@ export function FaqGroup({
   return (
     <div
         className={joinClasses(
-        "rounded-[24px] border border-border bg-[rgba(255,255,255,0.96)] p-5 shadow-[var(--shadow-soft)] sm:p-6",
+        "rounded-[12px] border border-border bg-white p-5 sm:p-6",
         className,
       )}
     >
@@ -88,7 +88,7 @@ export function FaqGroup({
         {items.map((item) => (
           <div
             key={item.question}
-            className="rounded-[18px] border border-border bg-[rgba(248,251,255,0.9)] px-4 py-4"
+            className="rounded-[12px] border border-border bg-surface px-4 py-4"
           >
             <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
               {item.question}
@@ -120,7 +120,7 @@ export function SupportChecklist({
   return (
     <div
         className={joinClasses(
-        "rounded-[24px] border border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-[linear-gradient(180deg,#ffffff_0%,#f3f7ff_100%)] p-5 shadow-[var(--shadow-strong)] sm:p-6",
+        "rounded-[12px] border border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-white p-5 sm:p-6",
         className,
       )}
     >
@@ -131,9 +131,9 @@ export function SupportChecklist({
         {items.map((item, index) => (
           <div
             key={item.label}
-            className="flex flex-col gap-3 rounded-[18px] border border-border bg-white px-4 py-4 sm:flex-row sm:gap-4"
+            className="flex flex-col gap-3 rounded-[12px] border border-border bg-surface px-4 py-4 sm:flex-row sm:gap-4"
           >
-            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#EBF0FF] text-sm font-semibold text-primary">
               {index + 1}
             </span>
             <div>

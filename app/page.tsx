@@ -37,21 +37,21 @@ import {
 
 const founderPain = [
   {
-    title: "You should not have to prepay for guesswork",
+    title: "No upfront fees.",
     description:
-      "Too much influencer spend lands before anyone knows whether subscriptions will actually convert.",
+      "Every creator payout starts at zero and moves toward payment only when a real subscription confirms.",
     icon: <Banknote size={20} strokeWidth={1.5} />,
   },
   {
-    title: "Creators should be rewarded fairly",
+    title: "Creators earn what they drive.",
     description:
-      "When performance is tracked clearly, creators can see what they drove and what they earned without awkward side-channel updates.",
+      "When results are visible to both sides, the payout conversation disappears.",
     icon: <Users size={20} strokeWidth={1.5} />,
   },
   {
-    title: "Your team still needs trust behind the scenes",
+    title: "Trust, not admin.",
     description:
-      "Attribution, commission review, and payouts should support the growth model instead of turning into spreadsheet cleanup.",
+      "The review and payout flows are built so your team can act with confidence, not chase down what happened.",
     icon: <ShieldCheck size={20} strokeWidth={1.5} />,
   },
 ];
@@ -161,33 +161,33 @@ const trustBlocks = [
 const comparisonRows = [
   {
     painPoint: "Upfront spend risk",
-    oldWay: "High spend lands first, then founders hope the campaign turns into real subscriptions. No recourse if it does not.",
-    newWay: "Pay only when subscription results are confirmed. Zero upfront creator fees. Risk stays off your balance sheet until results arrive.",
+    oldWay: "You pay creators upfront and find out later if it worked.",
+    newWay: "Creators are paid only when subscriptions confirm. Zero upfront fees.",
   },
   {
     painPoint: "Creator accountability",
-    oldWay: "Deals are based on reach and views. Payout is disconnected from whether the audience subscribed or stayed.",
-    newWay: "Every creator\u2019s payout is tied directly to verified subscription outcomes \u2014 not follower counts or post metrics.",
+    oldWay: "Payout is based on reach - not on whether anyone subscribed.",
+    newWay: "Every creator payout is tied directly to verified subscription outcomes.",
   },
   {
     painPoint: "Tracking complexity",
-    oldWay: "Spreadsheet-heavy manual tracking, back-and-forth on what actually converted, no single source of truth.",
-    newWay: "Creator codes, results, approved earnings, and payout status all live in one place. No spreadsheets, no chasing follow-up.",
+    oldWay: "Manual spreadsheets and back-and-forth on what actually converted.",
+    newWay: "Codes, results, earnings, and payout status - all in one place.",
   },
   {
     painPoint: "Payout trust",
-    oldWay: "Creators do not know what they earned or when they will be paid until you tell them. Friction and distrust build over time.",
-    newWay: "Creators get a read-only portal showing their codes, results, approved earnings, and payout progress in real time.",
+    oldWay: "Creators are in the dark about earnings until you tell them.",
+    newWay: "Creators see their earnings, codes, and payout progress in real time - no follow-up needed.",
   },
   {
     painPoint: "Review process",
-    oldWay: "Manual review with no workflow \u2014 you are deciding in DMs or emails what counts and what does not.",
-    newWay: "Built-in review queue: see which results are ready to trust, which need review, and exactly why. Reviewable, auditable.",
+    oldWay: "You decide what counts via DMs and emails, with no record.",
+    newWay: "A built-in review queue shows which results to trust and which need a second look - all auditable.",
   },
   {
     painPoint: "Commission changes",
-    oldWay: "Any commission adjustment requires a manual message, update to your spreadsheet, and hope the creator has the right number.",
-    newWay: "Commission changes, payout notes, and status updates are tracked in the system \u2014 both sides always see the same number.",
+    oldWay: "Rate changes mean messages, spreadsheet edits, and hoping the creator has the right number.",
+    newWay: "Commission rates and changes are tracked in the system - both sides always see the same number.",
   },
 ];
 
@@ -208,9 +208,9 @@ export default function Home() {
     >
       <main>
         <MarketingHero
-          eyebrow="Creator growth for modern iOS founders"
+          eyebrow="PERFORMANCE-BASED CREATOR GROWTH"
           title="Pay creators for results, not hype."
-          description="AppAffiliate helps iOS app teams grow through creators without risky upfront promo fees. Track real subscription results, reward creators fairly, and manage commissions and payouts in one place."
+          description="Run a creator growth channel where every payout ties back to a real subscription - not a view count or a vibe."
           wrapVisual={false}
           actions={
             <>
@@ -231,20 +231,19 @@ export default function Home() {
 
         <div id="content" />
 
-        <MarketingSection className="border-b border-border bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)]">
+        <MarketingSection muted className="border-b border-border">
           <MarketingComparison
-            eyebrow="Old way vs AppAffiliate"
+            eyebrow="WHY IT WORKS DIFFERENTLY"
             title="Compare the cost logic, not just a feature list."
-            description="The real alternative is not another SaaS line item. It is wasted influencer spend, manual payout cleanup, and unclear creator performance."
+            description="The alternative to AppAffiliate isn't a competitor. It's spreadsheets, DMs, and hoping creators drive subscriptions."
             rows={comparisonRows}
           />
         </MarketingSection>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="The problem"
-            title="Stop paying for app promotion that does not convert."
-            description="Founders are tired of spending on views, posts, and campaigns that feel busy but never turn into real subscription growth."
+            title="Built on a simple belief."
+            description="Creator growth should only cost money when it works."
           />
 
           <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -256,9 +255,8 @@ export default function Home() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="Built for performance-based app growth"
-            title="A cleaner deal for founders, creators, and the team behind payouts."
-            description="The growth story is simple up front, but the product still gives your team the review and payout trust needed to run the channel for real."
+            title="A cleaner deal for founders, creators, and ops."
+            description="The surface is simple. Under it, every review, commission, and payout action has a paper trail."
           />
 
           <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -276,7 +274,6 @@ export default function Home() {
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="How AppAffiliate works"
             title="A short path from creator invite to payout."
             description="The workflow stays easy to understand: connect the app, assign the creator path, track results, review what matters, and reward real performance."
           />
@@ -288,12 +285,11 @@ export default function Home() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="Product surfaces"
             title="Everything you need to run creator performance in one place."
             description="AppAffiliate connects creator tracking, review, commissions, payouts, and creator visibility without turning the site into a product-tour maze."
           />
 
-          <ScrollReveal className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {productSurfaces.map((item) => (
               <MarketingCard
                 key={item.title}
@@ -308,7 +304,6 @@ export default function Home() {
         <MarketingSection>
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-start">
             <MarketingSectionHeading
-              eyebrow="Creator trust"
               title="Give creators a simple view of what they earned."
               description="Creators do not need the internal workspace. They need a clean read-only view of codes, results, approved earnings, and payout history."
             />
@@ -339,7 +334,6 @@ export default function Home() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="Security and trust"
             title="Built to keep performance and payouts trustworthy."
             description="Trust is part of the growth model: role-aware access, clear review state, and finance-safe payout handling all reinforce the public promise."
           />
@@ -359,9 +353,9 @@ export default function Home() {
         <MarketingSection>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Final step"
+              eyebrow="GET STARTED"
               title="Start rewarding results instead of guessing on hype."
-              description="If you want creator growth without risky upfront influencer deals, review the workflow and request access for a guided rollout."
+              description="Request access and we'll walk you through the workflow together."
               primaryHref="/request-access"
               primaryLabel="Request access"
               secondaryHref="/product"

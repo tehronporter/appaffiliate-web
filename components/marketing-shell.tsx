@@ -73,8 +73,16 @@ export function MarketingShell({
 
   // Close drawer on route change
   useEffect(() => {
-    setDrawerOpen(false);
-  }, [pathname]);
+    if (!drawerOpen) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      setDrawerOpen(false);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [drawerOpen, pathname]);
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -122,10 +130,15 @@ export function MarketingShell({
                 key={link.href}
                 href={link.href}
                 className={joinClasses(
-                  "whitespace-nowrap rounded-full px-3.5 py-2 text-sm transition-colors duration-200 hover:bg-white/80 hover:text-ink",
+                  "whitespace-nowrap rounded-full px-3.5 py-2 text-sm transition-colors duration-200 hover:bg-white/80",
+                  link.label === "Docs" && "ml-1 text-ink-subtle",
                   activePath === link.href
-                    ? "bg-white font-medium text-ink shadow-[0_2px_8px_rgba(17,24,39,0.06)]"
-                    : "text-ink-muted",
+                    ? link.label === "Docs"
+                      ? "bg-white/80 font-medium text-ink-muted shadow-[0_2px_8px_rgba(17,24,39,0.05)]"
+                      : "bg-white font-medium text-ink shadow-[0_2px_8px_rgba(17,24,39,0.06)]"
+                    : link.label === "Docs"
+                      ? "hover:text-ink-muted"
+                      : "text-ink-muted hover:text-ink",
                 )}
               >
                 {link.label}
@@ -181,9 +194,12 @@ export function MarketingShell({
                     onClick={() => setDrawerOpen(false)}
                     className={joinClasses(
                       "flex min-h-[44px] items-center rounded-[var(--radius-card)] px-4 text-sm font-medium transition-colors",
+                      link.label === "Docs" && "text-ink-subtle",
                       activePath === link.href
                         ? "bg-primary-soft text-primary"
-                        : "text-ink-muted hover:bg-surface hover:text-ink",
+                        : link.label === "Docs"
+                          ? "hover:bg-surface hover:text-ink-muted"
+                          : "text-ink-muted hover:bg-surface hover:text-ink",
                     )}
                   >
                     {link.label}
@@ -210,8 +226,8 @@ export function MarketingShell({
               Pay creators for results, not hype.
             </p>
             <p className="mt-3 text-sm leading-7 text-ink-muted">
-              AppAffiliate turns creator promotion into a performance-based growth channel for iOS
-              teams that want trustworthy tracking, fair rewards, and clear payouts.
+              Trackable creator growth for iOS app teams. No upfront fees, no spreadsheets, no
+              guesswork.
             </p>
           </div>
 
@@ -232,14 +248,13 @@ export function MarketingShell({
           </div>
 
           <div>
-            <p className="text-sm font-medium text-ink">Access</p>
+            <p className="text-sm font-medium text-ink">Get started</p>
             <div className="mt-4 flex flex-col gap-3">
-              <ActionButton {...secondaryAction} />
-              <ActionButton {...primaryAction} />
+              <ActionButton href="/request-access" label="Request access" variant="secondary" />
+              <ActionButton href="/login" label="Sign in" variant="primary" />
             </div>
             <p className="mt-4 text-sm leading-6 text-ink-subtle">
-              New teams join through guided rollout. Invited users sign in to
-              either the internal workspace or the read-only creator portal.
+              New workspaces start with a guided rollout.
             </p>
           </div>
         </div>

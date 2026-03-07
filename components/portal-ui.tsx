@@ -31,27 +31,27 @@ export function PortalPageHeader({
     <SurfaceCard
       tone="portal"
       density="compact"
-      className={joinClasses("border-white/80", className)}
+      className={className}
     >
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div className="max-w-3xl">
           {eyebrow ? (
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
               {eyebrow}
             </p>
           ) : null}
-          <h1 className="mt-2 text-[1.9rem] font-semibold tracking-[-0.05em] text-ink sm:text-[2.35rem]">
+          <h1 className="mt-2 text-[1.7rem] font-semibold tracking-[-0.05em] text-ink sm:text-[2rem]">
             {title}
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-ink-muted sm:text-[0.98rem]">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-muted">
             {description}
           </p>
         </div>
 
-        {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap gap-3 lg:justify-end">{actions}</div> : null}
       </div>
 
-      {children ? <div className="mt-5 flex flex-wrap gap-3">{children}</div> : null}
+      {children ? <div className="mt-4 flex flex-wrap gap-2">{children}</div> : null}
     </SurfaceCard>
   );
 }
@@ -86,13 +86,15 @@ export function PortalMetricCard({
     <SurfaceCard
       tone="portal"
       density="compact"
-      className={joinClasses("relative overflow-hidden", className)}
+      className={joinClasses(className)}
     >
-      <span className={joinClasses("absolute inset-x-0 top-0 h-1.5 rounded-t-[var(--radius-card)]", accentClass)} />
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
-        {label}
-      </p>
-      <p className="mt-3 text-[1.7rem] font-semibold tracking-[-0.05em] text-ink sm:text-[1.9rem]">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+          {label}
+        </p>
+        <span className={joinClasses("inline-flex h-2.5 w-2.5 rounded-full", accentClass)} />
+      </div>
+      <p className="mt-4 text-[1.6rem] font-semibold tracking-[-0.05em] text-ink sm:text-[1.8rem]">
         {value}
       </p>
       <p className="mt-2 text-sm leading-6 text-ink-muted">{detail}</p>
@@ -119,13 +121,13 @@ export function PortalRecordCard({
 }: PortalRecordCardProps) {
   return (
     <InsetPanel
-      tone="neutral"
-      className={joinClasses("px-5 py-4 shadow-[0_8px_20px_rgba(17,24,39,0.04)]", className)}
+      tone="gray"
+      className={joinClasses("px-4 py-4", className)}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-base font-semibold tracking-[-0.02em] text-ink">{title}</p>
-          <p className="mt-1 text-sm leading-6 text-ink-muted">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p>
         </div>
         {badge ? <div className="shrink-0">{badge}</div> : null}
       </div>
@@ -150,7 +152,7 @@ export function PortalHelpCard({
   return (
     <InsetPanel tone="default" className={className}>
       <p className="text-sm font-semibold tracking-[-0.01em] text-ink">{title}</p>
-      <p className="mt-2 text-sm leading-7 text-ink-muted">{description}</p>
+      <p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p>
     </InsetPanel>
   );
 }

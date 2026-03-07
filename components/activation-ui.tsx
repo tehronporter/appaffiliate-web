@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
-import { InsetPanel, StatusBadge, SurfaceCard, type StatusTone } from "@/components/admin-ui";
+import { InsetPanel, StatusBadge, SurfaceCard } from "@/components/admin-ui";
+import { toneForActivationState } from "@/lib/status-badges";
 
 export type ActivationState =
   | "not_started"
@@ -8,26 +9,6 @@ export type ActivationState =
   | "ready"
   | "completed"
   | "needs_attention";
-
-function activationTone(state: ActivationState): StatusTone {
-  if (state === "completed") {
-    return "success";
-  }
-
-  if (state === "ready") {
-    return "primary";
-  }
-
-  if (state === "needs_attention") {
-    return "danger";
-  }
-
-  if (state === "in_progress") {
-    return "warning";
-  }
-
-  return "neutral";
-}
 
 function activationLabel(state: ActivationState) {
   if (state === "not_started") {
@@ -72,26 +53,30 @@ export function ActivationMilestoneCard({
 }: ActivationMilestoneCardProps) {
   return (
     <SurfaceCard className={className}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="max-w-3xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
-            {step}
-          </p>
-          <h3 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-ink">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex min-h-8 items-center rounded-full border border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
+              {step}
+            </span>
+            <StatusBadge tone={toneForActivationState(status)}>{activationLabel(status)}</StatusBadge>
+          </div>
+          <h3 className="mt-4 text-[1.35rem] font-semibold tracking-[-0.03em] text-ink">
             {title}
           </h3>
-          <p className="mt-2 text-sm leading-7 text-ink-muted">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p>
         </div>
-        <StatusBadge tone={activationTone(status)}>{activationLabel(status)}</StatusBadge>
       </div>
 
-      <InsetPanel tone={activationTone(status)} className="mt-5">
-        <p className="text-sm font-semibold tracking-[-0.01em] text-ink">Next step</p>
+      <InsetPanel tone={toneForActivationState(status)} className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+          Next step
+        </p>
         <p className="mt-2 text-sm leading-6 text-ink-muted">{helper}</p>
         {action ? <div className="mt-4 flex flex-wrap gap-3">{action}</div> : null}
       </InsetPanel>
 
-      {detail ? <div className="mt-5">{detail}</div> : null}
+      {detail ? <div className="mt-4">{detail}</div> : null}
     </SurfaceCard>
   );
 }
@@ -116,16 +101,16 @@ export function ActivationProgressCard({
 
   return (
     <SurfaceCard>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
         Progress
       </p>
-      <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink">
+      <h2 className="mt-3 text-[1.5rem] font-semibold tracking-[-0.03em] text-ink">
         {title}
       </h2>
-      <p className="mt-3 text-sm leading-7 text-ink-muted">{description}</p>
+      <p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p>
 
-      <InsetPanel className="mt-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <InsetPanel className="mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
             Activation progress
           </p>
@@ -133,7 +118,7 @@ export function ActivationProgressCard({
             {completeCount} of {totalCount} milestones complete
           </p>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-border">
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--aa-shell-border)]">
           <div
             className="h-full rounded-full bg-primary transition-all"
             style={{ width: `${percent}%` }}
@@ -162,19 +147,19 @@ export function ActivationNextAction({
 }: ActivationNextActionProps) {
   return (
     <SurfaceCard className={className}>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
         Recommended next action
       </p>
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
-          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-ink">
+          <h2 className="text-[1.5rem] font-semibold tracking-[-0.03em] text-ink">
             {title}
           </h2>
-          <p className="mt-3 text-sm leading-7 text-ink-muted">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p>
         </div>
         {status}
       </div>
-      {actions ? <div className="mt-5 flex flex-wrap gap-3">{actions}</div> : null}
+      {actions ? <div className="mt-4 flex flex-wrap gap-3">{actions}</div> : null}
     </SurfaceCard>
   );
 }

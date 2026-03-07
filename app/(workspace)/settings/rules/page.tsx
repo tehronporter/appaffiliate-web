@@ -10,6 +10,7 @@ import {
   SettingsPageFrame,
 } from "@/components/settings-shell";
 import { getRulesSettingsData } from "@/lib/services/settings";
+import { toneForWorkspaceLabel } from "@/lib/status-badges";
 
 export default async function SettingsRulesPage() {
   const data = await getRulesSettingsData();
@@ -27,9 +28,9 @@ export default async function SettingsRulesPage() {
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Live rule context</StatusBadge>
-          <StatusBadge tone="warning">Read-only product posture</StatusBadge>
-          <StatusBadge>Apple readiness visible</StatusBadge>
+          <StatusBadge tone="green">Live rule context</StatusBadge>
+          <StatusBadge tone="amber">Read-only product posture</StatusBadge>
+          <StatusBadge tone={toneForWorkspaceLabel()}>Apple readiness visible</StatusBadge>
         </div>
       }
       stats={[
@@ -37,19 +38,19 @@ export default async function SettingsRulesPage() {
           label: "Active rules",
           value: String(data.activeRuleCount),
           detail: "Stored commission rules are read directly from the workspace tables.",
-          tone: "success",
+          tone: "green",
         },
         {
           label: "Queue open",
           value: String(data.unresolvedQueueCount),
           detail: "Manual attribution review still acts as the conservative backstop for ambiguous events.",
-          tone: "warning",
+          tone: "amber",
         },
         {
           label: "Active currencies",
           value: data.currencies.length ? data.currencies.join(", ") : "None",
           detail: "Finance defaults come from active rule definitions instead of fake global settings.",
-          tone: "primary",
+          tone: "blue",
         },
       ]}
     >
@@ -108,7 +109,7 @@ export default async function SettingsRulesPage() {
                       <p className="text-sm font-semibold text-ink">{rule.name}</p>
                       <p className="mt-1 text-sm text-ink-muted">{rule.scopeLabel}</p>
                     </div>
-                    <StatusBadge tone={rule.status === "Active" ? "success" : "warning"}>
+                    <StatusBadge tone={rule.status === "Active" ? "green" : "gray"}>
                       {rule.status}
                     </StatusBadge>
                   </div>
@@ -141,7 +142,7 @@ export default async function SettingsRulesPage() {
                       <p className="mt-1 text-sm text-ink-muted">{app.healthLabel}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <StatusBadge tone={app.ingestReady ? "success" : "warning"}>
+                      <StatusBadge tone={app.ingestReady ? "green" : "amber"}>
                         {app.ingestReady ? "Ingest key assigned" : "Ingest key missing"}
                       </StatusBadge>
                       <ActionLink href={`/apps/${app.slug}/apple-health`}>

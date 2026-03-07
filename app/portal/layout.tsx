@@ -33,9 +33,9 @@ export default async function PartnerPortalLayout({
   const viewer = await getPortalViewerState();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(46,83,255,0.1)_0%,transparent_30%),linear-gradient(180deg,#fbfcff_0%,#f3f7fc_100%)] text-ink">
-      <header className="border-b border-border bg-[rgba(251,252,255,0.88)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[var(--portal-max-width)] flex-col gap-5 px-4 py-5 sm:px-6 lg:flex-row lg:items-start lg:justify-between lg:px-8">
+    <div className="aa-portal-shell min-h-screen bg-[var(--aa-shell-canvas)] text-ink">
+      <header className="border-b border-[var(--aa-shell-border)] bg-white">
+        <div className="mx-auto flex max-w-[var(--portal-max-width)] flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:items-start lg:justify-between lg:px-8">
           <div>
             <BrandLogoLink
               href="/portal"
@@ -43,14 +43,14 @@ export default async function PartnerPortalLayout({
               size="portal"
               priority
             />
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <StatusBadge tone="primary">Creator portal</StatusBadge>
               <StatusBadge tone="success">Read-only</StatusBadge>
             </div>
-            <h1 className="mt-4 text-[1.9rem] font-semibold tracking-[-0.05em] text-ink sm:text-[2.35rem]">
+            <h1 className="mt-4 text-[1.9rem] font-semibold tracking-[-0.05em] text-ink sm:text-[2.2rem]">
               {viewer.partnerName ?? viewer.displayName ?? "Your creator performance"}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-ink-muted sm:text-[0.98rem]">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink-muted">
               Review your own codes, audience results, approved earnings, and payout history in a simpler read-only space built for creators.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -68,7 +68,7 @@ export default async function PartnerPortalLayout({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 lg:pt-1">
+          <div className="flex flex-wrap gap-4 lg:pt-1">
             {viewer.isAuthenticated ? <SignOutButton /> : null}
             {!viewer.isAuthenticated ? (
               <Link

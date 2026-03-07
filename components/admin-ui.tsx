@@ -1,59 +1,75 @@
 import Link from "next/link";
+import { ArrowRight, CircleDashed, X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 function joinClasses(...classes: Array<string | undefined | false>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export type StatusTone =
+export type SemanticStatusTone = "gray" | "blue" | "green" | "amber" | "red";
+export type LegacyStatusTone =
   | "neutral"
   | "primary"
   | "success"
   | "warning"
   | "danger";
+export type StatusTone = SemanticStatusTone | LegacyStatusTone;
 
 export type SurfaceTone = "workspace" | "portal" | "public-access";
 
 type InsetTone = StatusTone | "default";
 
-const badgeToneClasses: Record<StatusTone, string> = {
-  neutral: "border-border bg-[rgba(255,255,255,0.82)] text-ink-muted",
-  primary:
-    "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-[#ebf0ff] text-[#2e53ff]",
-  success:
-    "border-[color:color-mix(in_srgb,var(--color-success)_18%,white)] bg-[#eaf7ee] text-[#1e7e34]",
-  warning:
-    "border-[color:color-mix(in_srgb,var(--color-warning)_18%,white)] bg-[#fef6e0] text-[#8a5e00]",
-  danger:
-    "border-[color:color-mix(in_srgb,var(--color-danger)_18%,white)] bg-[#fdecea] text-[#c0392b]",
+const badgeToneAliases: Record<LegacyStatusTone, SemanticStatusTone> = {
+  neutral: "gray",
+  primary: "blue",
+  success: "green",
+  warning: "amber",
+  danger: "red",
+};
+
+function resolveStatusTone(tone: StatusTone): SemanticStatusTone {
+  return badgeToneAliases[tone as LegacyStatusTone] ?? (tone as SemanticStatusTone);
+}
+
+const badgeToneClasses: Record<SemanticStatusTone, string> = {
+  gray: "border-[var(--aa-shell-border)] bg-surface text-ink-muted",
+  blue:
+    "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary",
+  green:
+    "border-[color:color-mix(in_srgb,var(--color-success)_18%,white)] bg-success-soft text-success",
+  amber:
+    "border-[color:color-mix(in_srgb,var(--color-warning)_18%,white)] bg-warning-soft text-warning",
+  red:
+    "border-[color:color-mix(in_srgb,var(--color-danger)_18%,white)] bg-danger-soft text-danger",
 };
 
 const surfaceToneClasses: Record<SurfaceTone, string> = {
   workspace:
-    "border-border bg-[rgba(255,255,255,0.94)] shadow-[var(--shadow-soft)]",
+    "border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel)] shadow-[var(--aa-shell-shadow)]",
   portal:
-    "border-[color:color-mix(in_srgb,var(--color-primary)_8%,var(--color-border))] bg-[rgba(255,255,255,0.96)] shadow-[0_10px_28px_rgba(17,24,39,0.05)]",
+    "border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel)] shadow-[var(--aa-shell-shadow)]",
   "public-access":
     "border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(244,247,255,0.96)_100%)] shadow-[var(--shadow-strong)]",
 };
 
 const surfaceDensityClasses = {
-  compact: "p-4 sm:p-5",
-  default: "p-5 sm:p-6",
-  hero: "p-6 sm:p-7",
+  compact: "p-4 sm:p-4",
+  default: "p-4 sm:p-6",
+  hero: "p-6 sm:p-6",
 };
 
-const insetToneClasses: Record<InsetTone, string> = {
-  default: "border-border bg-surface",
-  neutral: "border-border bg-[rgba(255,255,255,0.82)]",
-  primary:
-    "border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-[color:color-mix(in_srgb,var(--color-primary)_6%,white)]",
-  success:
-    "border-[color:color-mix(in_srgb,var(--color-success)_16%,var(--color-border))] bg-[color:color-mix(in_srgb,var(--color-success)_6%,white)]",
-  warning:
-    "border-[color:color-mix(in_srgb,var(--color-warning)_16%,var(--color-border))] bg-[color:color-mix(in_srgb,var(--color-warning)_7%,white)]",
-  danger:
-    "border-[color:color-mix(in_srgb,var(--color-danger)_16%,var(--color-border))] bg-[color:color-mix(in_srgb,var(--color-danger)_7%,white)]",
+const insetToneClasses: Record<SemanticStatusTone | "default", string> = {
+  default: "border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)]",
+  gray: "border-[var(--aa-shell-border)] bg-white",
+  blue:
+    "border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--aa-shell-border))] bg-[color:color-mix(in_srgb,var(--color-primary)_6%,white)]",
+  green:
+    "border-[color:color-mix(in_srgb,var(--color-success)_16%,var(--aa-shell-border))] bg-[color:color-mix(in_srgb,var(--color-success)_6%,white)]",
+  amber:
+    "border-[color:color-mix(in_srgb,var(--color-warning)_16%,var(--aa-shell-border))] bg-[color:color-mix(in_srgb,var(--color-warning)_7%,white)]",
+  red:
+    "border-[color:color-mix(in_srgb,var(--color-danger)_16%,var(--aa-shell-border))] bg-[color:color-mix(in_srgb,var(--color-danger)_7%,white)]",
 };
 
 type SurfaceCardProps = {
@@ -72,7 +88,7 @@ export function SurfaceCard({
   return (
     <div
       className={joinClasses(
-        "rounded-[var(--radius-card)] border",
+        "rounded-[var(--radius-card)] border transition-colors hover:border-[var(--aa-shell-border-strong)]",
         surfaceToneClasses[tone],
         surfaceDensityClasses[density],
         className,
@@ -101,21 +117,21 @@ export function SectionHeader({
   return (
     <div
       className={joinClasses(
-        "flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between",
+        "flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between",
         className,
       )}
     >
       <div className="max-w-3xl">
         {eyebrow ? (
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="mt-2 text-[1.65rem] font-semibold tracking-[-0.04em] text-ink sm:text-[2rem]">
+        <h2 className="mt-2 text-[15px] font-semibold tracking-[-0.01em] text-ink">
           {title}
         </h2>
         {description ? (
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-ink-muted sm:text-[0.95rem]">
+          <p className="mt-2 max-w-2xl text-sm leading-5 text-ink-muted">
             {description}
           </p>
         ) : null}
@@ -144,16 +160,27 @@ export function PageHeader({
   tone = "workspace",
 }: PageHeaderProps) {
   return (
-    <SurfaceCard tone={tone} density="hero">
-      <SectionHeader
-        eyebrow={eyebrow}
-        title={title}
-        description={description}
-        actions={actions}
-        className="xl:items-end xl:justify-between"
-      />
+    <SurfaceCard tone={tone} density="compact" className="shadow-none">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+        <div className="min-w-0">
+          {eyebrow ? (
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h1 className="mt-1 text-[28px] font-bold leading-8 tracking-[-0.04em] text-ink">
+            {title}
+          </h1>
+          <p className="mt-1 max-w-3xl text-sm leading-5 text-ink-muted">
+            {description}
+          </p>
+          {children ? <div className="mt-3 flex flex-wrap gap-2">{children}</div> : null}
+        </div>
 
-      {children ? <div className="mt-5 flex flex-wrap gap-3">{children}</div> : null}
+        {actions ? (
+          <div className="flex flex-wrap gap-2 xl:justify-end xl:self-start">{actions}</div>
+        ) : null}
+      </div>
     </SurfaceCard>
   );
 }
@@ -166,14 +193,14 @@ type StatusBadgeProps = {
 
 export function StatusBadge({
   children,
-  tone = "neutral",
+  tone = "gray",
   className,
 }: StatusBadgeProps) {
   return (
     <span
       className={joinClasses(
-        "inline-flex min-h-7 items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[-0.01em]",
-        badgeToneClasses[tone],
+        "inline-flex min-h-6 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-[-0.01em]",
+        badgeToneClasses[resolveStatusTone(tone)],
         className,
       )}
     >
@@ -183,7 +210,7 @@ export function StatusBadge({
 }
 
 type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "destructive";
+  variant?: "primary" | "secondary" | "destructive" | "tertiary";
 };
 
 export function ActionButton({
@@ -195,6 +222,8 @@ export function ActionButton({
   const variantClass =
     variant === "primary"
       ? "aa-button aa-button-primary"
+      : variant === "tertiary"
+        ? "aa-button aa-button-tertiary"
       : variant === "destructive"
         ? "aa-button aa-button-danger"
         : "aa-button aa-button-secondary";
@@ -206,7 +235,7 @@ type ActionAnchorProps = {
   href: string;
   children: ReactNode;
   className?: string;
-  variant?: "primary" | "secondary" | "destructive";
+  variant?: "primary" | "secondary" | "destructive" | "tertiary";
 };
 
 export function ActionAnchor({
@@ -218,6 +247,8 @@ export function ActionAnchor({
   const variantClass =
     variant === "primary"
       ? "aa-button aa-button-primary"
+      : variant === "tertiary"
+        ? "aa-button aa-button-tertiary"
       : variant === "destructive"
         ? "aa-button aa-button-danger"
         : "aa-button aa-button-secondary";
@@ -240,11 +271,14 @@ export function InsetPanel({
   tone = "default",
   className,
 }: InsetPanelProps) {
+  const resolvedTone =
+    tone === "default" ? "default" : resolveStatusTone(tone);
+
   return (
     <div
       className={joinClasses(
-        "rounded-[var(--radius-soft)] border px-4 py-4",
-        insetToneClasses[tone],
+        "rounded-[var(--radius-card)] border px-4 py-4",
+        insetToneClasses[resolvedTone],
         className,
       )}
     >
@@ -271,10 +305,10 @@ export function InfoPanel({
   return (
     <InsetPanel tone={tone} className={className}>
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-sm font-semibold tracking-[-0.01em] text-ink">{title}</p>
+        <p className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</p>
         {badge}
       </div>
-      <p className="mt-2 text-sm leading-7 text-ink-muted">{description}</p>
+      <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
     </InsetPanel>
   );
 }
@@ -294,7 +328,7 @@ export function NoticeBanner({
 }: NoticeBannerProps) {
   return (
     <SurfaceCard density="compact" className={className}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-ink">{title}</p>
           <p className="mt-1 text-sm text-ink-muted">{detail}</p>
@@ -309,14 +343,17 @@ type StatCardProps = {
   label: string;
   value: string;
   detail: string;
-  tone?: Extract<StatusTone, "primary" | "success" | "warning" | "danger">;
+  tone?: StatusTone;
   size?: "default" | "compact";
   className?: string;
 };
 
-const statCardUrgencyClasses: Record<string, string> = {
-  danger: "border-l-[3px] border-l-danger bg-[#fef2f2]",
-  warning: "border-l-[3px] border-l-warning bg-[#fef9ee]",
+const statCardUrgencyClasses: Record<SemanticStatusTone, string> = {
+  gray: "",
+  blue: "",
+  green: "",
+  red: "border-[color:color-mix(in_srgb,var(--color-danger)_16%,var(--aa-shell-border))]",
+  amber: "border-[color:color-mix(in_srgb,var(--color-warning)_16%,var(--aa-shell-border))]",
 };
 
 export function StatCard({
@@ -327,19 +364,33 @@ export function StatCard({
   size = "default",
   className,
 }: StatCardProps) {
-  const urgencyClass = statCardUrgencyClasses[tone] ?? "";
+  const resolvedTone = resolveStatusTone(tone);
+  const urgencyClass = statCardUrgencyClasses[resolvedTone] ?? "";
+  const accentClass =
+    resolvedTone === "green"
+      ? "bg-success"
+      : resolvedTone === "amber"
+        ? "bg-warning"
+        : resolvedTone === "red"
+          ? "bg-danger"
+          : "bg-primary";
 
   return (
     <SurfaceCard
       density={size === "compact" ? "compact" : "default"}
-      className={joinClasses(urgencyClass, className)}
+      className={joinClasses("relative overflow-hidden", urgencyClass, className)}
     >
-      <StatusBadge tone={tone}>{label}</StatusBadge>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+          {label}
+        </p>
+        <span className={joinClasses("inline-flex h-2.5 w-2.5 rounded-full", accentClass)} />
+      </div>
       <p
         className={joinClasses(
           size === "compact"
-            ? "mt-3 text-[1.55rem] font-semibold tracking-[-0.05em] text-ink sm:text-[1.75rem]"
-            : "mt-4 text-[1.9rem] font-semibold tracking-[-0.05em] text-ink sm:text-[2.05rem]",
+            ? "mt-4 text-[28px] font-semibold tracking-[-0.05em] text-ink sm:text-[28px]"
+            : "mt-4 text-[32px] font-semibold tracking-[-0.05em] text-ink sm:text-[36px]",
         )}
       >
         {value}
@@ -347,12 +398,74 @@ export function StatCard({
       <p
         className={joinClasses(
           size === "compact"
-            ? "mt-2 text-sm leading-6 text-ink-muted"
-            : "mt-2 text-sm leading-7 text-ink-muted",
+            ? "mt-2 text-sm leading-5 text-ink-muted"
+            : "mt-3 text-sm leading-5 text-ink-muted",
         )}
       >
         {detail}
       </p>
+    </SurfaceCard>
+  );
+}
+
+type MetricChipProps = {
+  label: string;
+  value: string;
+  detail?: string;
+  tone?: StatusTone;
+  className?: string;
+};
+
+export function MetricChip({
+  label,
+  value,
+  detail,
+  tone = "gray",
+  className,
+}: MetricChipProps) {
+  return (
+    <div
+      className={joinClasses(
+        "min-w-[140px] rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white px-4 py-3 transition-colors hover:border-[var(--aa-shell-border-strong)]",
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+          {label}
+        </p>
+        <StatusBadge tone={tone} className="min-h-6 px-2 py-0.5 text-[10px]">
+          {value}
+        </StatusBadge>
+      </div>
+      {detail ? <p className="mt-2 text-sm leading-5 text-ink-muted">{detail}</p> : null}
+    </div>
+  );
+}
+
+type SummaryBarItem = {
+  label: string;
+  value: string;
+};
+
+type SummaryBarProps = {
+  items: SummaryBarItem[];
+  className?: string;
+};
+
+export function SummaryBar({ items, className }: SummaryBarProps) {
+  return (
+    <SurfaceCard density="compact" className={joinClasses("shadow-none", className)}>
+      <div className="flex flex-wrap gap-x-6 gap-y-3">
+        {items.map((item) => (
+          <div key={`${item.label}:${item.value}`} className="min-w-[180px]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+              {item.label}
+            </p>
+            <p className="mt-1 text-sm font-medium text-ink">{item.value}</p>
+          </div>
+        ))}
+      </div>
     </SurfaceCard>
   );
 }
@@ -376,15 +489,22 @@ export function QuickActionTile({
     <Link
       href={href}
       className={joinClasses(
-        "block rounded-[var(--radius-soft)] border border-border bg-[rgba(255,255,255,0.84)] px-4 py-4 transition hover:border-border-strong hover:bg-white hover:shadow-[var(--shadow-soft)] focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white",
+        "block rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white px-4 py-4 transition-colors hover:border-[var(--aa-shell-border-strong)] focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white",
         className,
       )}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="text-sm font-semibold tracking-[-0.01em] text-ink">{title}</p>
-        {badge}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</p>
+            {badge}
+          </div>
+          <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
+        </div>
+        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] text-ink-subtle">
+          <ArrowRight size={16} strokeWidth={1.75} />
+        </span>
       </div>
-      <p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p>
     </Link>
   );
 }
@@ -401,9 +521,9 @@ export function CodeBlockPanel({
   className,
 }: CodeBlockPanelProps) {
   return (
-    <InsetPanel tone="neutral" className={className}>
+    <InsetPanel tone="gray" className={className}>
       <p className="text-sm font-semibold text-ink">{title}</p>
-      <pre className="mt-3 overflow-x-auto rounded-[var(--radius-soft)] border border-border bg-surface-elevated p-4 text-xs leading-6 text-ink-muted">
+      <pre className="mt-4 overflow-x-auto rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] p-4 text-xs leading-6 text-ink-muted">
         {code}
       </pre>
     </InsetPanel>
@@ -414,7 +534,7 @@ export function LoadingSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={joinClasses(
-        "animate-pulse rounded-[var(--radius-soft)] bg-[linear-gradient(90deg,rgba(233,238,244,0.9),rgba(244,247,252,1),rgba(233,238,244,0.9))]",
+        "aa-loading-skeleton rounded-[var(--radius-card)] bg-[var(--aa-shell-panel-muted)]",
         className,
       )}
     />
@@ -452,18 +572,18 @@ export function SectionCard({
       />
 
       {items?.length ? (
-        <ul className="mt-5 space-y-3">
+        <ul className="mt-4 space-y-3">
           {items.map((item) => (
             <li key={item}>
               <InsetPanel>
-                <p className="text-sm leading-7 text-ink-muted">{item}</p>
+                <p className="text-sm leading-5 text-ink-muted">{item}</p>
               </InsetPanel>
             </li>
           ))}
         </ul>
       ) : null}
 
-      {children ? <div className={items?.length ? "mt-5" : "mt-6"}>{children}</div> : null}
+      {children ? <div className={items?.length ? "mt-4" : "mt-6"}>{children}</div> : null}
     </SurfaceCard>
   );
 }
@@ -495,11 +615,11 @@ export function DetailList({
   return (
     <div className={joinClasses("grid gap-3", columnClass, className)}>
       {items.map((item) => (
-        <InsetPanel key={`${item.label}:${item.value}`} tone={item.tone ?? "neutral"}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
+        <InsetPanel key={`${item.label}:${item.value}`} tone={item.tone ?? "gray"}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
             {item.label}
           </p>
-          <p className="mt-2 text-sm font-semibold tracking-[-0.01em] text-ink">
+          <p className="mt-2 text-[15px] font-semibold tracking-[-0.01em] text-ink">
             {item.value}
           </p>
         </InsetPanel>
@@ -556,14 +676,14 @@ export function StatusTimeline({
             </div>
             <div className="pb-5">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                <p className="text-[15px] font-semibold tracking-[-0.01em] text-ink">
                   {step.label}
                 </p>
                 {step.meta ? (
                   <span className="text-xs text-ink-subtle">{step.meta}</span>
                 ) : null}
               </div>
-              <p className="mt-1.5 text-sm leading-6 text-ink-muted">{step.detail}</p>
+              <p className="mt-2 text-sm leading-5 text-ink-muted">{step.detail}</p>
             </div>
           </div>
         );
@@ -579,6 +699,7 @@ type EmptyStateProps = {
   action?: ReactNode;
   className?: string;
   tone?: InsetTone;
+  icon?: LucideIcon;
 };
 
 export function EmptyState({
@@ -588,21 +709,28 @@ export function EmptyState({
   action,
   className,
   tone = "default",
+  icon: Icon = CircleDashed,
 }: EmptyStateProps) {
   return (
-    <InsetPanel tone={tone} className={joinClasses("px-5 py-6", className)}>
+    <InsetPanel
+      tone={tone}
+      className={joinClasses("flex flex-col items-center px-6 py-8 text-center", className)}
+    >
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft/60 text-primary/55">
+        <Icon size={24} strokeWidth={1.75} />
+      </span>
       {eyebrow ? (
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
           {eyebrow}
         </p>
       ) : null}
-      <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-ink">
+      <h3 className="mt-3 text-[15px] font-semibold tracking-[-0.01em] text-ink">
         {title}
       </h3>
-      <p className="mt-2 max-w-2xl text-sm leading-7 text-ink-muted">
+      <p className="mt-2 max-w-xl text-sm leading-5 text-ink-muted">
         {description}
       </p>
-      {action ? <div className="mt-4 flex flex-wrap gap-3">{action}</div> : null}
+      {action ? <div className="mt-5 flex flex-wrap justify-center gap-3">{action}</div> : null}
     </InsetPanel>
   );
 }
@@ -635,7 +763,7 @@ export function ListTable({
         actions={actions}
       />
 
-      <div className="mt-6 overflow-hidden rounded-[var(--radius-soft)] border border-border bg-[rgba(248,250,252,0.95)]">
+      <div className="mt-4 overflow-hidden rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)]">
         {children}
       </div>
     </SurfaceCard>
@@ -660,16 +788,16 @@ export function InlineActionRow({
   return (
     <div
       className={joinClasses(
-        "flex flex-col gap-4 border-b border-border px-5 py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-4 border-b border-[var(--aa-shell-border)] px-4 py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-semibold tracking-[-0.01em] text-ink">{title}</p>
+          <p className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</p>
           {badge}
         </div>
-        <p className="mt-1.5 text-sm leading-7 text-ink-muted">{description}</p>
+        <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
       </div>
 
       {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
@@ -696,17 +824,17 @@ export function FilterBar({
     <SurfaceCard
       tone={tone}
       className={joinClasses(
-        "z-10 backdrop-blur lg:sticky lg:top-[92px]",
+        "z-10 lg:sticky lg:top-[var(--aa-shell-top-offset)]",
         className,
       )}
     >
       {title ? (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
             {title}
           </p>
           {description ? (
-            <p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p>
+            <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
           ) : null}
         </div>
       ) : null}
@@ -733,10 +861,10 @@ export function FilterChipLink({
     <Link
       href={href}
       className={joinClasses(
-        "inline-flex min-h-8 items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white",
+        "inline-flex min-h-[44px] items-center rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white",
         active
           ? "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary"
-          : "border-border bg-white text-ink-muted hover:border-border-strong hover:bg-surface hover:text-ink",
+          : "border-[var(--aa-shell-border)] bg-white text-ink-muted hover:border-[var(--aa-shell-border-strong)] hover:bg-[var(--aa-shell-panel-muted)] hover:text-ink",
       )}
     >
       {children}
@@ -766,17 +894,17 @@ export function DetailPanel({
   return (
     <SurfaceCard
       tone={tone}
-      className={joinClasses("lg:sticky lg:top-[92px]", className)}
+      className={joinClasses("lg:sticky lg:top-[var(--aa-shell-top-offset)]", className)}
     >
-      <div className="flex flex-col gap-4 border-b border-border pb-5">
+      <div className="flex flex-col gap-4 border-b border-[var(--aa-shell-border)] pb-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             {eyebrow ? (
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
                 {eyebrow}
               </p>
             ) : null}
-            <h2 className="mt-2 text-[1.6rem] font-semibold tracking-[-0.04em] text-ink">
+            <h2 className="mt-2 text-[15px] font-semibold tracking-[-0.01em] text-ink">
               {title}
             </h2>
           </div>
@@ -784,11 +912,79 @@ export function DetailPanel({
         </div>
 
         {description ? (
-          <p className="text-sm leading-6 text-ink-muted">{description}</p>
+          <p className="text-sm leading-5 text-ink-muted">{description}</p>
         ) : null}
       </div>
 
-      <div className="mt-5 space-y-5">{children}</div>
+      <div className="mt-4 space-y-4">{children}</div>
     </SurfaceCard>
+  );
+}
+
+type WorkspaceDrawerProps = {
+  closeHref: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  status?: ReactNode;
+  children: ReactNode;
+  className?: string;
+};
+
+export function WorkspaceDrawer({
+  closeHref,
+  eyebrow,
+  title,
+  description,
+  status,
+  children,
+  className,
+}: WorkspaceDrawerProps) {
+  return (
+    <>
+      <Link
+        href={closeHref}
+        aria-label="Close drawer"
+        className="aa-drawer-backdrop fixed inset-0 top-16 z-30 bg-[rgba(17,24,39,0.08)] backdrop-blur-[2px]"
+      />
+      <aside
+        className={joinClasses(
+          "aa-drawer-panel fixed inset-y-16 right-0 z-40 w-full max-w-[540px] border-l border-[var(--aa-shell-border)] bg-white",
+          className,
+        )}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex items-start justify-between gap-4 border-b border-[var(--aa-shell-border)] px-5 py-5">
+            <div className="min-w-0">
+              {eyebrow ? (
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
+                  {eyebrow}
+                </p>
+              ) : null}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <h2 className="text-[22px] font-semibold tracking-[-0.03em] text-ink">
+                  {title}
+                </h2>
+                {status}
+              </div>
+              {description ? (
+                <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
+              ) : null}
+            </div>
+            <Link
+              href={closeHref}
+              aria-label="Close drawer"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:text-ink"
+            >
+              <X size={18} strokeWidth={1.75} />
+            </Link>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+            <div className="space-y-4">{children}</div>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

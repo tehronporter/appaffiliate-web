@@ -1,7 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { SidebarNav } from "@/components/sidebar-nav";
-import { TopBar } from "@/components/top-bar";
+
+import type {
+  WorkspaceActivationReminder,
+  WorkspaceShellUser,
+} from "@/components/workspace-shell-types";
+import { WorkspaceSidebar } from "@/components/workspace-sidebar";
+import { WorkspaceTopNav } from "@/components/workspace-top-nav";
 
 function joinClasses(...classes: Array<string | undefined | false>) {
   return classes.filter(Boolean).join(" ");
@@ -9,21 +14,31 @@ function joinClasses(...classes: Array<string | undefined | false>) {
 
 type AppShellProps = {
   children: ReactNode;
+  workspaceName: string;
+  user: WorkspaceShellUser;
+  activationReminder?: WorkspaceActivationReminder | null;
 };
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({
+  children,
+  workspaceName,
+  user,
+  activationReminder,
+}: AppShellProps) {
   return (
-    <div className="min-h-screen bg-background text-ink">
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(46,83,255,0.08)_0%,transparent_32%),linear-gradient(180deg,#f8fafd_0%,var(--color-background)_100%)]">
-        <div className="mx-auto min-h-screen max-w-[1540px] lg:grid lg:grid-cols-[272px_minmax(0,1fr)]">
-          <aside className="border-b border-border px-4 py-4 lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-b-0 lg:bg-[rgba(244,247,251,0.6)] lg:px-4 lg:py-4">
-            <SidebarNav />
-          </aside>
+    <div className="aa-workspace-shell min-h-screen bg-[var(--aa-shell-canvas)] text-ink">
+      <WorkspaceTopNav user={user} />
+      <div className="mx-auto min-h-screen max-w-[1600px] pt-16 lg:grid lg:grid-cols-[var(--aa-shell-sidebar-width)_minmax(0,1fr)]">
+        <aside className="border-b border-[var(--aa-shell-border)] bg-white lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:border-r lg:border-b-0">
+          <WorkspaceSidebar
+            workspaceName={workspaceName}
+            user={user}
+            activationReminder={activationReminder}
+          />
+        </aside>
 
-          <div className="min-w-0 bg-transparent">
-            <TopBar />
-            {children}
-          </div>
+        <div className="min-w-0 bg-[var(--aa-shell-canvas)]">
+          {children}
         </div>
       </div>
     </div>
@@ -39,7 +54,7 @@ export function PageContainer({ children, className }: PageContainerProps) {
   return (
     <main
       className={joinClasses(
-        "mx-auto max-w-[var(--page-max-width)] space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-6",
+        "mx-auto max-w-[var(--page-max-width)] space-y-4 px-4 py-4 sm:px-6 lg:px-8 lg:py-6",
         className,
       )}
     >
@@ -51,7 +66,7 @@ export function PageContainer({ children, className }: PageContainerProps) {
 type ActionLinkProps = {
   href: string;
   children: ReactNode;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "tertiary";
 };
 
 export function ActionLink({
@@ -62,7 +77,9 @@ export function ActionLink({
   const classes =
     variant === "primary"
       ? "aa-button aa-button-primary"
-      : "aa-button aa-button-secondary";
+      : variant === "tertiary"
+        ? "aa-button aa-button-tertiary"
+        : "aa-button aa-button-secondary";
 
   return (
     <Link href={href} className={classes}>

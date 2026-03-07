@@ -48,21 +48,21 @@ const pricingCards = [
 
 const includedCoverage = [
   {
-    title: "Internal workspace",
+    title: "Operator workspace",
     description:
-      "Creator tracking, review flows, commissions, payouts, exports, settings, and audit-safe operating surfaces.",
+      "The full internal workspace - tracking, review, commissions, payouts, and exports in one place.",
     icon: <Monitor size={20} strokeWidth={1.5} />,
   },
   {
     title: "Creator portal",
     description:
-      "A separate read-only view for creators to see codes, results, approved earnings, and payout status.",
+      "A read-only portal for creators to see their codes, results, and payout status - without accessing your workspace.",
     icon: <Users size={20} strokeWidth={1.5} />,
   },
   {
     title: "Guided setup",
     description:
-      "Teams start with rollout support so the workflow matches how the product is actually used today.",
+      "New workspaces start with a guided rollout so setup matches how your team actually works.",
     icon: <Wrench size={20} strokeWidth={1.5} />,
   },
 ];
@@ -70,33 +70,33 @@ const includedCoverage = [
 const comparisonRows = [
   {
     painPoint: "Upfront spend risk",
-    oldWay: "High spend lands first, then founders hope the campaign turns into real subscriptions. No recourse if it does not.",
-    newWay: "Pay only when subscription results are confirmed. Zero upfront creator fees.",
+    oldWay: "You pay creators upfront and hope subscriptions follow.",
+    newWay: "Creators are paid only when subscriptions confirm. Zero upfront fees.",
   },
   {
     painPoint: "Creator accountability",
-    oldWay: "Deals are based on reach and views. Payout is disconnected from whether the audience subscribed or stayed.",
-    newWay: "Every creator\u2019s payout is tied directly to verified subscription outcomes.",
+    oldWay: "Payout is based on reach, not verified subscriptions.",
+    newWay: "Every creator payout is tied directly to verified subscription outcomes.",
   },
   {
     painPoint: "Tracking complexity",
-    oldWay: "Spreadsheet-heavy manual tracking, back-and-forth on what actually converted.",
-    newWay: "Creator codes, results, approved earnings, and payout status all live in one place.",
+    oldWay: "Manual spreadsheets and follow-up on what actually converted.",
+    newWay: "Codes, results, earnings, and payout status all live in one place.",
   },
   {
     painPoint: "Payout trust",
-    oldWay: "Creators do not know what they earned or when they will be paid until you tell them.",
-    newWay: "Creators get a read-only portal showing codes, results, earnings, and payout progress in real time.",
+    oldWay: "Creators wait on your updates to know what they earned.",
+    newWay: "Creators see earnings, codes, and payout progress in real time.",
   },
   {
     painPoint: "Review process",
-    oldWay: "Manual review with no workflow \u2014 deciding in DMs or emails what counts.",
-    newWay: "Built-in review queue: see which results are ready to trust, which need review, and why.",
+    oldWay: "Decisions happen in inboxes and DMs, with no clear record.",
+    newWay: "A review queue shows which results to trust and which need a second look.",
   },
   {
     painPoint: "Commission changes",
-    oldWay: "Any adjustment requires a manual message, spreadsheet update, and hope the creator has the right number.",
-    newWay: "Commission changes, payout notes, and status updates are tracked in the system.",
+    oldWay: "Rate changes mean messages, spreadsheet edits, and mismatched numbers.",
+    newWay: "Commission changes are tracked in the system, so both sides stay aligned.",
   },
 ];
 
@@ -111,9 +111,9 @@ export default function PricingPage() {
     >
       <main>
         <MarketingHero
-          eyebrow="Pricing"
+          eyebrow="PRICING"
           title="A better bet than risky upfront influencer spend."
-          description="AppAffiliate is currently priced through guided rollout. That keeps the conversation focused on creator results, payout trust, and workflow fit instead of fake self-serve plans."
+          description="AppAffiliate is priced through guided rollout - so your team starts with a workflow that actually fits your creator program, not a plan you outgrow in 60 days."
           actions={
             <>
               <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
@@ -126,10 +126,11 @@ export default function PricingPage() {
           }
         />
 
-        <MarketingSection className="border-b border-border bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)]">
+        <MarketingSection muted className="border-b border-border">
           <MarketingComparison
-            title="Compare the cost logic, not just a feature list."
-            description="The real alternative is not another SaaS line item. It is wasted influencer spend, manual payout cleanup, and unclear creator performance."
+            eyebrow="WHAT YOU'RE REPLACING"
+            title="The real cost isn't the subscription. It's the spend that goes nowhere."
+            description="Compare the cost logic, not just a feature list."
             rows={comparisonRows}
           />
 
@@ -171,9 +172,8 @@ export default function PricingPage() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="How pricing is handled"
             title="Simple, guided, and honest about the current product."
-            description="There is no public self-serve checkout yet. Pricing is handled during rollout so the setup, access model, and support path fit your current stage."
+            description="Pricing is handled during rollout so setup, access, and support match your current stage."
           />
 
           <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -190,7 +190,6 @@ export default function PricingPage() {
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="What is included"
             title="Coverage built around real creator growth workflows."
             description="The value is not just access to pages. It is a connected system for creators, results, commissions, payouts, and creator-safe visibility."
           />
@@ -211,9 +210,9 @@ export default function PricingPage() {
         <MarketingSection muted>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Next step"
-              title="Review the model, then request access."
-              description="If AppAffiliate looks like a better alternative to risky upfront influencer spend, request access and continue the rollout conversation."
+              eyebrow="LET'S TALK"
+              title="See if it fits. Request access."
+              description="Request access and we'll set up a walkthrough around your specific creator program."
               primaryHref="/request-access"
               primaryLabel="Request access"
               secondaryHref="/product"

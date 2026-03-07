@@ -12,6 +12,7 @@ import {
 } from "@/components/settings-shell";
 import { updateTeamMemberRoleAction } from "@/app/(workspace)/settings/actions";
 import { getTeamSettingsData } from "@/lib/services/settings";
+import { toneForRoleLabel } from "@/lib/status-badges";
 
 type SettingsTeamPageProps = {
   searchParams: Promise<{
@@ -21,11 +22,11 @@ type SettingsTeamPageProps = {
 
 function noticeBadge(notice: string | undefined) {
   if (notice === "team-role-saved") {
-    return <StatusBadge tone="success">Workspace role updated</StatusBadge>;
+    return <StatusBadge tone="green">Workspace role updated</StatusBadge>;
   }
 
   if (notice === "team-role-error") {
-    return <StatusBadge tone="danger">Workspace role update failed</StatusBadge>;
+    return <StatusBadge tone="red">Workspace role update failed</StatusBadge>;
   }
 
   return null;
@@ -51,8 +52,8 @@ export default async function SettingsTeamPage({
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Live workspace membership</StatusBadge>
-          <StatusBadge tone={data.canManageRoles ? "primary" : "warning"}>
+          <StatusBadge tone="green">Live workspace membership</StatusBadge>
+          <StatusBadge tone={data.canManageRoles ? "blue" : "amber"}>
             {data.canManageRoles ? "Narrow role edits enabled" : "Read-only for your role"}
           </StatusBadge>
           {noticeChip}
@@ -63,19 +64,19 @@ export default async function SettingsTeamPage({
           label: "Visible members",
           value: String(data.visibleMemberCount),
           detail: data.visibleScopeLabel,
-          tone: "primary",
+          tone: "blue",
         },
         {
           label: "Pending invites",
           value: String(data.pendingInviteCount),
           detail: "Invite issuance is still out of scope, so this count only reflects current membership data if invited rows already exist.",
-          tone: "warning",
+          tone: "amber",
         },
         {
           label: "Partner-linked users",
           value: String(data.partnerUserCount),
           detail: "External partner identities stay separate from the internal workspace team.",
-          tone: "success",
+          tone: "green",
         },
       ]}
     >
@@ -127,8 +128,8 @@ export default async function SettingsTeamPage({
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <StatusBadge tone="primary">{member.roleName}</StatusBadge>
-                      <StatusBadge tone={member.status === "active" ? "success" : "warning"}>
+                      <StatusBadge tone={toneForRoleLabel()}>{member.roleName}</StatusBadge>
+                      <StatusBadge tone={member.status === "active" ? "green" : "amber"}>
                         {member.status}
                       </StatusBadge>
                     </div>
@@ -165,7 +166,7 @@ export default async function SettingsTeamPage({
                       </ActionButton>
                     </form>
                   ) : (
-                    <InsetPanel tone="neutral" className="mt-4 text-sm text-ink-muted">
+                    <InsetPanel tone="gray" className="mt-4 text-sm text-ink-muted">
                       {member.isCurrentUser
                         ? "Self role changes are intentionally blocked so the current session cannot remove its own admin access."
                         : member.roleKey === "owner"

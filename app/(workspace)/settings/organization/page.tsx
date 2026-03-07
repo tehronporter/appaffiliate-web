@@ -21,11 +21,11 @@ type SettingsOrganizationPageProps = {
 
 function noticeBadge(notice: string | undefined) {
   if (notice === "organization-saved") {
-    return <StatusBadge tone="success">Organization settings saved</StatusBadge>;
+    return <StatusBadge tone="green">Organization settings saved</StatusBadge>;
   }
 
   if (notice === "organization-error") {
-    return <StatusBadge tone="danger">Organization update failed</StatusBadge>;
+    return <StatusBadge tone="red">Organization update failed</StatusBadge>;
   }
 
   return null;
@@ -51,8 +51,8 @@ export default async function SettingsOrganizationPage({
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Live organization profile</StatusBadge>
-          <StatusBadge tone={data.canManageOrganization ? "primary" : "warning"}>
+          <StatusBadge tone="green">Live organization profile</StatusBadge>
+          <StatusBadge tone={data.canManageOrganization ? "blue" : "amber"}>
             {data.canManageOrganization ? "Owner/admin edit access" : "Read-only for your role"}
           </StatusBadge>
           {noticeChip}
@@ -63,13 +63,13 @@ export default async function SettingsOrganizationPage({
           label: "Display name",
           value: data.organizationName ?? "Access required",
           detail: "This is the real organization record backing the current workspace.",
-          tone: "primary",
+          tone: "blue",
         },
         {
           label: "Managed apps",
           value: String(data.managedAppCount),
           detail: "App-level timezone and Apple ingest posture still stay with each app rather than a global org setting.",
-          tone: "success",
+          tone: "green",
         },
         {
           label: "Active currencies",
@@ -77,7 +77,7 @@ export default async function SettingsOrganizationPage({
             ? data.activeCurrencyLabels.join(", ")
             : "None",
           detail: "Finance defaults shown here are derived from active commission rules, not a fake org-level save.",
-          tone: "warning",
+          tone: "amber",
         },
       ]}
     >
@@ -117,7 +117,7 @@ export default async function SettingsOrganizationPage({
                 />
               </label>
 
-              <InsetPanel tone="neutral" className="text-sm text-ink-muted">
+              <InsetPanel tone="gray" className="text-sm text-ink-muted">
                 Workspace slug: <span className="font-medium text-ink">{data.organizationSlug}</span>
               </InsetPanel>
 

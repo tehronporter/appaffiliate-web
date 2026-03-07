@@ -10,17 +10,14 @@ import {
   Code2,
   FileSearch,
   Wallet,
-  UserCircle,
   ShieldCheck,
-  Target,
-  Lightbulb,
-  Heart,
 } from "lucide-react";
 
 import {
   MarketingCard,
   MarketingCtaPanel,
   MarketingHero,
+  MarketingHeroProofStack,
   MarketingSection,
   MarketingSectionHeading,
   MarketingSteps,
@@ -103,40 +100,46 @@ const productAreas = [
       "Keep approved earnings, payout batches, export handoff, and paid history connected in one operating flow.",
     icon: <Wallet size={20} strokeWidth={1.5} />,
   },
-  {
-    title: "Creator portal",
-    description:
-      "Show creators what belongs to them, what their audience drove, and what has been paid in a clean read-only experience.",
-    icon: <UserCircle size={20} strokeWidth={1.5} />,
-  },
-  {
-    title: "Trust and access boundaries",
-    description:
-      "Separate internal workspace access from creator visibility while keeping the underlying system consistent.",
-    icon: <ShieldCheck size={20} strokeWidth={1.5} />,
-  },
 ];
 
 const productPrinciples = [
   {
-    title: "Built for lean app teams",
+    title: "Role-aware access",
     description:
-      "The product is designed for founders and small operators who need real clarity, not a bloated affiliate suite.",
-    icon: <Target size={20} strokeWidth={1.5} />,
+      "One workspace, two views. Founders manage the full program. Creators see only their codes, results, and earnings.",
+    icon: <ShieldCheck size={20} strokeWidth={1.5} />,
   },
   {
-    title: "Results first, operations second",
+    title: "Audited decisions",
     description:
-      "Tracking, commissions, and payouts support the growth model. They should not overwhelm the story above the fold.",
-    icon: <Lightbulb size={20} strokeWidth={1.5} />,
+      "Every commission approval, rate change, and payout action is logged. When something is questioned, the answer is already there.",
+    icon: <FileSearch size={20} strokeWidth={1.5} />,
   },
   {
-    title: "Trust without enterprise theater",
+    title: "Finance-safe payouts",
     description:
-      "Review state, payout state, and role boundaries stay clear without pretending the product is something it is not.",
-    icon: <Heart size={20} strokeWidth={1.5} />,
+      "Approved earnings move through clearly separated states - ready to batch, reserved, exported, and paid - so finance always knows what's in motion.",
+    icon: <Wallet size={20} strokeWidth={1.5} />,
   },
 ];
+
+const productHeroProof = [
+  {
+    icon: <Code2 size={16} strokeWidth={1.5} />,
+    title: "Codes and links",
+    description: "One trackable asset per creator, linked to your app from day one.",
+  },
+  {
+    icon: <ClipboardCheck size={16} strokeWidth={1.5} />,
+    title: "Results review",
+    description: "See which results are ready to trust before any earnings are calculated.",
+  },
+  {
+    icon: <Wallet size={16} strokeWidth={1.5} />,
+    title: "Commissions and payouts",
+    description: "Approve earnings and move them toward payout without losing the paper trail.",
+  },
+] as const;
 
 export default function ProductPage() {
   return (
@@ -149,9 +152,10 @@ export default function ProductPage() {
     >
       <main>
         <MarketingHero
-          eyebrow="Product"
-          title="Everything you need to run creator performance in one place."
-          description="AppAffiliate connects creator tracking, results review, commissions, payouts, and creator visibility into one clear growth loop for iOS app teams."
+          eyebrow="WHAT'S INSIDE"
+          title="Creator performance, tracked end to end."
+          description="From the first creator code to the last payout - every step has a home in AppAffiliate."
+          wrapVisual={false}
           actions={
             <>
               <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
@@ -163,25 +167,11 @@ export default function ProductPage() {
             </>
           }
         >
-          <div className="grid gap-3">
-            {[
-              "Track real subscription results tied to creators",
-              "Review what needs attention before earnings are finalized",
-              "Reward creators fairly and keep payout history easy to trust",
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-[var(--radius-input)] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+          <MarketingHeroProofStack items={productHeroProof} />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="The growth loop"
             title="One connected system from creator invite to payout."
             description="The product works best when the whole loop stays visible: who promoted the app, what converted, what was approved, and what has been paid."
           />
@@ -193,7 +183,6 @@ export default function ProductPage() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="What the product covers"
             title="Focused product surfaces instead of feature theater."
             description="AppAffiliate gives founders the workflow they actually need to run creator performance without drowning the page in back-office jargon."
           />
@@ -205,6 +194,7 @@ export default function ProductPage() {
                 title={area.title}
                 description={area.description}
                 icon={area.icon}
+                className="border-[#E8E8E8]"
               />
             ))}
           </ScrollReveal>
@@ -212,7 +202,6 @@ export default function ProductPage() {
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="Why it feels different"
             title="A product shaped around trust, not dashboard clutter."
             description="The product is designed to help founders grow through creators while keeping review, payouts, and creator visibility trustworthy as the program scales."
           />
@@ -225,6 +214,7 @@ export default function ProductPage() {
                 description={item.description}
                 tone="contrast"
                 icon={item.icon}
+                className="border-[#E8E8E8]"
               />
             ))}
           </ScrollReveal>
@@ -233,9 +223,9 @@ export default function ProductPage() {
         <MarketingSection muted>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Next step"
-              title="Review the workflow, then request access."
-              description="If the model fits your iOS app team, continue into how it works and start the guided rollout conversation."
+              eyebrow="GET STARTED"
+              title="See the workflow, then request access."
+              description="If it fits your iOS app team, request access and we'll walk through the rollout together."
               primaryHref="/request-access"
               primaryLabel="Request access"
               secondaryHref="/how-it-works"

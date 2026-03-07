@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/components/app-shell";
+import { WorkspaceLayoutBoundary } from "@/components/workspace-layout-boundary";
+import type { WorkspaceShellUser } from "@/components/workspace-shell-types";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { buildActivationProgress } from "@/lib/activation-progress";
+import { getLaunchReadinessData } from "@/lib/services/launch-readiness";
 import { getCurrentWorkspaceContext } from "@/lib/workspace";
 
 type WorkspaceLayoutProps = {
@@ -11,11 +15,45 @@ type WorkspaceLayoutProps = {
 export default async function WorkspaceLayout({
   children,
 }: WorkspaceLayoutProps) {
-  const workspace = await getCurrentWorkspaceContext();
+  const [workspace, user] = await Promise.all([
+    getCurrentWorkspaceContext(),
+    getAuthenticatedUser(),
+  ]);
 
   if (workspace.role?.key === "partner_user") {
     redirect("/portal");
   }
 
-  return <AppShell>{children}</AppShell>;
+  const userName =
+    workspace.partnerUser?.display_name ??
+    (typeof user?.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name
+      : typeof user?.user_metadata?.name === "string"
+        ? user.user_metadata.name
+        : user?.email?.split("@")[0]) ??
+    "Workspace user";
+  const initials = userName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+  const shellUser: WorkspaceShellUser = {
+    name: userName,
+    email: user?.email ?? null,
+    role: workspace.role?.name ?? "No active role",
+    initials: initials || "AA",
+  };
+  const launch = await getLaunchReadinessData();
+  const activationProgress = buildActivationProgress(launch);
+
+  return (
+    <WorkspaceLayoutBoundary
+      workspaceName={workspace.organization?.name ?? "No organization linked"}
+      user={shellUser}
+      activationReminder={activationProgress}
+    >
+      {children}
+    </WorkspaceLayoutBoundary>
+  );
 }

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CheckCircle2, LogIn, Waypoints } from "lucide-react";
 
 import {
   MarketingCtaPanel,
   MarketingHero,
+  MarketingHeroProofStack,
   MarketingSection,
   MarketingSectionHeading,
 } from "@/components/marketing-page";
@@ -85,6 +87,24 @@ const requestFaq = [
   },
 ];
 
+const heroProofItems = [
+  {
+    title: "Fit first",
+    description: "Start with whether the model matches how your team wants to grow through creators.",
+    icon: <CheckCircle2 size={16} strokeWidth={1.5} />,
+  },
+  {
+    title: "Guided from day one",
+    description: "Access starts with a rollout conversation, not a generic self-serve signup.",
+    icon: <Waypoints size={16} strokeWidth={1.5} />,
+  },
+  {
+    title: "Already invited?",
+    description: "If your account already has access, go straight to sign in.",
+    icon: <LogIn size={16} strokeWidth={1.5} />,
+  },
+] as const;
+
 export default function RequestAccessPage() {
   return (
     <MarketingShell
@@ -99,6 +119,7 @@ export default function RequestAccessPage() {
           eyebrow="Request access"
           title="See if AppAffiliate fits your growth model"
           description="Tell us how you promote your app today and how you want to work with creators. AppAffiliate is built for iOS teams that want to pay for results, not hype."
+          wrapVisual={false}
           actions={
             <>
               <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
@@ -110,25 +131,11 @@ export default function RequestAccessPage() {
             </>
           }
         >
-          <div className="grid gap-3">
-            {[
-              "Designed as a fit assessment, not a bloated sales form",
-              "Guided access stays aligned with the real product today",
-              "Already invited? Sign in to your workspace or creator portal",
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-[16px] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+          <MarketingHeroProofStack items={heroProofItems} />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="Who this is for"
             title="A clearer path for founder-fit evaluation."
             description="Request access should quickly help founders understand whether the product matches how they want to grow through creators."
           />
@@ -148,12 +155,11 @@ export default function RequestAccessPage() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <SupportChecklist
               title="What we need to understand first"
-              description="There is no live public request form yet, so this page makes the qualification questions explicit instead of pretending there is a hidden intake system."
+              description="These questions help us understand whether the rollout matches how your team actually works."
               items={accessQuestions}
             />
 
             <FaqGroup
-              eyebrow="Request access"
               title="The short version"
               description="A few direct answers before you decide whether to keep evaluating or ask for access."
               items={requestFaq}
@@ -163,7 +169,6 @@ export default function RequestAccessPage() {
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="Next paths"
             title="Choose the clearest next step."
             description="If you are still evaluating fit, keep reading. If you already have invited access, go straight to sign-in."
           />
@@ -193,7 +198,7 @@ export default function RequestAccessPage() {
         <MarketingSection muted>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Next step"
+              eyebrow="GET STARTED"
               title="Keep evaluating, or sign in if you are already invited."
               description="Use the public site to finish assessing fit. Invited users should go straight to sign-in."
               primaryHref="/product"

@@ -6,6 +6,7 @@ import {
   PageHeader,
   StatCard,
   StatusBadge,
+  type StatusTone,
 } from "@/components/admin-ui";
 import {
   settingsSections,
@@ -16,7 +17,7 @@ type SettingsStat = {
   label: string;
   value: string;
   detail: string;
-  tone?: "primary" | "success" | "warning" | "danger";
+  tone?: StatusTone;
 };
 
 type SettingsPageFrameProps = {
@@ -49,9 +50,9 @@ export function SettingsPageFrame({
         <div className="space-y-4">
           {badges ?? (
             <div className="flex flex-wrap gap-3">
-              <StatusBadge tone="success">Backed by live data</StatusBadge>
-              <StatusBadge tone="warning">Read-only where models stay narrow</StatusBadge>
-              <StatusBadge>Internal workspace settings</StatusBadge>
+              <StatusBadge tone="green">Backed by live data</StatusBadge>
+              <StatusBadge tone="amber">Read-only where models stay narrow</StatusBadge>
+              <StatusBadge tone="blue">Internal workspace settings</StatusBadge>
             </div>
           )}
 

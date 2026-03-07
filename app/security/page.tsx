@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  Eye,
   ShieldCheck,
   Building2,
   FileSearch,
@@ -10,12 +11,15 @@ import {
   Award,
   Target,
   BookOpen,
+  Lock,
+  Shield,
 } from "lucide-react";
 
 import {
   MarketingCard,
   MarketingCtaPanel,
   MarketingHero,
+  MarketingHeroProofStack,
   MarketingSection,
   MarketingSectionHeading,
   ScrollReveal,
@@ -44,7 +48,7 @@ const trustAreas = [
   {
     title: "Organization scoping",
     description:
-      "Reads and writes stay scoped to the right organization so creator performance and payout data do not spill across teams.",
+      "Data is scoped to your organization. Creator performance and payout records don't cross team boundaries.",
     icon: <Building2 size={20} strokeWidth={1.5} />,
   },
   {
@@ -68,7 +72,7 @@ const trustAreas = [
   {
     title: "Safer browser views",
     description:
-      "Sensitive workflows stay server-side and browser views avoid exposing raw back-office detail unnecessarily.",
+      "What appears in the browser is operator-safe. Raw event and payout data stays server-side.",
     icon: <Monitor size={20} strokeWidth={1.5} />,
   },
 ];
@@ -94,6 +98,26 @@ const proofNotes = [
   },
 ];
 
+const heroProofItems = [
+  {
+    icon: <Shield size={16} strokeWidth={1.5} />,
+    title: "Role-aware from day one",
+    description: "Founders, operators, and creators each see exactly what they need.",
+  },
+  {
+    icon: <Eye size={16} strokeWidth={1.5} />,
+    title: "Every decision is auditable",
+    description:
+      "Commission changes, payout approvals, and review actions stay visible to the people who need to trust them.",
+  },
+  {
+    icon: <Lock size={16} strokeWidth={1.5} />,
+    title: "No raw data in creator views",
+    description:
+      "Creator portals show earnings and results, not spreadsheets or back-office payloads.",
+  },
+] as const;
+
 export default function SecurityPage() {
   return (
     <MarketingShell
@@ -105,9 +129,10 @@ export default function SecurityPage() {
     >
       <main>
         <MarketingHero
-          eyebrow="Security"
-          title="Built to keep performance and payouts trustworthy."
-          description="AppAffiliate keeps trust grounded in the product: role-aware access, organization scoping, audited decisions, a creator-safe portal, and finance-safe payout workflows."
+          eyebrow="SECURITY"
+          title="Trust built into every step."
+          description="No separate compliance layer needed. Trust comes from how the workflow is built - not from a policy document."
+          wrapVisual={false}
           actions={
             <>
               <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
@@ -119,27 +144,14 @@ export default function SecurityPage() {
             </>
           }
         >
-          <div className="grid gap-3">
-            {[
-              "Keep founders, operators, and creators in the right surface",
-              "Make review and payout decisions easier to trust later",
-              "Avoid heavy compliance theater in favor of specific workflow controls",
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-[var(--radius-input)] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+          <MarketingHeroProofStack items={heroProofItems} />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="What exists today"
+            eyebrow="THE APPROACH"
             title="Plain-language trust for a real product."
-            description="The security story should make founders more confident without turning the page into enterprise-heavy theater."
+            description="AppAffiliate doesn't need compliance theater to earn trust. The workflow is the security story."
           />
 
           <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -156,7 +168,6 @@ export default function SecurityPage() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="How we talk about trust"
             title="Specific, current, and grounded."
             description="Trust is stronger when the language matches the actual controls in the product and the workflows they protect."
           />
@@ -177,7 +188,7 @@ export default function SecurityPage() {
         <MarketingSection>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Next step"
+              eyebrow="GET STARTED"
               title="Review the workflow and trust model together."
               description="Security is easier to evaluate when paired with the product and workflow pages, because review and payout boundaries are part of the operating model."
               primaryHref="/how-it-works"

@@ -28,6 +28,14 @@
   --page-max-width: 1360px;
   --marketing-max-width: 1280px;
   --portal-max-width: 1180px;
+  --aa-shell-border: var(--border);
+  --aa-shell-border-strong: var(--border-strong);
+  --aa-shell-panel: rgba(255, 255, 255, 0.94);
+  --aa-shell-panel-muted: var(--surface);
+  --aa-shell-canvas: #ffffff;
+  --aa-shell-shadow: var(--shadow-soft);
+  --aa-shell-top-offset: 80px;
+  --aa-shell-sidebar-width: 220px;
 }
 
 @theme inline {
@@ -64,12 +72,10 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top, rgba(46, 83, 255, 0.05), transparent 30%),
-    linear-gradient(180deg, #f9fbfd 0%, var(--background) 100%);
+  background: #ffffff;
   color: var(--ink);
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
-  line-height: 1.7;
+  font-family: var(--font-inter), sans-serif;
+  line-height: 1.5;
 }
 
 a {
@@ -103,8 +109,8 @@ select {
   gap: 0.45rem;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
-  min-height: 2.75rem;
-  padding: 0.65rem 1.25rem;
+  height: 2.75rem;
+  padding: 0 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.1;
@@ -119,11 +125,10 @@ select {
 
 .aa-button:hover {
   border-color: var(--border-strong);
-  transform: translateY(-1px);
 }
 
 .aa-button:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 .aa-button-primary {
@@ -145,6 +150,20 @@ select {
 
 .aa-button-secondary:hover {
   background: #ffffff;
+}
+
+.aa-button-tertiary {
+  min-height: auto;
+  border-color: transparent;
+  background: transparent;
+  padding: 0;
+  color: var(--primary);
+}
+
+.aa-button-tertiary:hover {
+  border-color: transparent;
+  background: transparent;
+  color: color-mix(in srgb, var(--primary) 82%, black);
 }
 
 .aa-button-success {
@@ -209,6 +228,126 @@ select {
   cursor: not-allowed;
   background: rgba(237, 242, 247, 0.9);
   color: var(--ink-muted);
+}
+
+.aa-workspace-shell {
+  --aa-shell-border: #e7e7e7;
+  --aa-shell-border-strong: #d5d5d5;
+  --aa-shell-panel: #ffffff;
+  --aa-shell-panel-muted: #f5f5f5;
+  --aa-shell-canvas: #ffffff;
+  --aa-shell-shadow: 0 12px 28px rgba(17, 24, 39, 0.04);
+  --aa-shell-top-offset: 80px;
+  --aa-shell-sidebar-width: 220px;
+  min-height: 100vh;
+  background: var(--aa-shell-canvas);
+}
+
+.aa-portal-shell {
+  --aa-shell-border: #e7e7e7;
+  --aa-shell-border-strong: #d5d5d5;
+  --aa-shell-panel: #ffffff;
+  --aa-shell-panel-muted: #f5f5f5;
+  --aa-shell-canvas: #ffffff;
+  --aa-shell-shadow: 0 10px 24px rgba(17, 24, 39, 0.04);
+  --aa-shell-top-offset: 88px;
+  min-height: 100vh;
+  background: var(--aa-shell-canvas);
+}
+
+.aa-workspace-shell .aa-button-secondary,
+.aa-portal-shell .aa-button-secondary {
+  border-color: var(--aa-shell-border);
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.aa-workspace-shell .aa-button-secondary:hover,
+.aa-portal-shell .aa-button-secondary:hover {
+  border-color: var(--aa-shell-border-strong);
+  background: var(--aa-shell-panel-muted);
+}
+
+.aa-workspace-shell .aa-button-tertiary,
+.aa-portal-shell .aa-button-tertiary {
+  border-color: transparent;
+  background: transparent;
+  color: var(--primary);
+}
+
+.aa-workspace-shell .aa-button-tertiary:hover,
+.aa-portal-shell .aa-button-tertiary:hover {
+  color: color-mix(in srgb, var(--primary) 82%, black);
+}
+
+.aa-workspace-shell .aa-field,
+.aa-portal-shell .aa-field {
+  border-color: var(--aa-shell-border);
+  background: #ffffff;
+}
+
+.aa-workspace-shell .aa-field:hover,
+.aa-portal-shell .aa-field:hover {
+  border-color: var(--aa-shell-border-strong);
+}
+
+.aa-workspace-shell .aa-field:focus,
+.aa-portal-shell .aa-field:focus {
+  background: #ffffff;
+}
+
+@keyframes aa-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes aa-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes aa-soft-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.aa-search-backdrop {
+  animation: aa-fade-in 140ms ease-out;
+}
+
+.aa-search-modal {
+  animation: aa-fade-in 140ms ease-out, aa-slide-in-right 180ms ease-out;
+}
+
+.aa-drawer-backdrop {
+  animation: aa-fade-in 140ms ease-out;
+}
+
+.aa-drawer-panel {
+  animation: aa-slide-in-right 180ms ease-out;
+}
+
+.aa-loading-skeleton {
+  animation: aa-soft-pulse 1.3s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,42 +1,38 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  Activity,
+  AlertTriangle,
+  Code2,
+  DollarSign,
+  Heart,
+  Rocket,
+  Users,
+  Wallet,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
   EmptyState,
-  InsetPanel,
-  InlineActionRow,
-  ListTable,
-  PageHeader,
-  QuickActionTile,
-  SectionCard,
-  StatCard,
   StatusBadge,
   SurfaceCard,
 } from "@/components/admin-ui";
-import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { listCommissionItems } from "@/lib/services/finance";
 import {
   getLaunchReadinessData,
   type LaunchReadinessCheck,
 } from "@/lib/services/launch-readiness";
-import { getAuditSettingsData } from "@/lib/services/settings";
+import {
+  toneForActivationState,
+  toneForLaunchStatus,
+  toneForRoleLabel,
+  toneForWorkspaceLabel,
+} from "@/lib/status-badges";
+import { buildActivationProgress } from "@/lib/activation-progress";
 import { getCurrentWorkspaceContext } from "@/lib/workspace";
-
-function toneForStatus(status: "ready" | "attention" | "blocked" | "informational") {
-  if (status === "ready") {
-    return "success" as const;
-  }
-
-  if (status === "blocked") {
-    return "danger" as const;
-  }
-
-  if (status === "attention") {
-    return "warning" as const;
-  }
-
-  return "primary" as const;
-}
 
 function actionLabelForCheck(check: LaunchReadinessCheck) {
   if (check.href.startsWith("/apps/")) {
@@ -66,13 +62,102 @@ function actionLabelForCheck(check: LaunchReadinessCheck) {
   return "Open";
 }
 
-function formatAuditTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
+type DashboardMetricTone = "blue" | "green" | "amber" | "red";
+
+type DashboardMetricCardProps = {
+  label: string;
+  value: string;
+  detail: string;
+  badge: string;
+  tone: DashboardMetricTone;
+  icon: LucideIcon;
+};
+
+function dashboardMetricCardToneClass(tone: DashboardMetricTone) {
+  if (tone === "red") {
+    return "border-[color:color-mix(in_srgb,var(--color-danger)_18%,var(--aa-shell-border))] bg-[color:color-mix(in_srgb,var(--color-danger-soft)_72%,white)]";
+  }
+
+  if (tone === "amber") {
+    return "border-[color:color-mix(in_srgb,var(--color-warning)_20%,var(--aa-shell-border))] bg-[color:color-mix(in_srgb,var(--color-warning-soft)_72%,white)]";
+  }
+
+  return "border-[var(--aa-shell-border)] bg-white";
+}
+
+function dashboardMetricBadgeTone(tone: DashboardMetricTone) {
+  return tone;
+}
+
+function DashboardMetricCard({
+  label,
+  value,
+  detail,
+  badge,
+  tone,
+  icon: Icon,
+}: DashboardMetricCardProps) {
+  return (
+    <div
+      className={`h-[96px] min-w-[160px] max-w-[160px] rounded-[var(--radius-card)] border p-3 transition-colors hover:border-[var(--aa-shell-border-strong)] ${dashboardMetricCardToneClass(tone)}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <StatusBadge tone={dashboardMetricBadgeTone(tone)} className="min-h-6 px-2 py-0.5 text-[10px]">
+          {badge}
+        </StatusBadge>
+        <Icon size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-ink-subtle" />
+      </div>
+      <p className="mt-3 text-[28px] font-semibold tracking-[-0.04em] text-ink">{value}</p>
+      <p className="mt-1 truncate text-xs leading-5 text-ink-muted">{detail}</p>
+      <span className="sr-only">{label}</span>
+    </div>
+  );
+}
+
+function formatRelativeTime(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown";
+  }
+
+  const diffMinutes = Math.round((date.getTime() - Date.now()) / (1000 * 60));
+  const formatter = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" });
+
+  if (Math.abs(diffMinutes) < 60) {
+    return formatter.format(diffMinutes, "minute");
+  }
+
+  const diffHours = Math.round(diffMinutes / 60);
+
+  if (Math.abs(diffHours) < 24) {
+    return formatter.format(diffHours, "hour");
+  }
+
+  const diffDays = Math.round(diffHours / 24);
+  return formatter.format(diffDays, "day");
+}
+
+function DashboardPanel({
+  label,
+  action,
+  children,
+}: {
+  label: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white p-5 transition-colors hover:border-[var(--aa-shell-border-strong)]">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+          {label}
+        </p>
+        {action}
+      </div>
+      <div className="mt-4">{children}</div>
+    </div>
+  );
 }
 
 export default async function DashboardPage() {
@@ -82,10 +167,10 @@ export default async function DashboardPage() {
     redirect("/login?redirectTo=/dashboard");
   }
 
-  const [workspace, launch, audit] = await Promise.all([
+  const [workspace, launch, commissions] = await Promise.all([
     getCurrentWorkspaceContext(),
     getLaunchReadinessData(),
-    getAuditSettingsData(),
+    listCommissionItems(),
   ]);
 
   const financeSummary = launch.overview.financeSummary;
@@ -94,8 +179,6 @@ export default async function DashboardPage() {
     (check) => check.status === "blocked" || check.status === "attention",
   );
   const topPriority = actionableChecks[0] ?? null;
-  const secondaryPriorities = actionableChecks.slice(1, 4);
-  const latestResults = audit.recentEntries.slice(0, 4);
   const reviewQueuePreview = actionableChecks.slice(0, 4);
   const readyApps = launch.rules?.appleReadiness.filter((app) => app.ingestReady).length ?? 0;
   const totalApps = launch.rules?.appleReadiness.length ?? 0;
@@ -108,6 +191,10 @@ export default async function DashboardPage() {
     workspace.organization?.name ??
     launch.organizationName ??
     "No organization linked";
+  const latestResults = [...commissions.items]
+    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
+    .slice(0, 5);
+  const priorityCards = actionableChecks.slice(0, 3);
 
   const performanceSnapshot = [
     {
@@ -115,19 +202,21 @@ export default async function DashboardPage() {
       value: String(monitoring.recentReceiptCount),
       detail:
         monitoring.recentReceiptCount > 0
-          ? "Recent Apple receipt rows are flowing into the current monitoring window."
-          : "No recent tracked results are visible in the current monitoring window.",
-      tone:
-        monitoring.recentReceiptCount > 0 ? ("primary" as const) : ("warning" as const),
+          ? "Recent Apple receipts are flowing."
+          : "No recent tracked results visible.",
+      tone: monitoring.recentReceiptCount > 0 ? ("blue" as const) : ("amber" as const),
+      badge: "Tracked results",
+      icon: Activity,
     },
     {
       label: "Needs review",
       value: needsReviewCount > 0 ? String(needsReviewCount) : "Calm",
       detail: financeSummary.hasFinanceAccess
-        ? `${monitoring.queueVolume} attribution items and ${financeSummary.pendingReviewCount} commission reviews are still open.`
-        : `${monitoring.queueVolume} attribution items are open. Finance review stays hidden for your role.`,
-      tone:
-        needsReviewCount > 0 ? ("warning" as const) : ("success" as const),
+        ? `${monitoring.queueVolume} attribution and ${financeSummary.pendingReviewCount} finance items open.`
+        : `${monitoring.queueVolume} attribution items are open.`,
+      tone: needsReviewCount > 0 ? ("amber" as const) : ("green" as const),
+      badge: "Needs review",
+      icon: AlertTriangle,
     },
     {
       label: "Approved earnings",
@@ -135,12 +224,14 @@ export default async function DashboardPage() {
         ? String(financeSummary.approvedCount)
         : "Hidden",
       detail: financeSummary.hasFinanceAccess
-        ? "Approved commissions are ready for payout prep but not yet inside active batch tracking."
-        : "Approved earning counts are only visible to owner, admin, or finance roles.",
+        ? "Reviewed commissions cleared for payout prep."
+        : "Visible only to owner, admin, or finance.",
       tone:
         financeSummary.hasFinanceAccess && financeSummary.approvedCount > 0
-          ? ("primary" as const)
-          : ("success" as const),
+          ? ("green" as const)
+          : ("blue" as const),
+      badge: "Approved earnings",
+      icon: DollarSign,
     },
     {
       label: "Payout ready",
@@ -148,382 +239,373 @@ export default async function DashboardPage() {
         ? String(financeSummary.payoutTrackedCount)
         : "Hidden",
       detail: financeSummary.hasFinanceAccess
-        ? `${financeSummary.draftBatchCount} draft and ${financeSummary.exportedBatchCount} exported batches are in motion.`
-        : "Payout tracking stays hidden until a finance-safe role opens the workspace.",
+        ? `${financeSummary.draftBatchCount} draft and ${financeSummary.exportedBatchCount} exported batches in motion.`
+        : "Visible only to finance-safe roles.",
       tone:
         financeSummary.hasFinanceAccess && financeSummary.payoutTrackedCount > 0
-          ? ("primary" as const)
-          : ("success" as const),
+          ? ("green" as const)
+          : ("blue" as const),
+      badge: "Payout ready",
+      icon: Wallet,
     },
     {
       label: "Active creators",
       value: String(activeCreators),
       detail:
         activeCreators > 0
-          ? "Creator-linked identities are active in the current workspace."
-          : "No creator-linked identities are visible yet in the workspace.",
-      tone: activeCreators > 0 ? ("success" as const) : ("warning" as const),
+          ? "Creator-linked identities are active."
+          : "No active creator links yet.",
+      tone: activeCreators > 0 ? ("green" as const) : ("amber" as const),
+      badge: "Active creators",
+      icon: Users,
     },
     {
       label: "Apple health",
       value: totalApps > 0 ? `${readyApps}/${totalApps} ready` : "No apps yet",
       detail:
         totalApps === 0
-          ? "Add the first app and ingest key before relying on Apple health as a live signal."
+          ? "Add the first app lane and ingest key."
           : monitoring.failedReceiptCount > 0 || monitoring.pendingReceiptCount > 0
-            ? `${monitoring.failedReceiptCount} failed and ${monitoring.pendingReceiptCount} pending receipts still need review.`
-            : "Apple intake looks calm for the current monitoring window.",
+            ? `${monitoring.failedReceiptCount} failed and ${monitoring.pendingReceiptCount} pending receipts need review.`
+            : "Apple intake looks calm right now.",
       tone:
-        totalApps > 0 && readyApps === totalApps && monitoring.failedReceiptCount === 0 &&
-        monitoring.pendingReceiptCount === 0
-          ? ("success" as const)
-          : ("warning" as const),
+        monitoring.failedReceiptCount > 0
+          ? ("red" as const)
+          : totalApps > 0 && readyApps === totalApps && monitoring.pendingReceiptCount === 0
+            ? ("green" as const)
+            : ("amber" as const),
+      badge: "Apple health",
+      icon: Heart,
     },
   ];
 
   const quickActions = [
     {
       href: "/onboarding",
-      title: "Invite creator",
-      description: "Open the guided setup flow and issue the next creator-facing setup step.",
-      badge: <StatusBadge tone="primary">Setup</StatusBadge>,
+      title: "Continue activation",
+      description: "Keep the first creator path moving.",
+      badge: <StatusBadge tone="blue">Setup</StatusBadge>,
+      icon: Rocket,
     },
     {
       href: "/codes",
       title: "Add code",
-      description: "Create or assign the next promo code without leaving the workspace.",
-      badge: <StatusBadge tone="success">Program</StatusBadge>,
+      description: "Create or assign the next trackable asset.",
+      badge: <StatusBadge tone="blue">Program</StatusBadge>,
+      icon: Code2,
     },
     {
       href: "/events",
       title: "Review activity",
-      description: "Inspect the newest tracked events and operator-safe event detail.",
-      badge: <StatusBadge tone="primary">Activity</StatusBadge>,
+      description: "Inspect the newest tracked results.",
+      badge: <StatusBadge tone="blue">Activity</StatusBadge>,
+      icon: Activity,
     },
     {
       href: "/payouts",
       title: "Open payouts",
-      description: "Move approved commissions into batch tracking and finance follow-up.",
-      badge: <StatusBadge tone="warning">Finance</StatusBadge>,
-    },
-    {
-      href: "/settings/exports",
-      title: "Export batch",
-      description: "Download the current finance-safe export when a handoff is ready.",
-      badge: <StatusBadge tone="warning">Export</StatusBadge>,
+      description: "Move approved work toward payout.",
+      badge: <StatusBadge tone="blue">Finance</StatusBadge>,
+      icon: Wallet,
     },
     {
       href: launch.appleHealthHref,
       title: "Open Apple health",
-      description: "Check ingest readiness and receipt posture for the active app lanes.",
-      badge: <StatusBadge tone="primary">Apps</StatusBadge>,
+      description: "Check ingest readiness and receipt posture.",
+      badge: <StatusBadge tone="blue">Apps</StatusBadge>,
+      icon: Heart,
     },
   ];
 
-  const programHealth = [
-    {
-      label: "Creator coverage",
-      value: activeCreators > 0 ? `${activeCreators} linked` : "Needs setup",
-      detail:
-        activeCreators > 0
-          ? "Creator-linked identities are visible in the current workspace."
-          : "Invite or link the first creator identity to make portal coverage real.",
-      tone: activeCreators > 0 ? ("success" as const) : ("warning" as const),
-      panelTone: activeCreators > 0 ? ("success" as const) : ("warning" as const),
-    },
-    {
-      label: "Code coverage",
-      value: launch.rules
-        ? `${launch.rules.activeOwnedCodeCount} linked`
-        : "Access required",
-      detail: launch.rules
-        ? launch.rules.activeUnassignedCodeCount > 0
-          ? `${launch.rules.activeUnassignedCodeCount} active codes still need creator ownership.`
-          : "Active code ownership looks calm in the current workspace."
-        : "Program setup signals appear after internal workspace access is confirmed.",
-      tone:
-        launch.rules && launch.rules.activeUnassignedCodeCount === 0
-          ? ("success" as const)
-          : ("warning" as const),
-      panelTone:
-        launch.rules && launch.rules.activeUnassignedCodeCount === 0
-          ? ("success" as const)
-          : ("warning" as const),
-    },
-    {
-      label: "App readiness",
-      value: totalApps > 0 ? `${readyApps}/${totalApps} ready` : "No apps yet",
-      detail:
-        totalApps === 0
-          ? "Apple health becomes useful after the first app lane is configured."
-          : "Use Apple health to confirm ingest keys, receipt flow, and current intake issues.",
-      tone:
-        totalApps > 0 && readyApps === totalApps ? ("success" as const) : ("warning" as const),
-      panelTone:
-        totalApps > 0 && readyApps === totalApps ? ("success" as const) : ("warning" as const),
-    },
-    {
-      label: "Payout progress",
-      value: financeSummary.hasFinanceAccess
-        ? `${financeSummary.payoutTrackedCount} tracked`
-        : "Role-limited",
-      detail: financeSummary.hasFinanceAccess
-        ? `${financeSummary.paidCount} paid records are already reconciled in history.`
-        : "Finance-safe payout progress is only visible to owner, admin, or finance roles.",
-      tone:
-        financeSummary.hasFinanceAccess && financeSummary.payoutTrackedCount > 0
-          ? ("primary" as const)
-          : ("warning" as const),
-      panelTone:
-        financeSummary.hasFinanceAccess && financeSummary.payoutTrackedCount > 0
-          ? ("primary" as const)
-          : ("neutral" as const),
-    },
-    {
-      label: "Workspace readiness",
-      value: `${launch.completedChecks}/${launch.totalChecks} calm`,
-      detail: launch.overallDetail,
-      tone: toneForStatus(launch.overallStatus),
-      panelTone: toneForStatus(launch.overallStatus),
-    },
-  ];
+  const activationProgress = buildActivationProgress(launch);
+  const showActivationCard = !activationProgress.isComplete;
 
   return (
     <PageContainer>
-      <PageHeader
-        eyebrow="Workspace"
-        title="Dashboard"
-        description="Track creator-driven growth, review what needs attention, and keep payouts moving with confidence."
-        actions={
-          <>
-            {topPriority ? (
-              <ActionLink href={topPriority.href} variant="primary">
-                {actionLabelForCheck(topPriority)}
-              </ActionLink>
-            ) : (
-              <ActionLink href="/unattributed" variant="primary">
-                Review queue
-              </ActionLink>
-            )}
-            <ActionLink href="/payouts">Open payouts</ActionLink>
-            <ActionLink href="/settings">Open settings</ActionLink>
-            <SignOutButton />
-          </>
-        }
-      >
-        <div className="flex flex-wrap gap-3">
-          <StatusBadge tone={toneForStatus(launch.overallStatus)}>
-            {launch.overallLabel}
-          </StatusBadge>
-          <StatusBadge>{workspaceName}</StatusBadge>
-          <StatusBadge tone="primary">{workspaceRole}</StatusBadge>
-          <StatusBadge tone="neutral">
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <h1 className="text-[22px] font-bold tracking-[-0.03em] text-ink">Dashboard</h1>
+          <ActionLink href="/unattributed" variant="primary">
+            Review queue
+          </ActionLink>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge tone={toneForWorkspaceLabel()}>{workspaceName}</StatusBadge>
+          <StatusBadge tone={toneForRoleLabel()}>{workspaceRole}</StatusBadge>
+          <StatusBadge tone={toneForLaunchStatus(launch.overallStatus)}>
             {launch.completedChecks}/{launch.totalChecks} checks calm
           </StatusBadge>
         </div>
-      </PageHeader>
+      </section>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-        {performanceSnapshot.map((metric) => (
-          <StatCard
-            key={metric.label}
-            label={metric.label}
-            value={metric.value}
-            detail={metric.detail}
-            tone={metric.tone}
-            size="compact"
-          />
-        ))}
-      </div>
+      <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <div className="flex min-w-max gap-3">
+          {performanceSnapshot.map((metric) => (
+            <DashboardMetricCard
+              key={metric.label}
+              label={metric.label}
+              value={metric.value}
+              detail={metric.detail}
+              badge={metric.badge}
+              tone={metric.tone}
+              icon={metric.icon}
+            />
+          ))}
+        </div>
+      </section>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
-        <SurfaceCard
-          density="compact"
-          className="border-[color:color-mix(in_srgb,var(--color-warning)_16%,var(--color-border))]"
-        >
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4">
-            <div className="max-w-3xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-warning">
-                Needs attention
+      {topPriority ? (
+        <SurfaceCard density="compact" className="py-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
+                <AlertTriangle size={16} strokeWidth={1.75} />
+              </span>
+              <p className="shrink-0 text-sm font-semibold text-ink">
+                {actionableChecks.length} active priorit{actionableChecks.length === 1 ? "y" : "ies"}
               </p>
-              <h2 className="mt-2 text-[1.55rem] font-semibold tracking-[-0.04em] text-ink">
-                What needs attention now
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-ink-muted">
-                Prioritize unresolved attribution, finance follow-up, and intake blockers before deeper admin work.
+              <p className="min-w-0 truncate text-sm text-ink-muted">
+                {topPriority.title}: {topPriority.detail}
               </p>
             </div>
-            <StatusBadge tone={actionableChecks.length > 0 ? "warning" : "success"}>
-              {actionableChecks.length > 0
-                ? `${actionableChecks.length} active priorities`
-                : "Nothing urgent open"}
-            </StatusBadge>
+            <Link
+              href={topPriority.href}
+              className="shrink-0 text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
+            >
+              Review now
+            </Link>
           </div>
+        </SurfaceCard>
+      ) : null}
 
-          <div className="mt-5">
-            {topPriority ? (
-              <div className="space-y-4">
-                <InsetPanel tone={toneForStatus(topPriority.status)}>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="max-w-3xl">
-                      <p className="text-base font-semibold tracking-[-0.02em] text-ink">
-                        {topPriority.title}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-ink-muted">
-                        {topPriority.detail}
-                      </p>
-                    </div>
-                    <StatusBadge tone={toneForStatus(topPriority.status)}>
-                      {topPriority.label}
-                    </StatusBadge>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <ActionLink href={topPriority.href} variant="primary">
-                      {actionLabelForCheck(topPriority)}
-                    </ActionLink>
-                    <ActionLink href="/onboarding">Open activation guide</ActionLink>
-                  </div>
-                </InsetPanel>
-
-                {secondaryPriorities.length > 0 ? (
-                  <div className="overflow-hidden rounded-[var(--radius-soft)] border border-border bg-[rgba(248,250,252,0.95)]">
-                    {secondaryPriorities.map((check) => (
-                      <InlineActionRow
-                        key={check.id}
-                        title={check.title}
-                        description={check.detail}
-                        badge={
-                          <StatusBadge tone={toneForStatus(check.status)}>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.65fr)_minmax(320px,0.35fr)]">
+        <div className="space-y-6">
+          <DashboardPanel
+            label="Needs attention"
+            action={
+              priorityCards.length > 0 ? (
+                <Link
+                  href={topPriority?.href ?? "/unattributed"}
+                  className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
+                >
+                  Review now
+                </Link>
+              ) : undefined
+            }
+          >
+            {priorityCards.length > 0 ? (
+              <div className="space-y-3">
+                {priorityCards.map((check) => (
+                  <div
+                    key={check.id}
+                    className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex min-w-0 items-start gap-3">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
+                        <AlertTriangle size={16} strokeWidth={1.75} />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-[15px] font-semibold text-ink">{check.title}</p>
+                          <StatusBadge tone={toneForLaunchStatus(check.status)}>
                             {check.label}
                           </StatusBadge>
-                        }
-                        actions={
-                          <ActionLink href={check.href}>
-                            {actionLabelForCheck(check)}
-                          </ActionLink>
-                        }
-                      />
-                    ))}
+                        </div>
+                        <p className="mt-1 truncate text-sm text-ink-muted">{check.detail}</p>
+                      </div>
+                    </div>
+                    <ActionLink href={check.href}>{actionLabelForCheck(check)}</ActionLink>
                   </div>
-                ) : null}
+                ))}
               </div>
             ) : (
               <EmptyState
-                eyebrow="Needs attention"
-                title="Nothing urgent is open right now"
-                description="Queue, payout, and launch checks look calm in the current workspace view. Keep routine review close, but there is no immediate blocker."
-                tone="success"
+                icon={Rocket}
+                title="Activation is the next useful step"
+                description="New priorities will appear here when setup or review needs attention."
                 action={
                   <ActionLink href="/onboarding" variant="primary">
-                    Open activation guide
+                    Continue activation
                   </ActionLink>
                 }
               />
             )}
-          </div>
-        </SurfaceCard>
+          </DashboardPanel>
 
-        <SectionCard
-          eyebrow="Quick actions"
-          title="Quick actions"
-          description="Jump straight into the next workflow without scanning the whole workspace."
-          className="h-full"
-        >
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            {quickActions.map((action) => (
-              <QuickActionTile
-                key={action.title}
-                href={action.href}
-                title={action.title}
-                description={action.description}
-                badge={action.badge}
-              />
-            ))}
-          </div>
-        </SectionCard>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-2">
-        <ListTable
-          eyebrow="Latest results"
-          title="Latest results"
-          description="The newest tracked changes and operator activity visible in the workspace."
-          actions={<ActionLink href="/settings/audit">Open audit</ActionLink>}
-        >
-          {latestResults.length > 0 ? (
-            latestResults.map((entry) => (
-              <InlineActionRow
-                key={entry.id}
-                title={entry.summary}
-                description={`${entry.entityLabel} • ${formatAuditTime(entry.createdAt)} • ${entry.actorLabel}`}
-                badge={<StatusBadge tone={entry.tone}>{entry.actionLabel}</StatusBadge>}
-                actions={<ActionLink href="/settings/audit">Open audit</ActionLink>}
-              />
-            ))
-          ) : (
-            <div className="p-5">
+          <DashboardPanel
+            label="Latest results"
+            action={
+              <Link
+                href="/settings/audit"
+                className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
+              >
+                Open audit
+              </Link>
+            }
+          >
+            {latestResults.length > 0 ? (
+              <div>
+                <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] gap-3 border-b border-[var(--aa-shell-border)] px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+                  <span>Creator</span>
+                  <span>Event</span>
+                  <span className="text-right">Value</span>
+                  <span className="text-right">Time</span>
+                </div>
+                <div className="divide-y divide-[var(--aa-shell-border)]">
+                  {latestResults.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] gap-3 px-1 py-3 text-sm"
+                    >
+                      <p className="truncate text-[15px] font-medium text-ink">{item.partnerName}</p>
+                      <p className="truncate text-ink-muted">{item.eventType}</p>
+                      <p className="text-right font-medium text-ink">
+                        {item.commissionAmountLabel}
+                      </p>
+                      <p className="text-right text-ink-muted">
+                        {formatRelativeTime(item.occurredAt)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
               <EmptyState
-                eyebrow="Latest results"
-                title="No recent activity is visible yet"
-                description="Tracked results and internal workflow changes will collect here as the workspace gets used."
-                action={<ActionLink href="/events">Open events</ActionLink>}
-              />
-            </div>
-          )}
-        </ListTable>
-
-        <ListTable
-          eyebrow="Review queue"
-          title="Review queue"
-          description="The next workflow checks waiting for action across attribution, finance, and setup."
-          actions={<ActionLink href="/unattributed">Open queue</ActionLink>}
-        >
-          {reviewQueuePreview.length > 0 ? (
-            reviewQueuePreview.map((check) => (
-              <InlineActionRow
-                key={check.id}
-                title={check.title}
-                description={check.detail}
-                badge={
-                  <StatusBadge tone={toneForStatus(check.status)}>{check.label}</StatusBadge>
-                }
-                actions={
-                  <ActionLink href={check.href}>
-                    {actionLabelForCheck(check)}
+                icon={Activity}
+                title="Your first tracked result will appear here"
+                description="This feed fills with the newest creator-linked results after app, creator, and code setup are live."
+                action={
+                  <ActionLink href="/onboarding" variant="primary">
+                    Continue activation
                   </ActionLink>
                 }
               />
-            ))
-          ) : (
-            <div className="p-5">
-              <EmptyState
-                eyebrow="Review queue"
-                title="No review work is queued right now"
-                description="Attribution and finance follow-up look calm in the current workspace view."
-                action={<ActionLink href="/onboarding">Open activation guide</ActionLink>}
-              />
-            </div>
-          )}
-        </ListTable>
-      </div>
+            )}
+          </DashboardPanel>
 
-      <SectionCard
-        eyebrow="Program health"
-        title="Program health"
-        description="Coverage and readiness across creators, codes, apps, payouts, and the current launch posture."
-      >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {programHealth.map((item) => (
-            <InsetPanel key={item.label} tone={item.panelTone}>
-              <StatusBadge tone={item.tone}>{item.label}</StatusBadge>
-              <p className="mt-4 text-lg font-semibold tracking-[-0.03em] text-ink">
-                {item.value}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-ink-muted">{item.detail}</p>
-            </InsetPanel>
-          ))}
+          <DashboardPanel
+            label="Review queue"
+            action={
+              <Link
+                href="/unattributed"
+                className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
+              >
+                Open full queue
+              </Link>
+            }
+          >
+            {reviewQueuePreview.length > 0 ? (
+              <div className="space-y-3">
+                {reviewQueuePreview.slice(0, 2).map((check) => (
+                  <div
+                    key={check.id}
+                    className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusBadge tone={toneForLaunchStatus(check.status)}>
+                          {check.label}
+                        </StatusBadge>
+                        <p className="text-[15px] font-semibold text-ink">{check.title}</p>
+                      </div>
+                      <p className="mt-1 truncate text-sm text-ink-muted">{check.detail}</p>
+                    </div>
+                    <ActionLink href={check.href}>Review</ActionLink>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={AlertTriangle}
+                title="The next review item will appear here"
+                description="Records that need an attribution or readiness decision show up here after results start landing."
+                action={
+                  <ActionLink href="/events" variant="primary">
+                    Open events
+                  </ActionLink>
+                }
+              />
+            )}
+          </DashboardPanel>
         </div>
-      </SectionCard>
+
+        <div className="space-y-6">
+          <DashboardPanel label="Utilities">
+            <div className="space-y-1">
+              {quickActions.map((action) => {
+                const Icon = action.icon;
+
+                return (
+                  <Link
+                    key={action.title}
+                    href={action.href}
+                    className="flex items-start gap-3 rounded-[var(--radius-card)] border border-transparent px-2 py-3 transition-colors hover:border-[var(--aa-shell-border)] hover:bg-surface"
+                  >
+                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-subtle">
+                      <Icon size={16} strokeWidth={1.75} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-[15px] font-semibold text-ink">{action.title}</p>
+                        {action.badge}
+                      </div>
+                      <p className="mt-1 text-sm text-ink-muted">{action.description}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </DashboardPanel>
+
+          {showActivationCard ? (
+            <DashboardPanel
+              label="Activation"
+              action={
+                <Link
+                  href="/onboarding"
+                  className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
+                >
+                  Continue activation →
+                </Link>
+              }
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[15px] font-semibold text-ink">Activation is still in progress</p>
+                  <p className="mt-1 text-sm text-ink-muted">
+                    Keep the first creator path moving one step at a time.
+                  </p>
+                </div>
+                <StatusBadge tone={toneForActivationState("in_progress")}>
+                  {activationProgress.completeCount}/{activationProgress.totalCount}
+                </StatusBadge>
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                {activationProgress.steps.map((step) => (
+                  <span
+                    key={step.label}
+                    className={`h-1.5 flex-1 rounded-full transition-colors ${
+                      step.complete ? "bg-primary" : "bg-[var(--aa-shell-border)]"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="mt-3 text-sm text-ink-muted">
+                {activationProgress.completeCount === 0
+                  ? "Start with app connection, then add the first creator."
+                  : activationProgress.completeCount === activationProgress.totalCount - 1
+                    ? "One last setup step remains before activation is calm."
+                    : `${activationProgress.completeCount} of ${activationProgress.totalCount} steps are already in place.`}
+              </p>
+              <div className="mt-4">
+                <ActionLink href="/onboarding" variant="primary">
+                  Continue activation →
+                </ActionLink>
+              </div>
+            </DashboardPanel>
+          ) : null}
+        </div>
+      </div>
     </PageContainer>
   );
 }

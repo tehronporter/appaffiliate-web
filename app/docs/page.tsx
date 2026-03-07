@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Compass, LogIn, Route } from "lucide-react";
 
 import {
   MarketingCtaPanel,
   MarketingHero,
+  MarketingHeroProofStack,
   MarketingSection,
   MarketingSectionHeading,
 } from "@/components/marketing-page";
@@ -81,7 +83,7 @@ const founderFaq = [
   {
     question: "Is there a giant public help center?",
     answer:
-      "Not yet. Public docs stay intentionally curated, and deeper rollout guidance is shared during onboarding when a team is actively implementing the product.",
+      "Public docs stay curated. Deeper rollout guidance is shared once a team starts implementing.",
   },
 ];
 
@@ -103,6 +105,24 @@ const trustFaq = [
   },
 ];
 
+const heroProofItems = [
+  {
+    title: "Start with the model",
+    description: "See the basics first, then move into setup, tracking, and payouts.",
+    icon: <Compass size={16} strokeWidth={1.5} />,
+  },
+  {
+    title: "Use short entry paths",
+    description: "Find the right answer without working through a documentation maze.",
+    icon: <Route size={16} strokeWidth={1.5} />,
+  },
+  {
+    title: "Know where to go next",
+    description: "Learn the model, request access, or sign in if you're already invited.",
+    icon: <LogIn size={16} strokeWidth={1.5} />,
+  },
+] as const;
+
 export default function DocsPage() {
   return (
     <MarketingShell
@@ -117,6 +137,7 @@ export default function DocsPage() {
           eyebrow="Docs and help"
           title="Everything you need to launch and run creator-based growth"
           description="Use the docs landing to understand fit, setup, creator tracking, payout flow, security, and creator visibility without getting lost in internal product language."
+          wrapVisual={false}
           actions={
             <>
               <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
@@ -128,25 +149,11 @@ export default function DocsPage() {
             </>
           }
         >
-          <div className="grid gap-3">
-            {[
-              "Start with the model, then move into setup",
-              "Use short entry paths instead of a documentation maze",
-              "Know exactly where to go next: learn, request access, or sign in",
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-[16px] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+          <MarketingHeroProofStack items={heroProofItems} />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="Entry paths"
             title="Pick the question you need answered first."
             description="Docs work better when founders can jump straight into the right topic instead of reading a flat list of pages."
           />
@@ -167,13 +174,11 @@ export default function DocsPage() {
         <MarketingSection muted>
           <div className="grid gap-6 lg:grid-cols-2">
             <FaqGroup
-              eyebrow="Founders"
               title="What founders usually need to know"
               description="Short answers that reduce the time between curiosity and a clear next step."
               items={founderFaq}
             />
             <FaqGroup
-              eyebrow="Trust"
               title="How tracking, review, and payouts work"
               description="These are the questions that usually need a direct answer before a founder decides whether the model fits."
               items={trustFaq}
@@ -184,7 +189,7 @@ export default function DocsPage() {
         <MarketingSection>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Next step"
+              eyebrow="GET STARTED"
               title="Learn the basics, then decide what to do next."
               description="If the model fits your app, request access. If you are already invited, go straight to sign-in."
               primaryHref="/request-access"

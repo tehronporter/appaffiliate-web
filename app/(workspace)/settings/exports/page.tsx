@@ -11,6 +11,7 @@ import {
   SettingsPageFrame,
 } from "@/components/settings-shell";
 import { listFinanceExportOverview } from "@/lib/services/finance";
+import { toneForPayoutBatchStatus, toneForWorkspaceLabel } from "@/lib/status-badges";
 
 export default async function SettingsExportsPage() {
   const data = await listFinanceExportOverview();
@@ -28,9 +29,9 @@ export default async function SettingsExportsPage() {
       }
       badges={
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Finance exports</StatusBadge>
-          <StatusBadge tone="warning">Manual CSV handoff</StatusBadge>
-          <StatusBadge>Download and payment stay separate</StatusBadge>
+          <StatusBadge tone={toneForWorkspaceLabel()}>Finance exports</StatusBadge>
+          <StatusBadge tone="amber">Manual CSV handoff</StatusBadge>
+          <StatusBadge tone={toneForWorkspaceLabel()}>Download and payment stay separate</StatusBadge>
         </div>
       }
       stats={[
@@ -38,19 +39,19 @@ export default async function SettingsExportsPage() {
           label: "Commission rows",
           value: String(data.commissionRows),
           detail: "The commission register export reflects real attributed-event review records.",
-          tone: "primary",
+          tone: "blue",
         },
         {
           label: "Payout rows",
           value: String(data.payoutRows),
           detail: "Tracked payout rows come from real payout batches and batch items.",
-          tone: "warning",
+          tone: "amber",
         },
         {
           label: "Tracked entries",
           value: String(data.payoutTrackedEntries),
           detail: "These rows are already inside payout tracking or marked paid.",
-          tone: "success",
+          tone: "green",
         },
       ]}
     >
@@ -128,10 +129,15 @@ export default async function SettingsExportsPage() {
               <div className="space-y-3">
                 {data.recentBatches.map((batch) => (
                   <InsetPanel key={batch.id}>
-                    <p className="text-sm font-semibold text-ink">{batch.name}</p>
-                    <p className="mt-1 text-sm text-ink-muted">
-                      {batch.totalAmountLabel} • {batch.status}
-                    </p>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-ink">{batch.name}</p>
+                        <p className="mt-1 text-sm text-ink-muted">{batch.totalAmountLabel}</p>
+                      </div>
+                      <StatusBadge tone={toneForPayoutBatchStatus(batch.status)}>
+                        {batch.status}
+                      </StatusBadge>
+                    </div>
                   </InsetPanel>
                 ))}
               </div>

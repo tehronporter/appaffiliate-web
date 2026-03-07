@@ -24,18 +24,18 @@ const portalNavItems = [
 
 function navItemClasses(active: boolean) {
   if (active) {
-    return "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary shadow-[0_8px_18px_rgba(46,83,255,0.08)]";
+    return "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary";
   }
 
-  return "border-transparent bg-white/70 text-ink-muted hover:border-border hover:bg-white hover:text-ink";
+  return "border-[var(--aa-shell-border)] bg-white text-ink-muted hover:border-[var(--aa-shell-border-strong)] hover:bg-[var(--aa-shell-panel-muted)] hover:text-ink";
 }
 
 export function PartnerPortalNav() {
   const pathname = usePathname();
 
   return (
-    <div className="mx-auto max-w-[var(--portal-max-width)] px-4 py-2.5 sm:px-6 lg:px-8">
-      <nav className="overflow-x-auto rounded-[20px] border border-white/80 bg-[rgba(255,255,255,0.82)] p-1.5 shadow-[0_10px_24px_rgba(17,24,39,0.05)] backdrop-blur">
+    <div className="mx-auto max-w-[var(--portal-max-width)] px-4 py-4 sm:px-6 lg:px-8">
+      <nav className="overflow-x-auto rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel)] p-2 shadow-[var(--aa-shell-shadow)]">
         <div className="flex min-w-max gap-2">
           {portalNavItems.map((item) => {
             const active =
@@ -46,7 +46,7 @@ export function PartnerPortalNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`min-h-10 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white ${navItemClasses(active)}`}
+                className={`inline-flex min-h-[44px] items-center rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white ${navItemClasses(active)}`}
               >
                 {item.label}
               </Link>
