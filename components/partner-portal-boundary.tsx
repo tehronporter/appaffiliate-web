@@ -11,8 +11,8 @@ export function PartnerPortalBoundary({ viewer }: PartnerPortalBoundaryProps) {
     return (
       <EmptyState
         eyebrow="Sign in required"
-        title="Sign in to open the partner portal"
-        description="Sign in with your invited AppAffiliate account, then return to the portal to review your own codes, performance, and payout status."
+        title="Sign in to view your creator portal"
+        description="Sign in with your invited AppAffiliate account to review your own codes, results, earnings, and payout history."
         action={
           <ActionLink href="/login?redirectTo=/portal" variant="primary">
             Sign in
@@ -26,11 +26,11 @@ export function PartnerPortalBoundary({ viewer }: PartnerPortalBoundaryProps) {
     return (
       <EmptyState
         eyebrow="Portal access"
-        title="This account uses the internal workspace"
-        description="Partner portal views are limited to linked partner accounts. Internal workspace users should continue in the admin app."
+        title="This account is set up for the internal workspace"
+        description="The creator portal is limited to linked creator accounts. If you manage AppAffiliate internally, continue in the workspace instead."
         action={
           <ActionLink href="/dashboard" variant="primary">
-            Open admin workspace
+            Open workspace
           </ActionLink>
         }
       />
@@ -40,9 +40,9 @@ export function PartnerPortalBoundary({ viewer }: PartnerPortalBoundaryProps) {
   if (!viewer.hasPartnerProfile) {
     return (
       <EmptyState
-        eyebrow="Partner access"
-        title="No partner profile is linked yet"
-        description="This account has partner portal access, but the matching partner profile has not been linked yet. Your AppAffiliate contact can finish setup."
+        eyebrow="Creator setup"
+        title="Your creator profile is not linked yet"
+        description="This account has portal access, but the matching creator profile has not been linked yet. Your AppAffiliate contact can finish setup."
       />
     );
   }
@@ -50,9 +50,9 @@ export function PartnerPortalBoundary({ viewer }: PartnerPortalBoundaryProps) {
   if (!viewer.isLinkedToPartner) {
     return (
       <EmptyState
-        eyebrow="Partner mapping"
+        eyebrow="Creator mapping"
         title="Your portal link is still being finalized"
-        description="This account is ready for the partner portal, but it has not been mapped to a specific partner record yet. Once the link is added, your portal data will appear automatically."
+        description="This account is ready for the creator portal, but it has not been mapped to a specific creator record yet. Once that link is added, your codes, results, and payouts will appear automatically."
       />
     );
   }

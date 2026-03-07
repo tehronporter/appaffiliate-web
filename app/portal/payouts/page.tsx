@@ -1,29 +1,43 @@
 import { PageContainer } from "@/components/app-shell";
 import {
+  DetailList,
   EmptyState,
-  PageHeader,
+  InfoPanel,
   SectionCard,
-  StatCard,
   StatusBadge,
   SurfaceCard,
 } from "@/components/admin-ui";
 import { PartnerPortalBoundary } from "@/components/partner-portal-boundary";
+import {
+  PortalHelpCard,
+  PortalMetricCard,
+  PortalPageHeader,
+  PortalRecordCard,
+} from "@/components/portal-ui";
 import { listPortalPayouts } from "@/lib/services/portal";
 
 function toneForBatchStatus(status: string) {
-  if (status === "paid") {
+  if (status === "Paid") {
     return "success" as const;
   }
 
-  if (status === "exported" || status === "approved") {
+  if (status === "Awaiting payout" || status === "Approved") {
     return "primary" as const;
   }
 
-  if (status === "cancelled") {
+  if (status === "Cancelled") {
     return "danger" as const;
   }
 
   return "warning" as const;
+}
+
+function formatDateLabel(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
 }
 
 export default async function PartnerPortalPayoutsPage() {
@@ -31,136 +45,140 @@ export default async function PartnerPortalPayoutsPage() {
   const boundary = <PartnerPortalBoundary viewer={data.viewer} />;
 
   return (
-    <PageContainer className="max-w-[1180px] py-8 lg:py-10">
-      <PageHeader
-        eyebrow="Partner portal"
+    <PageContainer className="max-w-[var(--portal-max-width)] space-y-5 py-6 lg:py-8">
+      <PortalPageHeader
+        eyebrow="Earnings"
         title="Payout history"
-        description="Review payout batches that already include your partner items. This remains a read-only history surface and does not expose internal export or remittance controls."
+        description="Track approved earnings, see what is already in payout, and review paid history in a simpler creator-safe ledger."
       >
-        <div className="flex flex-wrap gap-3">
-          {data.viewer.isLinkedToPartner ? (
-            <>
-              <StatusBadge tone="primary">{data.payouts.length} payout batches visible</StatusBadge>
-              <StatusBadge tone="success">{data.stats.paidCount} paid items</StatusBadge>
-            </>
-          ) : data.viewer.hasPortalRole ? (
-            <StatusBadge tone="warning">Partner link required</StatusBadge>
-          ) : data.viewer.isAuthenticated ? (
-            <StatusBadge tone="warning">Portal role required</StatusBadge>
-          ) : (
-            <StatusBadge tone="primary">Sign in required</StatusBadge>
-          )}
-        </div>
-      </PageHeader>
+        {data.viewer.isLinkedToPartner ? (
+          <>
+            <StatusBadge tone="primary">{data.payouts.length} visible payout record{data.payouts.length === 1 ? "" : "s"}</StatusBadge>
+            <StatusBadge tone="success">{data.stats.paidCount} paid result{data.stats.paidCount === 1 ? "" : "s"}</StatusBadge>
+          </>
+        ) : data.viewer.hasPortalRole ? (
+          <StatusBadge tone="warning">Creator link required</StatusBadge>
+        ) : data.viewer.isAuthenticated ? (
+          <StatusBadge tone="warning">Portal access required</StatusBadge>
+        ) : (
+          <StatusBadge tone="primary">Sign in required</StatusBadge>
+        )}
+      </PortalPageHeader>
 
       {boundary}
 
       {data.viewer.isLinkedToPartner ? (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <StatCard
-              label="Approved"
-              value={data.stats.approvedValueLabel}
-              detail="Approved items are visible even before they are included in payout."
-              tone="primary"
-            />
-            <StatCard
-              label="Included in payout"
-              value={data.stats.includedInPayoutValueLabel}
-              detail="These amounts are already inside payout batches but are not yet marked paid."
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <PortalMetricCard
+              label="Still under review"
+              value={String(data.stats.pendingReviewCount)}
+              detail="Visible results that have not reached a final earnings state yet."
               tone="warning"
             />
-            <StatCard
+            <PortalMetricCard
+              label="Approved earnings"
+              value={data.stats.approvedValueLabel}
+              detail="Reviewed earnings that are not paid yet."
+              tone="primary"
+            />
+            <PortalMetricCard
+              label="In payout"
+              value={data.stats.includedInPayoutValueLabel}
+              detail="Approved earnings already included in a payout run."
+              tone="primary"
+            />
+            <PortalMetricCard
               label="Paid"
               value={data.stats.paidValueLabel}
-              detail="These partner amounts are already marked paid."
+              detail="Earnings already reflected in paid history."
               tone="success"
             />
           </div>
 
-          <SurfaceCard>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Payout status
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  Included in payout means your items are already inside a payout batch. Paid means the batch has been marked paid.
-                </p>
-              </div>
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  History only
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  This page is for payout visibility only. It does not include internal export controls or remittance workflow details.
-                </p>
-              </div>
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Reference details
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  External references appear only when a safe payout reference exists for the visible batch.
-                </p>
-              </div>
+          <SurfaceCard tone="portal" density="compact">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <InfoPanel
+                title="What payout status means"
+                description="Approved means the earning is reviewed. Awaiting payout means it is already in a payout run. Paid means the payout update is complete."
+              />
+              <InfoPanel
+                title="Read-only by design"
+                description="This page is for visibility only. It does not expose internal finance steps, exports, or remittance controls."
+              />
+              <InfoPanel
+                title="Safe references"
+                description="Reference details only appear when there is a safe payout reference available for your visible record."
+              />
             </div>
           </SurfaceCard>
 
           <SectionCard
-            title="Batch history"
-            description="Only batches that include your partner items appear here."
+            tone="portal"
+            title="Payout records"
+            description="A dependable history of the payout runs that already include your creator-linked earnings."
           >
             {data.payouts.length === 0 ? (
               <EmptyState
                 eyebrow="No payouts yet"
-                title="No payout batches are visible yet"
-                description="Once approved commission items are included in payout batches, those batches will appear here with their status and amount."
+                title="No payout history yet"
+                description="Once approved earnings move into payout, the history will appear here automatically."
               />
             ) : (
               <div className="space-y-3">
                 {data.payouts.map((payout) => (
-                  <div
+                  <PortalRecordCard
                     key={payout.id}
-                    className="rounded-[24px] border border-border bg-surface px-5 py-4"
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="text-base font-semibold text-ink">{payout.name}</p>
-                        <p className="mt-1 text-sm text-ink-muted">
-                          {payout.periodLabel} • {new Date(payout.createdAt).toLocaleDateString("en-US")}
-                        </p>
-                      </div>
-                      <StatusBadge tone={toneForBatchStatus(payout.status)}>
+                    title={payout.name}
+                    description={`${payout.periodLabel} • ${formatDateLabel(payout.createdAt)}`}
+                    badge={
+                      <StatusBadge tone={toneForBatchStatus(payout.statusLabel)}>
                         {payout.statusLabel}
                       </StatusBadge>
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Amount
-                        </p>
-                        <p className="mt-2 text-sm text-ink">{payout.amountLabel}</p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Entries
-                        </p>
-                        <p className="mt-2 text-sm text-ink">{payout.entryCount}</p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Reference
-                        </p>
-                        <p className="mt-2 text-sm text-ink">
-                          {payout.externalReference ?? "Not available"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                    }
+                  >
+                    <DetailList
+                      columns={3}
+                      items={[
+                        {
+                          label: "Amount",
+                          value: payout.amountLabel,
+                        },
+                        {
+                          label: "Entries",
+                          value: String(payout.entryCount),
+                        },
+                        {
+                          label: "Reference",
+                          value: payout.externalReference ?? "Not available",
+                        },
+                      ]}
+                    />
+                  </PortalRecordCard>
                 ))}
               </div>
             )}
+          </SectionCard>
+
+          <SectionCard
+            tone="portal"
+            title="How earnings and payouts work"
+            description="A short guide to the payout labels you can see in the portal."
+          >
+            <div className="grid gap-3 lg:grid-cols-3">
+              <PortalHelpCard
+                title="Still under review"
+                description="The result is visible, but the earning is not final yet."
+              />
+              <PortalHelpCard
+                title="Approved"
+                description="The earning has been reviewed and is ready for the next payout step."
+              />
+              <PortalHelpCard
+                title="Awaiting payout"
+                description="The earning is already included in a payout run and will move to paid once that update is confirmed."
+              />
+            </div>
           </SectionCard>
         </>
       ) : null}

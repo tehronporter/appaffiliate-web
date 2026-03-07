@@ -1,10 +1,16 @@
+export const publicBrandLine = "Pay creators for results, not hype.";
+
+export const publicAudienceLabel = "Creator growth for modern iOS founders";
+
+export const publicFooterDescription =
+  "AppAffiliate turns creator promotion into a performance-based growth channel for iOS teams that want trustworthy tracking, fair rewards, and clear payouts.";
+
 export const publicNavLinks: Array<{ href: string; label: string }> = [
   { href: "/product", label: "Product" },
   { href: "/how-it-works", label: "How it works" },
   { href: "/pricing", label: "Pricing" },
   { href: "/security", label: "Security" },
   { href: "/docs", label: "Docs" },
-  { href: "/login", label: "Sign in" },
 ];
 
 export const publicFooterLinks: Array<{ href: string; label: string }> = [

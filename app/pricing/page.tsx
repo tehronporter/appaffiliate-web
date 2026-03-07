@@ -3,9 +3,9 @@ import Link from "next/link";
 
 import {
   MarketingCard,
+  MarketingComparison,
   MarketingCtaPanel,
   MarketingHero,
-  MarketingList,
   MarketingSection,
   MarketingSectionHeading,
 } from "@/components/marketing-page";
@@ -20,30 +20,42 @@ import {
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "AppAffiliate is currently offered through guided onboarding and invited team access. Review what is included and how rollout works today.",
+    "Pricing is handled through guided rollout so founders can evaluate the model against risky upfront influencer spend and manual payout overhead first.",
 };
 
-const includedItems = [
-  "Internal admin workspace access for affiliate operations",
-  "Partner and code management, review workflows, commissions, payouts, and exports",
-  "Settings, audit, operational visibility, and partner portal access where configured",
-];
-
-const pricingNotes = [
+const pricingCards = [
+  {
+    title: "Founder-friendly evaluation",
+    description:
+      "Start with fit first: does a results-based creator channel make more sense than paying for promotion up front and hoping it converts?",
+  },
   {
     title: "Guided rollout",
     description:
-      "AppAffiliate is currently introduced through a direct rollout process rather than self-serve checkout.",
+      "AppAffiliate is currently introduced through a guided rollout so setup, access, and early workflow fit stay aligned.",
   },
   {
-    title: "Team access",
+    title: "Scale without spreadsheet overhead",
     description:
-      "Access is configured around invited internal users and, when needed, linked partner portal users.",
+      "As the creator program grows, tracking, review, commissions, payouts, and creator visibility stay in one system.",
+  },
+];
+
+const includedCoverage = [
+  {
+    title: "Internal workspace",
+    description:
+      "Creator tracking, review flows, commissions, payouts, exports, settings, and audit-safe operating surfaces.",
   },
   {
-    title: "No in-product billing",
+    title: "Creator portal",
     description:
-      "Billing is not yet handled inside the product, so the public pricing page stays honest about the current guided rollout model.",
+      "A separate read-only view for creators to see codes, results, approved earnings, and payout status.",
+  },
+  {
+    title: "Guided setup",
+    description:
+      "Teams start with rollout support so the workflow matches how the product is actually used today.",
   },
 ];
 
@@ -59,38 +71,50 @@ export default function PricingPage() {
       <main>
         <MarketingHero
           eyebrow="Pricing"
-          title="Guided rollout for live programs."
-          description="AppAffiliate is currently offered through guided onboarding and invited team access. The rollout model stays honest to the product that exists today instead of pretending public self-serve billing is already live."
+          title="A better bet than risky upfront influencer spend."
+          description="AppAffiliate is currently priced through guided rollout. That keeps the conversation focused on creator results, payout trust, and workflow fit instead of fake self-serve plans."
           actions={
             <>
               <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
                 Request access
               </Link>
-              <Link href="/product" className="aa-button aa-button-secondary px-5 py-3">
-                See product
+              <Link href="/how-it-works" className="aa-button aa-button-secondary px-5 py-3">
+                See how it works
               </Link>
             </>
           }
         >
-          <p className="text-sm font-medium text-[#1A1A1A]">Included in the current rollout</p>
-          <div className="mt-5">
-            <MarketingList items={includedItems} />
-          </div>
+          <MarketingComparison
+            title="Compare the cost logic, not just a feature list."
+            description="The real alternative is not another SaaS line item. It is wasted influencer spend, manual payout cleanup, and unclear creator performance."
+            leftTitle="What founders are replacing"
+            leftItems={[
+              "Upfront creator deals with unclear subscription outcomes",
+              "Spreadsheet-heavy tracking and payout follow-up",
+              "Back-and-forth questions about what actually converted",
+            ]}
+            rightTitle="What AppAffiliate improves"
+            rightItems={[
+              "A results-based creator channel for iOS apps",
+              "Clearer review, earnings, and payout visibility",
+              "A founder-readable system that still holds up operationally",
+            ]}
+          />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="Pricing posture"
-            title="A rollout page that reflects the current product honestly."
-            description="The current model is contact-led and onboarding-driven. That keeps the commercial story aligned with the product instead of implying in-product subscriptions or automated billing that do not exist yet."
+            eyebrow="How pricing is handled"
+            title="Simple, guided, and honest about the current product."
+            description="There is no public self-serve checkout yet. Pricing is handled during rollout so the setup, access model, and support path fit your current stage."
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
-            {pricingNotes.map((note) => (
+            {pricingCards.map((card) => (
               <MarketingCard
-                key={note.title}
-                title={note.title}
-                description={note.description}
+                key={card.title}
+                title={card.title}
+                description={card.description}
               />
             ))}
           </div>
@@ -98,20 +122,20 @@ export default function PricingPage() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="What the rollout includes"
-            title="Coverage built around the current product."
-            description="AppAffiliate is positioned as an operational product for partner programs. Access discussions should stay centered on the workflow coverage that exists today."
+            eyebrow="What is included"
+            title="Coverage built around real creator growth workflows."
+            description="The value is not just access to pages. It is a connected system for creators, results, commissions, payouts, and creator-safe visibility."
           />
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
-            <MarketingCard
-              title="Internal team workflows"
-              description="Apple health, partners, promo codes, attributed and unattributed review, commissions, payouts, payout batches, exports, settings, audit, and monitoring."
-            />
-            <MarketingCard
-              title="Partner visibility"
-              description="A separate read-only partner portal for codes, performance, and payout status when partner access is linked safely."
-            />
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            {includedCoverage.map((item) => (
+              <MarketingCard
+                key={item.title}
+                title={item.title}
+                description={item.description}
+                tone="contrast"
+              />
+            ))}
           </div>
         </MarketingSection>
 
@@ -119,12 +143,12 @@ export default function PricingPage() {
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
               eyebrow="Next step"
-              title="Request access when the rollout model fits."
-              description="AppAffiliate is best evaluated through the product and workflow pages first. If the current product lines up with your needs, use the access page to continue the conversation."
+              title="Review the model, then request access."
+              description="If AppAffiliate looks like a better alternative to risky upfront influencer spend, request access and continue the rollout conversation."
               primaryHref="/request-access"
               primaryLabel="Request access"
-              secondaryHref="/how-it-works"
-              secondaryLabel="How it works"
+              secondaryHref="/product"
+              secondaryLabel="See product"
             />
           </div>
         </MarketingSection>

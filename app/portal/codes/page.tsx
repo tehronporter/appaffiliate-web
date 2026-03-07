@@ -1,13 +1,19 @@
 import { PageContainer } from "@/components/app-shell";
 import {
+  DetailList,
   EmptyState,
-  PageHeader,
+  InfoPanel,
   SectionCard,
-  StatCard,
   StatusBadge,
   SurfaceCard,
 } from "@/components/admin-ui";
 import { PartnerPortalBoundary } from "@/components/partner-portal-boundary";
+import {
+  PortalHelpCard,
+  PortalMetricCard,
+  PortalPageHeader,
+  PortalRecordCard,
+} from "@/components/portal-ui";
 import { listPortalCodes } from "@/lib/services/portal";
 
 function codeTone(status: string) {
@@ -22,143 +28,151 @@ function codeTone(status: string) {
   return "primary" as const;
 }
 
+function formatDateLabel(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
 export default async function PartnerPortalCodesPage() {
   const data = await listPortalCodes();
   const boundary = <PartnerPortalBoundary viewer={data.viewer} />;
   const appCount = new Set(data.codes.map((code) => code.appName)).size;
 
   return (
-    <PageContainer className="max-w-[1180px] py-8 lg:py-10">
-      <PageHeader
-        eyebrow="Partner portal"
-        title="Codes"
-        description="Review the codes currently linked to your partner record. This view stays read-only and excludes internal admin metadata."
+    <PageContainer className="max-w-[var(--portal-max-width)] space-y-5 py-6 lg:py-8">
+      <PortalPageHeader
+        eyebrow="Creator assets"
+        title="Codes and links"
+        description="Review the codes and links that belong to your creator profile, which apps they are tied to, and how they are performing."
       >
-        <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="success">Read-only</StatusBadge>
-          {data.viewer.isLinkedToPartner ? (
-            <>
-              <StatusBadge tone="primary">{data.codes.length} codes visible</StatusBadge>
-              <StatusBadge>{appCount} apps linked</StatusBadge>
-            </>
-          ) : data.viewer.hasPortalRole ? (
-            <StatusBadge tone="warning">Partner link required</StatusBadge>
-          ) : data.viewer.isAuthenticated ? (
-            <StatusBadge tone="warning">Portal role required</StatusBadge>
-          ) : (
-            <StatusBadge tone="primary">Sign in required</StatusBadge>
-          )}
-        </div>
-      </PageHeader>
+        <StatusBadge tone="success">Read-only ownership view</StatusBadge>
+        {data.viewer.isLinkedToPartner ? (
+          <>
+            <StatusBadge tone="primary">{data.codes.length} visible assets</StatusBadge>
+            <StatusBadge>{appCount} linked app{appCount === 1 ? "" : "s"}</StatusBadge>
+          </>
+        ) : data.viewer.hasPortalRole ? (
+          <StatusBadge tone="warning">Creator link required</StatusBadge>
+        ) : data.viewer.isAuthenticated ? (
+          <StatusBadge tone="warning">Portal access required</StatusBadge>
+        ) : (
+          <StatusBadge tone="primary">Sign in required</StatusBadge>
+        )}
+      </PortalPageHeader>
 
       {boundary}
 
       {data.viewer.isLinkedToPartner ? (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <StatCard
-              label="Active codes"
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <PortalMetricCard
+              label="Active assets"
               value={String(data.stats.activeCodes)}
-              detail="Codes marked active for your current partner mapping."
+              detail="Codes that are active for your linked creator profile."
               tone="success"
             />
-            <StatCard
-              label="Approved items"
-              value={String(data.stats.approvedCount)}
-              detail="Approved commission items tied to your visible codes."
+            <PortalMetricCard
+              label="Linked apps"
+              value={String(appCount)}
+              detail="Apps currently connected to your visible codes and links."
               tone="primary"
             />
-            <StatCard
-              label="Paid items"
+            <PortalMetricCard
+              label="Approved results"
+              value={String(data.stats.approvedCount)}
+              detail="Creator-linked results that already have approved earnings."
+              tone="primary"
+            />
+            <PortalMetricCard
+              label="Paid results"
               value={String(data.stats.paidCount)}
-              detail="Paid commission items tied to your visible codes."
+              detail="Results tied to payouts that are already marked paid."
               tone="success"
             />
           </div>
 
-          <SurfaceCard>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Code coverage
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  {data.codes.length > 0
-                    ? `${data.codes.length} linked codes are visible across ${appCount} app${appCount === 1 ? "" : "s"}.`
-                    : "No linked codes are visible yet."}
-                </p>
-              </div>
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Performance context
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  Attributed event and payout status appears here as lightweight context, not as an internal operations view.
-                </p>
-              </div>
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  What stays out
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  Internal ownership notes, admin-only routing context, and workspace controls stay outside the portal.
-                </p>
-              </div>
+          <SurfaceCard tone="portal" density="compact">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <InfoPanel
+                title="Ownership first"
+                description="Everything on this page belongs to your linked creator profile. If a code is not shown here, it is not currently tied to your portal view."
+              />
+              <InfoPanel
+                title="Performance context"
+                description="You will see lightweight result context here, but not workspace controls, exports, or internal routing detail."
+              />
+              <InfoPanel
+                title="Read-only clarity"
+                description="This page is designed to confirm ownership and status quickly, especially on smaller screens."
+              />
             </div>
           </SurfaceCard>
 
           <SectionCard
-            title="Code directory"
-            description="Only partner-safe code fields and lightweight performance context are shown here."
+            tone="portal"
+            title="Your codes and links"
+            description="Each card shows the asset, the linked app, its current status, and a short performance summary."
           >
             {data.codes.length === 0 ? (
               <EmptyState
-                eyebrow="No codes"
-                title="No partner-linked codes are visible yet"
-                description="This may be normal if code assignment has not happened yet. Once codes are linked to your partner record, they will appear here automatically."
+                eyebrow="No tracked activity yet"
+                title="No tracked activity yet"
+                description="Once your audience starts converting, results and earnings will appear here."
               />
             ) : (
               <div className="space-y-3">
                 {data.codes.map((code) => (
-                  <div
+                  <PortalRecordCard
                     key={code.id}
-                    className="rounded-[24px] border border-border bg-surface px-5 py-4"
+                    title={code.code}
+                    description={`${code.appName} • ${code.codeType}`}
+                    badge={<StatusBadge tone={codeTone(code.status)}>{code.status}</StatusBadge>}
                   >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="text-base font-semibold text-ink">{code.code}</p>
-                        <p className="mt-1 text-sm text-ink-muted">
-                          {code.appName} • {code.codeType}
-                        </p>
-                      </div>
-                      <StatusBadge tone={codeTone(code.status)}>{code.status}</StatusBadge>
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Created
-                        </p>
-                        <p className="mt-2 text-sm text-ink">{new Date(code.createdAt).toLocaleDateString("en-US")}</p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Attributed events
-                        </p>
-                        <p className="mt-2 text-sm text-ink">{code.attributedEventsCount}</p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Approved / paid
-                        </p>
-                        <p className="mt-2 text-sm text-ink">
-                          {code.approvedCount} approved • {code.paidCount} paid
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                    <DetailList
+                      columns={3}
+                      items={[
+                        {
+                          label: "Created",
+                          value: formatDateLabel(code.createdAt),
+                        },
+                        {
+                          label: "Tracked results",
+                          value: String(code.attributedEventsCount),
+                        },
+                        {
+                          label: "Approved / paid",
+                          value: `${code.approvedCount} / ${code.paidCount}`,
+                        },
+                      ]}
+                    />
+                  </PortalRecordCard>
                 ))}
               </div>
             )}
+          </SectionCard>
+
+          <SectionCard
+            tone="portal"
+            title="How to read this page"
+            description="A few quick reminders to make code ownership and status easier to trust."
+          >
+            <div className="grid gap-3 lg:grid-cols-3">
+              <PortalHelpCard
+                title="Active"
+                description="The code is active and still connected to your creator profile."
+              />
+              <PortalHelpCard
+                title="Inactive"
+                description="The code stays visible in your history even if it is not currently active."
+              />
+              <PortalHelpCard
+                title="Why no edit controls?"
+                description="The portal only shows the information you need to confirm ownership, results, and payout progress."
+              />
+            </div>
           </SectionCard>
         </>
       ) : null}

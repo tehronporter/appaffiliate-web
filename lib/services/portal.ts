@@ -275,11 +275,11 @@ function derivePerformanceState(params: {
 
 function performanceStatusLabel(status: PortalPerformanceState) {
   if (status === "under_review") {
-    return "Under review";
+    return "Still under review";
   }
 
   if (status === "included_in_payout") {
-    return "Included in payout batch";
+    return "In payout batch";
   }
 
   if (status === "not_approved") {
@@ -599,7 +599,7 @@ async function buildPortalReadModel(): Promise<PortalReadModel> {
       status: batch.status,
       statusLabel:
         batch.status === "exported"
-          ? "Awaiting payment"
+          ? "Awaiting payout"
           : titleCaseLabel(batch.status),
       periodLabel: buildPeriodLabel(batch),
       amount,

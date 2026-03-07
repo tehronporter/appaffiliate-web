@@ -1,33 +1,47 @@
 import { PageContainer } from "@/components/app-shell";
 import {
+  DetailList,
   EmptyState,
-  PageHeader,
+  InfoPanel,
   SectionCard,
-  StatCard,
   StatusBadge,
   SurfaceCard,
 } from "@/components/admin-ui";
 import { PartnerPortalBoundary } from "@/components/partner-portal-boundary";
+import {
+  PortalHelpCard,
+  PortalMetricCard,
+  PortalPageHeader,
+  PortalRecordCard,
+} from "@/components/portal-ui";
 import { listPortalPerformance } from "@/lib/services/portal";
 
 function toneForStatus(status: string) {
-  if (status === "paid") {
+  if (status === "Paid") {
     return "success" as const;
   }
 
-  if (status === "included_in_payout") {
+  if (status === "In payout batch") {
     return "primary" as const;
   }
 
-  if (status === "approved") {
+  if (status === "Approved") {
     return "success" as const;
   }
 
-  if (status === "not_approved") {
+  if (status === "Not approved") {
     return "danger" as const;
   }
 
   return "warning" as const;
+}
+
+function formatDateLabel(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
 }
 
 export default async function PartnerPortalPerformancePage() {
@@ -35,143 +49,145 @@ export default async function PartnerPortalPerformancePage() {
   const boundary = <PartnerPortalBoundary viewer={data.viewer} />;
 
   return (
-    <PageContainer className="max-w-[1180px] py-8 lg:py-10">
-      <PageHeader
-        eyebrow="Partner portal"
-        title="Performance"
-        description="Review attributed activity and the current commission status for your partner account. Amounts remain status-led so items under review do not look final."
+    <PageContainer className="max-w-[var(--portal-max-width)] space-y-5 py-6 lg:py-8">
+      <PortalPageHeader
+        eyebrow="Performance"
+        title="Results driven by your audience"
+        description="See the results already linked to your creator profile, which earnings are still being checked, and which ones are approved or already in payout."
       >
-        <div className="flex flex-wrap gap-3">
-          {data.viewer.isLinkedToPartner ? (
-            <>
-              <StatusBadge tone="warning">
-                {data.stats.pendingReviewCount} under review
-              </StatusBadge>
-              <StatusBadge tone="primary">
-                {data.stats.includedInPayoutCount} included in payout
-              </StatusBadge>
-              <StatusBadge tone="success">{data.stats.paidCount} paid</StatusBadge>
-            </>
-          ) : data.viewer.hasPortalRole ? (
-            <StatusBadge tone="warning">Partner link required</StatusBadge>
-          ) : data.viewer.isAuthenticated ? (
-            <StatusBadge tone="warning">Portal role required</StatusBadge>
-          ) : (
-            <StatusBadge tone="primary">Sign in required</StatusBadge>
-          )}
-        </div>
-      </PageHeader>
+        {data.viewer.isLinkedToPartner ? (
+          <>
+            <StatusBadge tone="warning">
+              {data.stats.pendingReviewCount} still under review
+            </StatusBadge>
+            <StatusBadge tone="primary">
+              {data.stats.includedInPayoutCount} in payout
+            </StatusBadge>
+            <StatusBadge tone="success">{data.stats.paidCount} paid</StatusBadge>
+          </>
+        ) : data.viewer.hasPortalRole ? (
+          <StatusBadge tone="warning">Creator link required</StatusBadge>
+        ) : data.viewer.isAuthenticated ? (
+          <StatusBadge tone="warning">Portal access required</StatusBadge>
+        ) : (
+          <StatusBadge tone="primary">Sign in required</StatusBadge>
+        )}
+      </PortalPageHeader>
 
       {boundary}
 
       {data.viewer.isLinkedToPartner ? (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <StatCard
-              label="Approved"
-              value={String(data.stats.approvedCount)}
-              detail={`Current approved value: ${data.stats.approvedValueLabel}.`}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <PortalMetricCard
+              label="Still under review"
+              value={String(data.stats.pendingReviewCount)}
+              detail="Visible results that are not final yet."
+              tone="warning"
+            />
+            <PortalMetricCard
+              label="Approved earnings"
+              value={data.stats.approvedValueLabel}
+              detail="Results that have already cleared review."
               tone="success"
             />
-            <StatCard
-              label="Included in payout"
-              value={String(data.stats.includedInPayoutCount)}
-              detail={`Current payout value: ${data.stats.includedInPayoutValueLabel}.`}
+            <PortalMetricCard
+              label="In payout batch"
+              value={data.stats.includedInPayoutValueLabel}
+              detail="Approved earnings already moving toward payout."
               tone="primary"
             />
-            <StatCard
+            <PortalMetricCard
               label="Paid"
-              value={String(data.stats.paidCount)}
-              detail={`Current paid value: ${data.stats.paidValueLabel}.`}
+              value={data.stats.paidValueLabel}
+              detail="Results that are already reflected in paid history."
               tone="success"
             />
           </div>
 
-          <SurfaceCard>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  How to read this page
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  Under review means the item is visible but not finalized. Approved, included in payout, and paid reflect the latest safe status available to your portal account.
-                </p>
-              </div>
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Amount visibility
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  Amounts stay read-only here. If an item is still under review, it may not show a final amount yet.
-                </p>
-              </div>
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Portal boundary
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  Internal review notes, finance commentary, and admin-only reasoning stay outside the portal.
-                </p>
-              </div>
+          <SurfaceCard tone="portal" density="compact">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <InfoPanel
+                title="How to read status"
+                description="Still under review means the result is visible, but the earning can still change. Approved, in payout batch, and paid are progressively more final."
+              />
+              <InfoPanel
+                title="Amounts"
+                description="If a result is still under review, the amount may stay provisional or hidden until review is complete."
+              />
+              <InfoPanel
+                title="What stays out"
+                description="Internal finance notes, audit reasoning, and workspace-only controls stay outside the portal."
+              />
             </div>
           </SurfaceCard>
 
           <SectionCard
-            title="Attributed activity"
-            description="Statuses stay intentionally simple: under review, approved, included in payout, or paid."
+            tone="portal"
+            title="Performance activity"
+            description="A simple read-only stream of the results already tied to your audience."
           >
             {data.items.length === 0 ? (
               <EmptyState
-                eyebrow="No performance yet"
-                title="No attributed events are visible yet"
-                description="Once events are attributed to your partner record, they will appear here with their status and any safe amount visibility."
+                eyebrow="No tracked activity yet"
+                title="No tracked activity yet"
+                description="Once your audience starts converting, results and earnings will appear here."
               />
             ) : (
               <div className="space-y-3">
                 {data.items.map((item) => (
-                  <div
+                  <PortalRecordCard
                     key={item.id}
-                    className="rounded-[24px] border border-border bg-surface px-5 py-4"
+                    title={`${item.appName} • ${item.eventTypeLabel}`}
+                    description={`${item.codeLabel ?? "No code"} • ${formatDateLabel(item.occurredAt)}`}
+                    badge={
+                      <StatusBadge tone={toneForStatus(item.statusLabel)}>
+                        {item.statusLabel}
+                      </StatusBadge>
+                    }
                   >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="text-base font-semibold text-ink">
-                          {item.appName} • {item.eventTypeLabel}
-                        </p>
-                        <p className="mt-1 text-sm text-ink-muted">
-                          {item.codeLabel ?? "No code"} • {new Date(item.occurredAt).toLocaleDateString("en-US")}
-                        </p>
-                      </div>
-                      <StatusBadge tone={toneForStatus(item.status)}>{item.statusLabel}</StatusBadge>
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Commission
-                        </p>
-                        <p className="mt-2 text-sm text-ink">{item.commissionAmountLabel}</p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Batch
-                        </p>
-                        <p className="mt-2 text-sm text-ink">
-                          {item.payoutBatchName ?? "Not included yet"}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-subtle">
-                          Batch status
-                        </p>
-                        <p className="mt-2 text-sm text-ink">
-                          {item.payoutBatchStatusLabel ?? "Not available yet"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                    <DetailList
+                      columns={3}
+                      items={[
+                        {
+                          label: "Earnings",
+                          value: item.commissionAmountLabel,
+                        },
+                        {
+                          label: "Payout batch",
+                          value: item.payoutBatchName ?? "Not included yet",
+                        },
+                        {
+                          label: "Payout status",
+                          value: item.payoutBatchStatusLabel ?? "Not available yet",
+                        },
+                      ]}
+                    />
+                  </PortalRecordCard>
                 ))}
               </div>
             )}
+          </SectionCard>
+
+          <SectionCard
+            tone="portal"
+            title="How earnings and payouts work"
+            description="Short explanations for the status labels visible in your performance stream."
+          >
+            <div className="grid gap-3 lg:grid-cols-3">
+              <PortalHelpCard
+                title="Still under review"
+                description="We can see the result, but the earning is not final yet."
+              />
+              <PortalHelpCard
+                title="Approved"
+                description="The result has cleared review and now counts toward approved earnings."
+              />
+              <PortalHelpCard
+                title="In payout batch"
+                description="The earning is already grouped into an upcoming payout."
+              />
+            </div>
           </SectionCard>
         </>
       ) : null}

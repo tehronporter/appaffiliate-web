@@ -1,6 +1,7 @@
 import { ActionLink } from "@/components/app-shell";
 import {
   EmptyState,
+  InsetPanel,
   InlineActionRow,
   SectionCard,
   SurfaceCard,
@@ -76,8 +77,8 @@ export default async function SettingsPage() {
   return (
     <SettingsPageFrame
       activeSection="overview"
-      title="Workspace settings"
-      description="Use settings as an internal control surface: real organization profile edits where they are safe, read-only policy context where the product stays intentionally narrow, and one place to see whether operations look healthy."
+      title="Settings"
+      description="Keep organization, team, rules, exports, and audit controls dense, clear, and operational."
       actions={<SettingsHubActions />}
       stats={[
         {
@@ -145,8 +146,8 @@ export default async function SettingsPage() {
             </SurfaceCard>
 
             <SectionCard
-              title="Launch-readiness snapshot"
-              description="Keep the lightweight operational signals close to the settings index so internal operators can tell whether the admin surfaces are calm before drilling into route-specific detail."
+              title="Current state"
+              description="Keep the key operational signals close to settings so operators can tell whether the workspace is calm before drilling deeper."
               items={[
                 `Overall launch posture: ${launch.overallLabel}.`,
                 `Recent Apple receipts in view: ${data.monitoring.recentReceiptCount}.`,
@@ -165,8 +166,8 @@ export default async function SettingsPage() {
 
           <div className="grid gap-6 xl:grid-cols-2">
             <SectionCard
-              title="Launch checklist"
-              description="Use these live checks to decide what the next operator action should be before launch."
+              title="Next actions"
+              description="Use these live checks to decide what needs attention next."
             >
               <div className="space-y-3">
                 {launch.checklist.map((check) => (
@@ -183,19 +184,16 @@ export default async function SettingsPage() {
 
             <SectionCard
               title="Recent operational signals"
-              description="These signals stay intentionally shallow: enough to spot work that needs attention without creating a separate jobs product."
+              description="These signals stay intentionally shallow: enough to spot work that needs attention fast."
             >
               <div className="space-y-3">
                 {data.monitoring.recentReceipts.slice(0, 3).map((receipt) => (
-                  <div
-                    key={receipt.id}
-                    className="rounded-2xl border border-border bg-surface px-4 py-3"
-                  >
+                  <InsetPanel key={receipt.id}>
                     <p className="text-sm font-semibold text-ink">{receipt.appName}</p>
                     <p className="mt-1 text-sm text-ink-muted">
                       {receipt.notificationType} • {receipt.processedStatus} • {receipt.verificationStatus}
                     </p>
-                  </div>
+                  </InsetPanel>
                 ))}
 
                 {data.monitoring.recentReceipts.length === 0 ? (
@@ -214,7 +212,7 @@ export default async function SettingsPage() {
             </SectionCard>
 
             <SectionCard
-              title="Billing and runbook posture"
+              title="Runbook boundary"
               description="Keep billing honest and the final operator sequence explicit without expanding the app into a billing product."
               items={[
                 ...launch.billingReadiness.notes,

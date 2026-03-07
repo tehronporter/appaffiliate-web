@@ -2,11 +2,15 @@ import Link from "next/link";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
+  ActionButton,
+  DetailList,
   DetailPanel,
   EmptyState,
   FilterBar,
   FilterChipLink,
+  InfoPanel,
   ListTable,
+  NoticeBanner,
   PageHeader,
   SectionCard,
   StatCard,
@@ -111,32 +115,32 @@ function PartnerFormFields(props: {
   return (
     <div className="grid gap-4">
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Name</span>
+        <span className="text-sm font-medium text-ink">Creator name</span>
         <input
           name="name"
           type="text"
           required
           defaultValue={props.defaultName ?? ""}
-          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          className="aa-field"
         />
       </label>
 
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Email</span>
+        <span className="text-sm font-medium text-ink">Creator email</span>
         <input
           name="contactEmail"
           type="email"
           defaultValue={props.defaultEmail ?? ""}
-          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          className="aa-field"
         />
       </label>
 
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Status</span>
+        <span className="text-sm font-medium text-ink">Setup state</span>
         <select
           name="status"
           defaultValue={props.defaultStatus ?? "active"}
-          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          className="aa-field"
         >
           <option value="pending">Pending</option>
           <option value="active">Active</option>
@@ -146,12 +150,12 @@ function PartnerFormFields(props: {
       </label>
 
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Notes</span>
+        <span className="text-sm font-medium text-ink">Setup note</span>
         <textarea
           name="notes"
           rows={4}
           defaultValue={props.defaultNotes ?? ""}
-          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          className="aa-field"
         />
       </label>
     </div>
@@ -183,8 +187,8 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
     <PageContainer>
       <PageHeader
         eyebrow="Program"
-        title="Partners"
-        description="Keep the partner directory clear enough to support attribution review, code ownership, and everyday program operations without turning it into a loose contact list."
+        title="Creators"
+        description="Track creator relationships, coverage, and code ownership without turning the workspace into a generic CRM."
         actions={
           <>
             <ActionLink href="/dashboard">Open dashboard</ActionLink>
@@ -195,81 +199,73 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Partner directory</StatusBadge>
-          <StatusBadge tone="warning">Manual updates stay explicit</StatusBadge>
-          <StatusBadge>Organization-scoped records</StatusBadge>
+          <StatusBadge tone="primary">Creator directory</StatusBadge>
+          <StatusBadge tone="warning">Manual relationship updates</StatusBadge>
+          <StatusBadge>Partner records stay org-scoped</StatusBadge>
         </div>
       </PageHeader>
 
       {banner ? (
-        <SurfaceCard>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-ink">{banner.title}</p>
-              <p className="mt-1 text-sm text-ink-muted">{banner.detail}</p>
-            </div>
-            <StatusBadge tone={banner.tone}>{banner.title}</StatusBadge>
-          </div>
-        </SurfaceCard>
+        <NoticeBanner
+          title={banner.title}
+          detail={banner.detail}
+          tone={banner.tone}
+        />
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard
-          label="Total"
+          label="Creators"
           value={String(data.partners.length)}
-          detail="Every partner record stays visible as part of the program source of truth."
+          detail="Every visible creator record stays in the workspace source of truth."
           tone="primary"
+          size="compact"
         />
         <StatCard
           label="Active"
           value={String(data.stats.active)}
-          detail="These relationships are currently live and should have clear code ownership where relevant."
+          detail="These creator relationships are live and should have clear code ownership."
           tone="success"
+          size="compact"
+        />
+        <StatCard
+          label="Needs setup"
+          value={String(withoutCodesCount)}
+          detail={`${missingEmailCount} visible creator records are also missing a contact email.`}
+          tone="warning"
+          size="compact"
         />
         <StatCard
           label="Pending"
           value={String(data.stats.pending)}
-          detail="Use pending status while a relationship is being prepared or verified."
-          tone="warning"
-        />
-        <StatCard
-          label="Coverage gaps"
-          value={String(withoutCodesCount)}
-          detail={`${missingEmailCount} partners are also missing a contact email in the current view.`}
-          tone={withoutCodesCount > 0 || missingEmailCount > 0 ? "warning" : "success"}
+          detail="Use pending while a creator relationship is being prepared or verified."
+          tone={data.stats.pending > 0 ? "warning" : "success"}
+          size="compact"
         />
       </div>
 
-      <SurfaceCard>
+      <SurfaceCard density="compact">
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              Current partner posture
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              {data.stats.active} active, {data.stats.pending} pending, {data.stats.inactive} inactive, and {data.stats.archived} archived partner records are visible in this workspace.
-            </p>
-          </div>
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              Coverage to review
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              {withoutCodesCount > 0
-                ? `${withoutCodesCount} partner records still have no assigned codes.`
-                : "Every visible partner already has at least one assigned code."}
-            </p>
-          </div>
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              Contact detail
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              {missingEmailCount > 0
-                ? `${missingEmailCount} partner records still need a contact email.`
-                : "Every visible partner has a contact email on file."}
-            </p>
-          </div>
+          <InfoPanel
+            title="Relationship state"
+            description={`${data.stats.active} active, ${data.stats.pending} pending, and ${data.stats.inactive + data.stats.archived} inactive or archived creator records are visible.`}
+          />
+          <InfoPanel
+            title="Ownership gaps"
+            description={
+              withoutCodesCount > 0
+                ? `${withoutCodesCount} creator records still have no assigned code coverage.`
+                : "Every visible creator already has at least one assigned code."
+            }
+          />
+          <InfoPanel
+            title="Linked apps"
+            description={
+              data.partners.some((partner) => partner.appNames.length > 0)
+                ? "Linked app coverage is visible in the detail rail for each creator record."
+                : "No linked app coverage is visible yet in the current creator directory."
+            }
+          />
         </div>
       </SurfaceCard>
 
@@ -277,25 +273,26 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
         <div className="space-y-4">
           <SectionCard
             eyebrow="Create"
-            title="Add partner"
-            description="Add the minimum partner detail needed for code ownership and day-to-day program review."
+            title="Invite your first creator"
+            description="Start with the minimum creator detail needed to assign ownership, track the first result, and prove the channel works."
           >
+            <InfoPanel
+              title="Why this matters"
+              description="The first creator turns setup into a real growth test. Once this record exists, you can assign a code or link and start tracking results."
+            />
             <form action={createPartnerAction} className="space-y-4">
               <PartnerFormFields />
               <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
-                >
-                  Create partner
-                </button>
+                <ActionButton type="submit" variant="primary">
+                  Invite creator
+                </ActionButton>
               </div>
             </form>
           </SectionCard>
 
           <FilterBar
-            title="Directory filters"
-            description="Keep lifecycle review narrow without leaving the list-and-detail flow."
+            title="Creator filters"
+            description="Keep lifecycle review narrow without losing the list and detail workflow."
           >
             <FilterChipLink
               href={buildHref({ status: "all", partner: selectedPartner?.id })}
@@ -331,11 +328,11 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
 
           <ListTable
             eyebrow="Directory"
-            title="Workspace partner records"
-            description="Review partner coverage, contact detail, and assigned code volume in one place."
+            title="Creator directory"
+            description="Review relationship state, contact coverage, and assigned code volume in one place."
           >
             <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_90px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
-              <span>Partner</span>
+              <span>Creator</span>
               <span>Contact</span>
               <span>Codes</span>
               <span>Status</span>
@@ -349,12 +346,12 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
                     title={
                       data.hasWorkspaceAccess
                         ? "No partner records match this view"
-                        : "Sign in to review partners"
+                        : "Sign in to review creators"
                     }
                     description={
                       data.hasWorkspaceAccess
-                        ? "Create the first partner or widen the current lifecycle filter to return to the full directory."
-                        : "An internal workspace membership is required before partner records can be read."
+                        ? "Invite your first creator or widen the current lifecycle filter to return to the full directory."
+                        : "An internal workspace membership is required before creator records can be read."
                     }
                     action={
                       data.hasWorkspaceAccess ? (
@@ -402,11 +399,11 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
 
         {selectedPartner ? (
           <DetailPanel
-            eyebrow="Partner detail"
+            eyebrow="Creator detail"
             title={selectedPartner.name}
             description={
               selectedPartner.notes ??
-              "No internal note has been added yet. Use this space for the minimal context operators need during review."
+              "No internal note has been added yet. Keep only the creator context operators actually need."
             }
             status={
               <StatusBadge tone={statusTone(selectedPartner.status)}>
@@ -415,23 +412,37 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
             }
           >
             <SectionCard
-              title="Operational context"
-              description="Keep the current relationship context visible before changing lifecycle or contact detail."
-              items={[
-                `Contact email: ${selectedPartner.contactEmail ?? "No email on file"}.`,
-                `Partner type: ${selectedPartner.partnerType}.`,
-                `Assigned codes: ${selectedPartner.assignedCodes}.`,
-                `Apps linked through codes: ${
-                  selectedPartner.appNames.length > 0
-                    ? selectedPartner.appNames.join(", ")
-                    : "No app coverage yet"
-                }.`,
-              ]}
-            />
+              title="Relationship context"
+              description="Keep ownership, linked apps, and contact detail visible before editing the record."
+            >
+              <DetailList
+                items={[
+                  {
+                    label: "Contact email",
+                    value: selectedPartner.contactEmail ?? "No email on file",
+                  },
+                  {
+                    label: "Record type",
+                    value: selectedPartner.partnerType,
+                  },
+                  {
+                    label: "Assigned codes",
+                    value: String(selectedPartner.assignedCodes),
+                  },
+                  {
+                    label: "Linked apps",
+                    value:
+                      selectedPartner.appNames.length > 0
+                        ? selectedPartner.appNames.join(", ")
+                        : "No app coverage yet",
+                  },
+                ]}
+              />
+            </SectionCard>
 
             <SectionCard
-              title="Update partner"
-              description="Update lifecycle, contact detail, or internal notes without expanding this page into portal or payout setup."
+              title="Update creator record"
+              description="Update lifecycle, contact detail, or internal notes without expanding this page into a broader CRM tool."
             >
               <form action={updatePartnerAction} className="space-y-4">
                 <input type="hidden" name="partnerId" value={selectedPartner.id} />
@@ -442,26 +453,23 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
                   defaultNotes={selectedPartner.notes}
                 />
                 <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
-                  >
+                  <ActionButton type="submit" variant="primary">
                     Save changes
-                  </button>
+                  </ActionButton>
                 </div>
               </form>
             </SectionCard>
           </DetailPanel>
         ) : (
           <DetailPanel
-            eyebrow="Partner detail"
-            title="No partner selected"
-            description="Select a partner from the directory to review contact coverage, lifecycle, and linked code context."
+            eyebrow="Creator detail"
+            title="No creator selected"
+            description="Select a creator from the directory to review coverage, lifecycle, and linked code context."
           >
             <EmptyState
               eyebrow="Empty detail"
-              title="No partner record is available"
-              description="The detail panel shows contact, lifecycle, and assigned code context once a partner matches the current view."
+              title="No creator record is available"
+              description="The detail panel shows relationship, contact, and assigned code context once a record matches the current view."
               action={
                 <ActionLink href="/partners" variant="primary">
                   Reset filters

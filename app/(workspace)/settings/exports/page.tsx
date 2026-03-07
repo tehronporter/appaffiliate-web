@@ -1,5 +1,11 @@
 import { ActionLink } from "@/components/app-shell";
-import { EmptyState, SectionCard, StatusBadge } from "@/components/admin-ui";
+import {
+  ActionAnchor,
+  EmptyState,
+  InsetPanel,
+  SectionCard,
+  StatusBadge,
+} from "@/components/admin-ui";
 import {
   SettingsHubActions,
   SettingsPageFrame,
@@ -76,18 +82,18 @@ export default async function SettingsExportsPage() {
             ]}
             actions={
               <>
-                <a
+                <ActionAnchor
                   href="/settings/exports/download?scope=commission-register"
-                  className="inline-flex items-center justify-center rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
+                  variant="primary"
                 >
                   Download commission export
-                </a>
-                <a
+                </ActionAnchor>
+                <ActionAnchor
                   href="/settings/exports/download?scope=payout-tracking"
-                  className="inline-flex items-center justify-center rounded-full border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-ink transition hover:border-border-strong hover:bg-surface"
+                  variant="secondary"
                 >
                   Download payout export
-                </a>
+                </ActionAnchor>
               </>
             }
           />
@@ -121,15 +127,12 @@ export default async function SettingsExportsPage() {
             ) : (
               <div className="space-y-3">
                 {data.recentBatches.map((batch) => (
-                  <div
-                    key={batch.id}
-                    className="rounded-2xl border border-border bg-surface px-4 py-3"
-                  >
+                  <InsetPanel key={batch.id}>
                     <p className="text-sm font-semibold text-ink">{batch.name}</p>
                     <p className="mt-1 text-sm text-ink-muted">
                       {batch.totalAmountLabel} • {batch.status}
                     </p>
-                  </div>
+                  </InsetPanel>
                 ))}
               </div>
             )}

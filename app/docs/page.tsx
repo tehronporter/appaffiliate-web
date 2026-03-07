@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
-  MarketingCard,
   MarketingCtaPanel,
   MarketingHero,
   MarketingSection,
   MarketingSectionHeading,
 } from "@/components/marketing-page";
 import { MarketingShell } from "@/components/marketing-shell";
+import { FaqGroup, SupportCard } from "@/components/support-ui";
 import {
   publicFooterLinks,
   publicNavLinks,
@@ -19,42 +19,87 @@ import {
 export const metadata: Metadata = {
   title: "Docs",
   description:
-    "A lightweight public help entry for AppAffiliate covering setup expectations, rollout guidance, and what documentation is currently shared during onboarding.",
+    "Everything you need to launch and run creator-based growth, with clear founder-friendly entry paths into setup, tracking, payouts, security, and creator visibility.",
 };
 
-const docsSections = [
+const docCategories = [
   {
-    title: "Setup expectations",
+    title: "Getting started",
     description:
-      "AppAffiliate setup is currently guided. Teams are walked through the product model, access, and launch readiness during rollout rather than through public self-serve documentation.",
+      "Learn the basics: what AppAffiliate does, who it is for, and how to get from setup to the first creator-driven result.",
+    href: "/how-it-works",
+    label: "Start here",
   },
   {
-    title: "Operational guidance",
+    title: "Working with creators",
     description:
-      "Current deeper runbooks cover launch checks, finance export sequence, payout preparation, and rollout QA. Those materials are shared during onboarding for teams in active rollout.",
+      "See how creators fit into the model, how codes and links work, and why creator visibility matters.",
+    href: "/product",
+    label: "View creator flow",
   },
   {
-    title: "Help and support framing",
+    title: "Tracking and review",
     description:
-      "This public docs page is intentionally light. It exists to set expectations clearly without pretending there is a broad public documentation center already in place.",
+      "Understand how results are tracked, why some activity needs review, and how trusted earnings are formed.",
+    href: "/product",
+    label: "Learn tracking",
+  },
+  {
+    title: "Payouts",
+    description:
+      "See how approved earnings move into payout and why AppAffiliate keeps payout states easy to trust.",
+    href: "/pricing",
+    label: "Understand payouts",
+  },
+  {
+    title: "Security",
+    description:
+      "Review how access, payout workflows, and creator visibility stay controlled without enterprise-heavy language.",
+    href: "/security",
+    label: "Review trust",
+  },
+  {
+    title: "Partner portal",
+    description:
+      "Understand what creators can see, what stays read-only, and how the portal reduces support confusion.",
+    href: "/product",
+    label: "See portal scope",
   },
 ];
 
-const availableTopics = [
+const founderFaq = [
   {
-    title: "Product overview",
-    description:
-      "Use the product and workflow pages first if you are evaluating the current product coverage.",
+    question: "What this page covers",
+    answer:
+      "The docs landing is the fastest path into the basics: fit, setup, creator flow, tracking, payouts, security, and what creators can see.",
   },
   {
-    title: "Launch and rollout",
-    description:
-      "Teams in active rollout receive the implementation and launch runbooks that support setup and smoke testing.",
+    question: "Where should a founder start?",
+    answer:
+      "Start with how it works if you want the short version, then move into product and pricing once the model feels right.",
   },
   {
-    title: "Partner portal scope",
-    description:
-      "Partner access is read-only and intentionally narrow. Deeper partner-facing guidance remains rollout-led today.",
+    question: "Is there a giant public help center?",
+    answer:
+      "Not yet. Public docs stay intentionally curated, and deeper rollout guidance is shared during onboarding when a team is actively implementing the product.",
+  },
+];
+
+const trustFaq = [
+  {
+    question: "How tracking, review, and payouts work",
+    answer:
+      "Creator-linked results are tracked, reviewed when needed, turned into approved earnings, and only then moved into payout.",
+  },
+  {
+    question: "What creators can see",
+    answer:
+      "Creators see a simpler read-only portal with codes, results, approved earnings, and payout history. Internal workspace tools stay separate.",
+  },
+  {
+    question: "How access works",
+    answer:
+      "New teams request access through guided rollout. Already invited team members and creators use sign-in to reach the right surface.",
   },
 ];
 
@@ -70,12 +115,12 @@ export default function DocsPage() {
       <main>
         <MarketingHero
           eyebrow="Docs and help"
-          title="A lightweight public help entry."
-          description="AppAffiliate keeps public documentation honest. The product includes rollout and operational materials, but the deeper runbooks are still shared during onboarding rather than published as a broad public docs center."
+          title="Everything you need to launch and run creator-based growth"
+          description="Use the docs landing to understand fit, setup, creator tracking, payout flow, security, and creator visibility without getting lost in internal product language."
           actions={
             <>
               <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
-                How it works
+                Learn the basics
               </Link>
               <Link href="/request-access" className="aa-button aa-button-secondary px-5 py-3">
                 Request access
@@ -83,47 +128,56 @@ export default function DocsPage() {
             </>
           }
         >
-          <p className="text-sm font-medium text-[#1A1A1A]">Current docs boundary</p>
-          <p className="mt-4 text-sm leading-7 text-[#5B6472]">
-            This page is public. Deeper launch, QA, and operator runbooks are
-            still distributed during implementation so the guidance stays tied
-            to the active rollout.
-          </p>
+          <div className="grid gap-3">
+            {[
+              "Start with the model, then move into setup",
+              "Use short entry paths instead of a documentation maze",
+              "Know exactly where to go next: learn, request access, or sign in",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-[16px] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="What this page does"
-            title="Set expectations clearly."
-            description="The public help surface should explain what kind of guidance exists today without implying a larger docs platform than the product currently supports."
+            eyebrow="Entry paths"
+            title="Pick the question you need answered first."
+            description="Docs work better when founders can jump straight into the right topic instead of reading a flat list of pages."
           />
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-3">
-            {docsSections.map((section) => (
-              <MarketingCard
-                key={section.title}
-                title={section.title}
-                description={section.description}
+          <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {docCategories.map((item) => (
+              <SupportCard
+                key={item.title}
+                title={item.title}
+                description={item.description}
+                href={item.href}
+                label={item.label}
               />
             ))}
           </div>
         </MarketingSection>
 
         <MarketingSection muted>
-          <MarketingSectionHeading
-            eyebrow="Topics"
-            title="Where public visitors should start."
-            description="The public site should route evaluators toward product clarity first, then onboarding-led implementation materials when access is in motion."
-          />
-
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {availableTopics.map((topic) => (
-              <MarketingCard
-                key={topic.title}
-                title={topic.title}
-                description={topic.description}
-              />
-            ))}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <FaqGroup
+              eyebrow="Founders"
+              title="What founders usually need to know"
+              description="Short answers that reduce the time between curiosity and a clear next step."
+              items={founderFaq}
+            />
+            <FaqGroup
+              eyebrow="Trust"
+              title="How tracking, review, and payouts work"
+              description="These are the questions that usually need a direct answer before a founder decides whether the model fits."
+              items={trustFaq}
+            />
           </div>
         </MarketingSection>
 
@@ -131,12 +185,12 @@ export default function DocsPage() {
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
               eyebrow="Next step"
-              title="Use the public site to evaluate fit first."
-              description="If AppAffiliate looks aligned to your workflow, request access and the rollout process can provide the deeper launch and operator guidance."
+              title="Learn the basics, then decide what to do next."
+              description="If the model fits your app, request access. If you are already invited, go straight to sign-in."
               primaryHref="/request-access"
               primaryLabel="Request access"
-              secondaryHref="/product"
-              secondaryLabel="See product"
+              secondaryHref="/login"
+              secondaryLabel="Sign in"
             />
           </div>
         </MarketingSection>

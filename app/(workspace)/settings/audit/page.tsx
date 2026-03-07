@@ -1,6 +1,7 @@
 import { ActionLink } from "@/components/app-shell";
 import {
   EmptyState,
+  InsetPanel,
   InlineActionRow,
   SectionCard,
   StatusBadge,
@@ -102,10 +103,7 @@ export default async function SettingsAuditPage() {
                 ) : null}
 
                 {data.recentEntries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="rounded-2xl border border-border bg-surface px-4 py-3"
-                  >
+                  <InsetPanel key={entry.id}>
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-ink">{entry.summary}</p>
@@ -125,7 +123,7 @@ export default async function SettingsAuditPage() {
                       })}{" "}
                       UTC
                     </p>
-                  </div>
+                  </InsetPanel>
                 ))}
               </div>
             </SectionCard>

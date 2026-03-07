@@ -1,61 +1,59 @@
+import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
+  ActivationMilestoneCard,
+  ActivationNextAction,
+  ActivationProgressCard,
+  type ActivationState,
+} from "@/components/activation-ui";
+import {
+  DetailList,
   EmptyState,
-  InlineActionRow,
-  ListTable,
+  InfoPanel,
   PageHeader,
-  StatCard,
+  SectionCard,
   StatusBadge,
   SurfaceCard,
+  type StatusTone,
 } from "@/components/admin-ui";
 import { getAuthenticatedUser } from "@/lib/auth";
-import { getLaunchReadinessData, type LaunchReadinessCheck } from "@/lib/services/launch-readiness";
+import { listWorkspacePromoCodes } from "@/lib/services/codes";
+import { getLaunchReadinessData } from "@/lib/services/launch-readiness";
+import { listWorkspaceNormalizedEvents } from "@/lib/services/apple-read-model";
+import { listWorkspacePartners } from "@/lib/services/partners";
 
-function toneForStatus(status: "ready" | "attention" | "blocked" | "informational") {
-  if (status === "ready") {
-    return "success" as const;
+function stateTone(state: ActivationState): StatusTone {
+  if (state === "completed") {
+    return "success";
   }
 
-  if (status === "blocked") {
-    return "danger" as const;
+  if (state === "ready") {
+    return "primary";
   }
 
-  if (status === "attention") {
-    return "warning" as const;
+  if (state === "needs_attention") {
+    return "danger";
   }
 
-  return "primary" as const;
+  if (state === "in_progress") {
+    return "warning";
+  }
+
+  return "neutral";
 }
 
-function actionLabelForCheck(check: LaunchReadinessCheck) {
-  if (check.href.startsWith("/apps/")) {
-    return "Open Apple health";
-  }
-
-  if (check.href === "/codes") {
-    return "Review codes";
-  }
-
-  if (check.href === "/unattributed") {
-    return "Review queue";
-  }
-
-  if (check.href === "/payouts") {
-    return "Review finance";
-  }
-
-  if (check.href === "/settings/exports") {
-    return "Open exports";
-  }
-
-  if (check.href.startsWith("/settings")) {
-    return "Open settings";
-  }
-
-  return "Open";
-}
+type Milestone = {
+  id: string;
+  step: string;
+  title: string;
+  description: string;
+  status: ActivationState;
+  helper: string;
+  action: ReactNode;
+  detail: ReactNode;
+};
 
 export default async function OnboardingPage() {
   const user = await getAuthenticatedUser();
@@ -64,46 +62,323 @@ export default async function OnboardingPage() {
     redirect("/login?redirectTo=/onboarding");
   }
 
-  const launch = await getLaunchReadinessData();
-  const completionPercent =
-    launch.totalChecks > 0
-      ? Math.round((launch.completedChecks / launch.totalChecks) * 100)
-      : 0;
-  const nextPriority =
-    launch.checklist.find(
-      (check) => check.status === "blocked" || check.status === "attention",
-    ) ?? null;
-  const needsAction = launch.checklist.filter(
-    (check) => check.status === "blocked" || check.status === "attention",
-  );
-  const readyChecks = launch.checklist.filter((check) => check.status === "ready");
-  const planningChecks = launch.checklist.filter(
-    (check) => check.status === "informational",
-  );
-  const readyApps = launch.rules?.appleReadiness.filter((app) => app.ingestReady).length ?? 0;
+  const [launch, partnersData, codesData, eventsData] = await Promise.all([
+    getLaunchReadinessData(),
+    listWorkspacePartners(),
+    listWorkspacePromoCodes(),
+    listWorkspaceNormalizedEvents(),
+  ]);
+
   const totalApps = launch.rules?.appleReadiness.length ?? 0;
+  const readyApps = launch.rules?.appleReadiness.filter((app) => app.ingestReady).length ?? 0;
+  const receiptIssues =
+    launch.overview.monitoring.failedReceiptCount +
+    launch.overview.monitoring.pendingReceiptCount;
+  const creatorCount = partnersData.partners.length;
+  const activeCreators = partnersData.stats.active;
+  const missingCreatorEmailCount = partnersData.partners.filter(
+    (partner) => !partner.contactEmail,
+  ).length;
+  const totalCodes = codesData.codes.length;
+  const assignedCodes = codesData.stats.assigned;
+  const unassignedCodes = codesData.codes.filter((code) => !code.ownerAssigned).length;
+  const totalResults =
+    eventsData.stats.attributed +
+    eventsData.stats.unattributed +
+    eventsData.stats.failed +
+    eventsData.stats.ignored;
+  const finance = launch.overview.financeSummary;
+
+  const appMilestoneState: ActivationState =
+    totalApps === 0
+      ? "not_started"
+      : readyApps === 0
+        ? "needs_attention"
+        : receiptIssues > 0 || readyApps < totalApps
+          ? "in_progress"
+          : "completed";
+
+  const creatorMilestoneState: ActivationState =
+    creatorCount === 0
+      ? "not_started"
+      : activeCreators === 0
+        ? "in_progress"
+        : "completed";
+
+  const codeMilestoneState: ActivationState =
+    totalCodes === 0
+      ? "not_started"
+      : assignedCodes === 0
+        ? "in_progress"
+        : unassignedCodes > 0
+          ? "needs_attention"
+          : "completed";
+
+  const resultMilestoneState: ActivationState =
+    launch.overview.monitoring.recentReceiptCount > 0 && totalResults === 0
+      ? "in_progress"
+      : totalResults === 0
+        ? "not_started"
+        : eventsData.stats.failed > 0 || eventsData.stats.unattributed > 0
+          ? "needs_attention"
+          : eventsData.stats.attributed > 0
+            ? "completed"
+            : "in_progress";
+
+  const payoutMilestoneState: ActivationState = !finance.hasFinanceAccess
+    ? totalResults > 0
+      ? "ready"
+      : "not_started"
+    : finance.paidCount > 0 || finance.payoutTrackedCount > 0
+      ? "completed"
+      : finance.approvedCount > 0
+        ? "ready"
+        : finance.pendingReviewCount > 0
+          ? "in_progress"
+          : "not_started";
+
+  const milestones: Milestone[] = [
+    {
+      id: "app",
+      step: "Step 1",
+      title: "Add your app",
+      description:
+        "Connect the app lane that will carry creator-driven subscription results.",
+      status: appMilestoneState,
+      helper:
+        totalApps === 0
+          ? "Add your first app and assign an ingest key so AppAffiliate can start receiving Apple events."
+          : readyApps === 0
+            ? "Your app records exist, but Apple readiness still needs attention before results can be trusted."
+            : receiptIssues > 0
+              ? "Apple intake is partly live. Clear the current receipt issues before relying on the first result."
+              : "Your app lane is ready. Move on to the first creator so you can start testing the channel.",
+      action: (
+        <ActionLink href={launch.appleHealthHref} variant="primary">
+          Open app readiness
+        </ActionLink>
+      ),
+      detail: (
+        <DetailList
+          items={[
+            {
+              label: "Apps visible",
+              value: totalApps > 0 ? String(totalApps) : "No apps yet",
+            },
+            {
+              label: "Ready now",
+              value: totalApps > 0 ? `${readyApps}/${totalApps}` : "0/0",
+            },
+            {
+              label: "Receipt issues",
+              value: receiptIssues > 0 ? String(receiptIssues) : "None visible",
+            },
+          ]}
+        />
+      ),
+    },
+    {
+      id: "creator",
+      step: "Step 2",
+      title: "Invite your first creator",
+      description:
+        "Add the first creator record you want to use to test performance-based growth.",
+      status: creatorMilestoneState,
+      helper:
+        creatorCount === 0
+          ? "Create your first creator record so ownership and results have a real person attached to them."
+          : activeCreators === 0
+            ? "You already started creator setup. Finish the first active creator so code ownership becomes real."
+            : "You have creator coverage in place. The next step is to give that creator a code or link.",
+      action: (
+        <ActionLink href="/partners" variant="primary">
+          Invite your first creator
+        </ActionLink>
+      ),
+      detail: (
+        <DetailList
+          items={[
+            {
+              label: "Creator records",
+              value: creatorCount > 0 ? String(creatorCount) : "None yet",
+            },
+            {
+              label: "Active creators",
+              value: activeCreators > 0 ? String(activeCreators) : "None active yet",
+            },
+            {
+              label: "Missing email",
+              value:
+                missingCreatorEmailCount > 0
+                  ? String(missingCreatorEmailCount)
+                  : "All visible records have email",
+            },
+          ]}
+        />
+      ),
+    },
+    {
+      id: "code",
+      step: "Step 3",
+      title: "Set up a code or trackable link",
+      description:
+        "Give the creator a trackable asset so AppAffiliate can connect the result back to the right owner.",
+      status: codeMilestoneState,
+      helper:
+        totalCodes === 0
+          ? "Create the first code or link so the creator can start sending traffic through a trackable path."
+          : assignedCodes === 0
+            ? "You created a code, but it still needs an owner before the first result will feel trustworthy."
+            : unassignedCodes > 0
+              ? "Some active codes still need an owner. Clean that up before launch gets noisy."
+              : "Code ownership looks clear. The next milestone is your first tracked creator-driven result.",
+      action: (
+        <ActionLink href="/codes" variant="primary">
+          Set up first code
+        </ActionLink>
+      ),
+      detail: (
+        <DetailList
+          items={[
+            {
+              label: "Codes visible",
+              value: totalCodes > 0 ? String(totalCodes) : "None yet",
+            },
+            {
+              label: "Assigned",
+              value: totalCodes > 0 ? `${assignedCodes}/${totalCodes}` : "0/0",
+            },
+            {
+              label: "Need owner",
+              value: unassignedCodes > 0 ? String(unassignedCodes) : "None visible",
+            },
+          ]}
+        />
+      ),
+    },
+    {
+      id: "result",
+      step: "Step 4",
+      title: "Review your first result",
+      description:
+        "Use the first tracked result to confirm that attribution, creator ownership, and review state all make sense.",
+      status: resultMilestoneState,
+      helper:
+        totalResults === 0 && launch.overview.monitoring.recentReceiptCount === 0
+          ? "No creator-driven result is visible yet. Once the app and creator path are live, your first result will appear here."
+          : totalResults === 0
+            ? "Apple intake has started. Wait for the first normalized result to appear, then review it here."
+            : eventsData.stats.unattributed > 0
+              ? "Your first results are landing, but some still need ownership review before earnings can be trusted."
+              : eventsData.stats.failed > 0
+                ? "A blocked result needs attention before the first result story is fully clean."
+                : "You have at least one creator-linked result in the system. Keep moving toward approved earnings.",
+      action: (
+        <ActionLink
+          href={eventsData.stats.unattributed > 0 ? "/unattributed" : "/events"}
+          variant="primary"
+        >
+          {eventsData.stats.unattributed > 0 ? "Review first result" : "Open results"}
+        </ActionLink>
+      ),
+      detail: (
+        <DetailList
+          items={[
+            {
+              label: "Tracked results",
+              value: totalResults > 0 ? String(totalResults) : "None yet",
+            },
+            {
+              label: "Needs review",
+              value:
+                eventsData.stats.unattributed > 0
+                  ? String(eventsData.stats.unattributed)
+                  : "0",
+            },
+            {
+              label: "Matched",
+              value:
+                eventsData.stats.attributed > 0 ? String(eventsData.stats.attributed) : "0",
+            },
+          ]}
+        />
+      ),
+    },
+    {
+      id: "payout",
+      step: "Step 5",
+      title: "Approve earnings and prepare payout",
+      description:
+        "Only reviewed results should move into approved earnings, payout prep, and creator-visible payout history.",
+      status: payoutMilestoneState,
+      helper: !finance.hasFinanceAccess
+        ? "This step becomes clearer with an owner, admin, or finance role, but the goal stays the same: only reviewed results move forward."
+        : finance.paidCount > 0 || finance.payoutTrackedCount > 0
+          ? "You already have approved work moving through payout. Keep the creator-facing payout story easy to trust."
+          : finance.approvedCount > 0
+            ? "Approved earnings are ready for the next payout step."
+            : finance.pendingReviewCount > 0
+              ? "Finish the first commission review so payout readiness becomes real."
+              : "This milestone unlocks after the first creator-driven result becomes trustworthy enough to approve.",
+      action: (
+        <ActionLink href={finance.hasFinanceAccess ? "/payouts" : "/commissions"} variant="primary">
+          {finance.hasFinanceAccess ? "Open payout readiness" : "Open commissions"}
+        </ActionLink>
+      ),
+      detail: (
+        <DetailList
+          items={[
+            {
+              label: "Pending review",
+              value: finance.hasFinanceAccess ? String(finance.pendingReviewCount) : "Role-limited",
+            },
+            {
+              label: "Approved",
+              value: finance.hasFinanceAccess ? String(finance.approvedCount) : "Role-limited",
+            },
+            {
+              label: "In payout",
+              value: finance.hasFinanceAccess ? String(finance.payoutTrackedCount) : "Role-limited",
+            },
+          ]}
+        />
+      ),
+    },
+  ];
+
+  const finishedCount = milestones.filter(
+    (milestone) => milestone.status === "completed" || milestone.status === "ready",
+  ).length;
+  const currentMilestone =
+    milestones.find((milestone) => milestone.status === "needs_attention") ??
+    milestones.find((milestone) => milestone.status === "not_started") ??
+    milestones.find((milestone) => milestone.status === "in_progress") ??
+    milestones.find((milestone) => milestone.status === "ready") ??
+    null;
 
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Overview"
-        title="Launch checklist"
-        description="Use this page to move from workspace setup into live operating readiness. Each step is backed by current state and points to the next surface that should be reviewed."
+        eyebrow="Activation"
+        title="Launch creator-led growth without paying upfront for hype"
+        description="Move from app readiness to first creator, first code, first tracked result, and first approved earnings with a guided activation sequence."
         actions={
           <>
             <ActionLink href="/dashboard">Open dashboard</ActionLink>
-            <ActionLink href="/settings" variant="primary">
-              Open settings
+            <ActionLink href="/codes" variant="primary">
+              Set up first code
             </ActionLink>
           </>
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone={toneForStatus(launch.overallStatus)}>
-            {launch.overallLabel}
+          <StatusBadge tone={stateTone(currentMilestone?.status ?? "completed")}>
+            {currentMilestone
+              ? `${currentMilestone.step}: ${currentMilestone.title}`
+              : "You are ready to track real creator-driven results"}
           </StatusBadge>
-          <StatusBadge tone="primary">{completionPercent}% complete</StatusBadge>
-          <StatusBadge>{launch.billingReadiness.label}</StatusBadge>
+          <StatusBadge tone="primary">{finishedCount}/5 milestones in place</StatusBadge>
+          <StatusBadge>{launch.organizationName ?? "Current workspace"}</StatusBadge>
         </div>
       </PageHeader>
 
@@ -112,7 +387,7 @@ export default async function OnboardingPage() {
           <EmptyState
             eyebrow="Access required"
             title="Internal workspace access is required first"
-            description="Launch readiness can only be reviewed from an internal workspace membership. Sign in with the correct role before using this checklist."
+            description="Sign in with an internal workspace membership before you can use the activation guide."
             action={
               <ActionLink href="/dashboard" variant="primary">
                 Open dashboard
@@ -122,260 +397,156 @@ export default async function OnboardingPage() {
         </SurfaceCard>
       ) : (
         <>
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-            <SurfaceCard>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                Progress
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+            <ActivationProgressCard
+              title="A short path to first value"
+              description="The goal is simple: get one creator path live, confirm the first result, then move only reviewed earnings toward payout."
+              completeCount={finishedCount}
+              totalCount={milestones.length}
+            >
+              <p className="text-sm leading-6 text-ink-muted">
+                Keep the first launch lightweight. You do not need every advanced setting before the first creator-driven result lands.
               </p>
-              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink">
-                Move from setup into launch-ready operations
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-ink-muted">
-                The checklist favors the few items that actually affect launch posture: workspace basics, app and Apple readiness, partner and code coverage, queue health, finance review, and export access.
-              </p>
+            </ActivationProgressCard>
 
-              <div className="mt-6 rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                    Checklist progress
-                  </p>
-                  <p className="text-sm font-medium text-primary">
-                    {launch.completedChecks} of {launch.totalChecks} complete
-                  </p>
-                </div>
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-border">
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${completionPercent}%` }}
-                  />
-                </div>
-                <p className="mt-4 text-sm leading-7 text-ink-muted">
-                  {launch.overallDetail}
-                </p>
-              </div>
-            </SurfaceCard>
-
-            <SurfaceCard>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                Next step
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink">
-                {nextPriority?.title ?? "Checklist is calm"}
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-ink-muted">
-                {nextPriority?.detail ??
-                  "No blocked or attention-level checks are visible right now. Finish smoke testing and keep the checklist available as a periodic launch-readiness review."}
-              </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                {nextPriority ? (
-                  <ActionLink href={nextPriority.href} variant="primary">
-                    {actionLabelForCheck(nextPriority)}
-                  </ActionLink>
+            <ActivationNextAction
+              title={
+                currentMilestone
+                  ? currentMilestone.title
+                  : "You are ready to track real creator-driven results"
+              }
+              description={
+                currentMilestone
+                  ? currentMilestone.helper
+                  : "App, creator, code, review, and payout readiness are all in place for the current workspace view."
+              }
+              status={
+                currentMilestone ? (
+                  <StatusBadge tone={stateTone(currentMilestone.status)}>
+                    {currentMilestone.step}
+                  </StatusBadge>
                 ) : (
-                  <ActionLink href="/dashboard" variant="primary">
-                    Open dashboard
-                  </ActionLink>
-                )}
-                <ActionLink href={launch.appleHealthHref}>Apple health</ActionLink>
-              </div>
-              <div className="mt-6 space-y-3">
-                {planningChecks.map((check) => (
-                  <div
-                    key={check.id}
-                    className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                        {check.title}
-                      </p>
-                      <StatusBadge tone="primary">{check.label}</StatusBadge>
-                    </div>
-                    <p className="mt-2 text-sm leading-7 text-ink-muted">{check.detail}</p>
-                  </div>
-                ))}
-              </div>
-            </SurfaceCard>
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-3">
-            <StatCard
-              label="Apps"
-              value={totalApps > 0 ? `${readyApps}/${totalApps} ready` : "No apps yet"}
-              detail={
-                totalApps > 0
-                  ? "Visible app lanes are checked against ingest-key coverage and recent receipt health."
-                  : "Add the first app before launch readiness can move past intake setup."
+                  <StatusBadge tone="success">Activation calm</StatusBadge>
+                )
               }
-              tone={totalApps > 0 && readyApps === totalApps ? "success" : "warning"}
-            />
-            <StatCard
-              label="Codes"
-              value={
-                launch.rules
-                  ? `${launch.rules.activeOwnedCodeCount} linked`
-                  : "Access required"
+              actions={
+                currentMilestone ? (
+                  <>
+                    {currentMilestone.action}
+                    <ActionLink href="/dashboard">Open dashboard</ActionLink>
+                  </>
+                ) : (
+                  <>
+                    <ActionLink href="/dashboard" variant="primary">
+                      Open dashboard
+                    </ActionLink>
+                    <ActionLink href="/events">Review results</ActionLink>
+                  </>
+                )
               }
-              detail={
-                launch.rules
-                  ? launch.rules.activeUnassignedCodeCount > 0
-                    ? `${launch.rules.activeUnassignedCodeCount} active codes still need partner ownership.`
-                    : "Partner-linked code coverage is already in place."
-                  : "Code coverage appears once workspace access is available."
-              }
-              tone={
-                !launch.rules || launch.rules.activeOwnedCodeCount === 0
-                  ? "warning"
-                  : launch.rules.activeUnassignedCodeCount > 0
-                    ? "warning"
-                    : "success"
-              }
-            />
-            <StatCard
-              label="Finance"
-              value={
-                launch.overview.financeSummary.hasFinanceAccess
-                  ? `${launch.overview.financeSummary.pendingReviewCount} pending`
-                  : "Role-limited"
-              }
-              detail={
-                launch.overview.financeSummary.hasFinanceAccess
-                  ? `${launch.overview.financeSummary.draftBatchCount} draft and ${launch.overview.financeSummary.exportedBatchCount} exported payout batches remain open.`
-                  : "Use an owner, admin, or finance role to validate final finance posture before launch."
-              }
-              tone="primary"
             />
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-            <ListTable
-              eyebrow="Required before launch"
-              title="Items that still need action"
-              description="Focus here first. These checks are blocked or still need review before the workspace is fully calm."
+          <div className="grid gap-4 md:grid-cols-3">
+            <InfoPanel
+              title="What success looks like"
+              description="App readiness is live, your first creator has a code or link, and the first result is easy to review."
+            />
+            <InfoPanel
+              title="What to ignore for now"
+              description="Do not front-load every admin setting. Focus on the few steps that lead to the first creator-driven result."
+            />
+            <InfoPanel
+              title="What stays true"
+              description="Only reviewed results should turn into approved earnings and payout progress."
+            />
+          </div>
+
+          <SectionCard
+            eyebrow="Activation path"
+            title="Five milestones to first creator-driven value"
+            description="Each milestone has one reason, one next action, and one simple state."
+          >
+            <div className="space-y-4">
+              {milestones.map((milestone) => (
+                <ActivationMilestoneCard
+                  key={milestone.id}
+                  step={milestone.step}
+                  title={milestone.title}
+                  description={milestone.description}
+                  status={milestone.status}
+                  helper={milestone.helper}
+                  action={milestone.action}
+                  detail={milestone.detail}
+                />
+              ))}
+            </div>
+          </SectionCard>
+
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <SectionCard
+              eyebrow="First-run guidance"
+              title="If you are just getting started"
+              description="These reminders keep the first launch focused and reduce the chance of getting stuck between setup surfaces."
             >
-              {needsAction.length > 0 ? (
-                needsAction.map((check) => (
-                  <InlineActionRow
-                    key={check.id}
-                    title={check.title}
-                    description={check.detail}
-                    badge={
-                      <StatusBadge tone={toneForStatus(check.status)}>{check.label}</StatusBadge>
-                    }
-                    actions={
-                      <ActionLink href={check.href} variant="primary">
-                        {actionLabelForCheck(check)}
-                      </ActionLink>
-                    }
-                  />
-                ))
-              ) : (
-                <div className="p-5">
-                  <EmptyState
-                    eyebrow="Required before launch"
-                    title="No blocking setup items are visible"
-                    description="The checklist is calm for the current workspace view. Keep this page for verification and continue with routine review from the dashboard."
-                    action={<ActionLink href="/dashboard">Open dashboard</ActionLink>}
-                  />
-                </div>
-              )}
-            </ListTable>
-
-            <SurfaceCard>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                Setup sequence
-              </p>
-              <div className="mt-5 space-y-3">
-                {[
-                  {
-                    title: "Workspace basics",
-                    detail: launch.organization?.organizationName
-                      ? `${launch.organization.organizationName} is visible and ${launch.team?.visibleMemberCount ?? 0} workspace members are in view.`
-                      : "Confirm organization details and internal team access first.",
-                  },
-                  {
-                    title: "App and Apple readiness",
-                    detail:
-                      totalApps > 0
-                        ? `${readyApps} of ${totalApps} visible apps are ingest-ready. Open Apple health to review recent receipts.`
-                        : "Add the first app and ingest key before launch review.",
-                  },
-                  {
-                    title: "Partners and codes",
-                    detail: launch.rules
-                      ? `${launch.rules.activeOwnedCodeCount} active codes are linked to partners, with ${launch.rules.activeUnassignedCodeCount} still unassigned.`
-                      : "Partner and code coverage appears once workspace access is confirmed.",
-                  },
-                  {
-                    title: "Finance verification",
-                    detail: launch.overview.financeSummary.hasFinanceAccess
-                      ? `${launch.overview.financeSummary.pendingReviewCount} commission reviews remain pending before payout prep is fully calm.`
-                      : "Run the final finance check with an owner, admin, or finance role.",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.title}
-                    className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4"
-                  >
-                    <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                      {item.title}
-                    </p>
-                    <p className="mt-2 text-sm leading-7 text-ink-muted">{item.detail}</p>
-                  </div>
-                ))}
+              <div className="grid gap-3">
+                <InfoPanel
+                  title="First creator"
+                  description="Start with one creator you already plan to test. You can expand the directory after the first tracked result proves the flow."
+                />
+                <InfoPanel
+                  title="First code or link"
+                  description="Ownership matters more than volume at the beginning. One correctly assigned code is better than many ambiguous assets."
+                />
+                <InfoPanel
+                  title="First result"
+                  description="Treat the first result as a confidence check: can your team explain who drove it, what happened, and whether earnings should move forward?"
+                />
               </div>
-            </SurfaceCard>
-          </div>
+            </SectionCard>
 
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-            <ListTable
-              eyebrow="Already in place"
-              title="Checks that are already calm"
-              description="These areas are currently configured or operating without active follow-up in the visible workspace view."
+            <SectionCard
+              eyebrow="Readiness notes"
+              title="Current workspace signals"
+              description="Use these signals to decide whether to keep setting up or move into the first review workflow."
             >
-              {readyChecks.length > 0 ? (
-                readyChecks.map((check) => (
-                  <InlineActionRow
-                    key={check.id}
-                    title={check.title}
-                    description={check.detail}
-                    badge={<StatusBadge tone="success">{check.label}</StatusBadge>}
-                    actions={<ActionLink href={check.href}>Open</ActionLink>}
-                  />
-                ))
-              ) : (
-                <div className="p-5">
-                  <EmptyState
-                    eyebrow="Already in place"
-                    title="No checks have reached a calm state yet"
-                    description="Work through the required items first. Completed checks will collect here as launch posture improves."
-                  />
-                </div>
-              )}
-            </ListTable>
-
-            <SurfaceCard>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                Launch planning
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink">
-                Keep the rollout sequence explicit
-              </h2>
-              <div className="mt-5 space-y-3">
-                {[
-                  "Confirm Apple ingest visibility before relying on live receipt flow.",
-                  "Review unattributed backlog before final finance review so open queue work is visible.",
-                  "Use payout batches and exports only after commission state is reviewed.",
-                  "Treat billing as planning only until a real in-product billing model exists.",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4 text-sm leading-7 text-ink-muted"
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </SurfaceCard>
+              <DetailList
+                items={[
+                  {
+                    label: "Apple intake",
+                    value:
+                      totalApps === 0
+                        ? "No apps yet"
+                        : `${readyApps}/${totalApps} app lanes ready`,
+                  },
+                  {
+                    label: "Creator coverage",
+                    value:
+                      activeCreators > 0
+                        ? `${activeCreators} active creator records`
+                        : creatorCount > 0
+                          ? `${creatorCount} creator records started`
+                          : "No creator records yet",
+                  },
+                  {
+                    label: "Code ownership",
+                    value:
+                      totalCodes > 0
+                        ? `${assignedCodes}/${totalCodes} codes assigned`
+                        : "No codes yet",
+                  },
+                  {
+                    label: "First-result momentum",
+                    value:
+                      totalResults > 0
+                        ? `${totalResults} tracked results visible`
+                        : launch.overview.monitoring.recentReceiptCount > 0
+                          ? "Apple intake has started"
+                          : "Waiting for first result",
+                  },
+                ]}
+              />
+            </SectionCard>
           </div>
         </>
       )}

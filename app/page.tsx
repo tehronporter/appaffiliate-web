@@ -2,12 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import {
-  MarketingCtaPanel,
   MarketingCard,
+  MarketingComparison,
+  MarketingCtaPanel,
   MarketingHero,
-  MarketingList,
   MarketingSection,
   MarketingSectionHeading,
+  MarketingSteps,
 } from "@/components/marketing-page";
 import { MarketingShell } from "@/components/marketing-shell";
 import {
@@ -17,156 +18,120 @@ import {
   publicSecondaryAction,
 } from "@/lib/public-site";
 
-const valuePoints = [
+const founderPain = [
   {
-    title: "Attribution visibility",
+    title: "You should not have to prepay for guesswork",
     description:
-      "Keep attributed and unattributed activity readable instead of pushing review work into spreadsheets and side channels.",
+      "Too much influencer spend lands before anyone knows whether subscriptions will actually convert.",
   },
   {
-    title: "Partners and codes",
+    title: "Creators should be rewarded fairly",
     description:
-      "Manage partner relationships, code ownership, and program coverage in one focused operating layer.",
+      "When performance is tracked clearly, creators can see what they drove and what they earned without awkward side-channel updates.",
   },
   {
-    title: "Commission control",
+    title: "Your team still needs trust behind the scenes",
     description:
-      "Review commission state explicitly before anything moves into payout preparation.",
-  },
-  {
-    title: "Payout preparation",
-    description:
-      "Group approved work into payout batches with clearer status and cleaner finance handoff.",
-  },
-  {
-    title: "Finance-ready exports",
-    description:
-      "Keep exports close to the workflow that created them so finance handoff stays controlled.",
-  },
-  {
-    title: "Partner visibility",
-    description:
-      "Give partners a read-only view into codes, performance, and payouts without exposing internal controls.",
+      "Attribution, commission review, and payouts should support the growth model instead of turning into spreadsheet cleanup.",
   },
 ];
 
-const audienceCards = [
+const valueProps = [
   {
-    title: "App founders and growth teams",
+    title: "Safer growth for founders",
     description:
-      "For teams that need a clear operating view of partner performance, attribution review, and payout readiness.",
+      "Reward creators when subscription results show up, not before you know whether a campaign worked.",
   },
   {
-    title: "Affiliate and program managers",
+    title: "Fair visibility for creators",
     description:
-      "For people managing partner relationships, code coverage, review queues, and everyday program control.",
+      "Give creators a simple read-only view of codes, results, approved earnings, and payout progress.",
   },
   {
-    title: "Finance and operations teams",
+    title: "Trust for both sides",
     description:
-      "For reviewers who need explicit commission state, payout batches, exports, and safer workflow handoff.",
-  },
-  {
-    title: "Partners",
-    description:
-      "For partners who need simple visibility into their own codes, performance, and payout status through a separate portal.",
+      "Tracking, review, commissions, and payouts stay connected so nobody has to guess where a result ended up.",
   },
 ];
 
 const workflowSteps = [
   {
-    step: "01",
+    number: "01",
     title: "Add your app",
     description:
-      "Start with Apple ingestion readiness and app-level operational visibility so receipt flow is readable from day one.",
+      "Start with your iOS app so subscription results can be tracked with the right product context.",
   },
   {
-    step: "02",
-    title: "Add partners and codes",
+    number: "02",
+    title: "Invite creators",
     description:
-      "Link promo codes to the right partners and keep ownership visible as the program grows.",
+      "Bring creators into the program without locking yourself into risky upfront promo deals.",
   },
   {
-    step: "03",
-    title: "Review activity",
+    number: "03",
+    title: "Assign codes or links",
     description:
-      "Work through attributed and unattributed activity with explicit review state instead of loose side-channel decisions.",
+      "Give each creator a trackable path so ownership stays clear from the start.",
   },
   {
-    step: "04",
-    title: "Approve commissions",
+    number: "04",
+    title: "Track subscription results",
     description:
-      "Move only reviewed work forward so commission state stays clear before payout prep begins.",
+      "See which creators actually drive conversions and which results still need review.",
   },
   {
-    step: "05",
-    title: "Prepare payouts and exports",
+    number: "05",
+    title: "Reward performance",
     description:
-      "Group approved records into payout batches, export what finance needs, and keep the full workflow traceable.",
+      "Approve earnings, move them into payout, and keep creators informed without messy manual updates.",
   },
 ];
 
-const featureBlocks = [
+const productSurfaces = [
   {
-    title: "Partners and codes",
+    title: "Creator tracking",
     description:
-      "Track partner records, code ownership, and app coverage without turning the program into a loose directory.",
+      "Keep creator ownership, codes, and linked app context readable as the program grows.",
   },
   {
-    title: "Attribution review",
+    title: "Results review",
     description:
-      "Keep unattributed queues visible, manual decisions explicit, and event inspection safe for day-to-day operations.",
+      "See which results are ready to trust, which still need review, and why.",
   },
   {
     title: "Commissions and payouts",
     description:
-      "Review commissions, prepare payouts, and manage payout batches with status language the whole team can trust.",
+      "Move from approved earnings into payout without losing the logic behind what changed.",
   },
   {
-    title: "Apple health",
+    title: "Creator portal",
     description:
-      "Use app-level Apple ingestion visibility to catch operational issues before they create downstream confusion.",
-  },
-  {
-    title: "Exports and controls",
-    description:
-      "Keep exports, settings, audit history, and finance-sensitive workflow controls close to the work they support.",
+      "Give creators a simple view of what they earned without exposing internal workspace detail.",
   },
 ];
 
-const partnerPortalPoints = [
-  "Partners can review their own codes and linked apps.",
-  "Performance stays read-only and status-led, with commission state labeled clearly.",
-  "Payout history is visible without exposing internal audit, settings, or finance controls.",
-];
-
-const securityPoints = [
+const trustBlocks = [
   {
     title: "Role-aware access",
     description:
-      "Internal workspace routes and partner portal routes stay separate, with access checked against explicit roles.",
-  },
-  {
-    title: "Organization scoping",
-    description:
-      "Operational reads and writes stay scoped to the right organization to reduce cross-tenant risk.",
+      "Internal teams and creators get separate experiences with the right level of visibility.",
   },
   {
     title: "Audited decisions",
     description:
-      "Manual attribution, commission, payout, and admin-sensitive actions retain an audit trail where the workflow needs it.",
+      "Manual review, commission changes, and payout steps stay visible when trust matters.",
   },
   {
-    title: "Finance-safe operations",
+    title: "Finance-safe payouts",
     description:
-      "Exports and review flows stay permissioned, and browser-facing surfaces avoid raw sensitive Apple payload exposure.",
+      "Payout prep, export, and paid states stay clear instead of blending into one vague money flow.",
   },
 ];
 
 export const metadata: Metadata = {
   title: "AppAffiliate",
   description:
-    "AppAffiliate helps app teams run affiliate operations with clearer attribution review, commissions, payouts, exports, and partner visibility.",
+    "Pay creators for results, not hype. AppAffiliate helps iOS app teams grow through creators without risky upfront promo fees.",
 };
 
 export default function Home() {
@@ -180,202 +145,162 @@ export default function Home() {
     >
       <main>
         <MarketingHero
-          eyebrow="Affiliate operations for app teams"
-          title="Run partner programs with clearer control."
-          description="AppAffiliate gives app teams one calm workflow for partner codes, attribution review, commissions, payout preparation, exports, and partner visibility, replacing spreadsheets, inbox decisions, and disconnected tooling."
+          eyebrow="For modern iOS app teams"
+          title="Pay creators for results, not hype."
+          description="AppAffiliate helps iOS app teams grow through creators without risky upfront promo fees. Track real subscription results, reward creators fairly, and manage commissions and payouts in one place."
+          wrapVisual={false}
           actions={
             <>
               <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
                 Request access
               </Link>
-              <Link href="/product" className="aa-button aa-button-secondary px-5 py-3">
-                See product
+              <Link href="/how-it-works" className="aa-button aa-button-secondary px-5 py-3">
+                See how it works
               </Link>
             </>
           }
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[#1A1A1A]">
-                AppAffiliate workflow
-              </p>
-              <p className="mt-1 text-sm text-[#6B7280]">
-                One operating layer from intake to payout prep
-              </p>
-            </div>
-            <span className="rounded-full border border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-              Working product
-            </span>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            {[
-              {
-                title: "Partners and codes",
-                detail: "Keep ownership visible across apps and programs.",
-              },
-              {
-                title: "Attribution review",
-                detail: "Work through unattributed activity with explicit decisions.",
-              },
-              {
-                title: "Commissions and payouts",
-                detail: "Approve reviewed work before it moves into payout batches.",
-              },
-              {
-                title: "Exports and portal visibility",
-                detail: "Support finance handoff and partner transparency without opening internal controls.",
-              },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="rounded-[20px] border border-[#EEF1F4] bg-white px-4 py-4"
-              >
-                <p className="text-sm font-medium text-[#1A1A1A]">
-                  {item.title}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-[#667085]">
-                  {item.detail}
-                </p>
-              </div>
-            ))}
-          </div>
+          <MarketingComparison
+            eyebrow="Old way vs AppAffiliate"
+            title="A better model than paying for promotion and hoping it converts."
+            description="Replace risky upfront influencer deals with a results-based creator channel built around subscription outcomes, fair rewards, and payout trust."
+            leftTitle="The old way"
+            leftItems={[
+              "Pay creators before you know whether subscriptions will convert.",
+              "Guess which promotion actually drove the result.",
+              "Patch together spreadsheets, payout notes, and status updates later.",
+            ]}
+            rightTitle="The AppAffiliate way"
+            rightItems={[
+              "Track creator-linked subscription results in one system.",
+              "Review what needs attention before earnings are finalized.",
+              "Reward creators based on real performance, not hype alone.",
+            ]}
+          />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="Value"
-            title="Built for the work between attribution and payout."
-            description="AppAffiliate focuses on the operating layer most teams end up stitching together by hand: partner ownership, review discipline, commission control, payout preparation, finance-ready exports, and partner-safe visibility."
+            eyebrow="The problem"
+            title="Stop paying for app promotion that does not convert."
+            description="Founders are tired of spending on views, posts, and campaigns that feel busy but never turn into real subscription growth."
           />
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {valuePoints.map((point) => (
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            {founderPain.map((item) => (
+              <MarketingCard key={item.title} title={item.title} description={item.description} />
+            ))}
+          </div>
+        </MarketingSection>
+
+        <MarketingSection muted>
+          <MarketingSectionHeading
+            eyebrow="Built for performance-based app growth"
+            title="A cleaner deal for founders, creators, and the team behind payouts."
+            description="The growth story is simple up front, but the product still gives your team the review and payout trust needed to run the channel for real."
+          />
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            {valueProps.map((item) => (
               <MarketingCard
-                key={point.title}
-                title={point.title}
-                description={point.description}
-                className="bg-[#FAFBFC]"
+                key={item.title}
+                title={item.title}
+                description={item.description}
+                tone="contrast"
               />
             ))}
           </div>
         </MarketingSection>
 
-        <MarketingSection muted>
-          <MarketingSectionHeading
-              eyebrow="Who it’s for"
-              title="Clear enough for growth, operations, finance, and partners."
-              description="AppAffiliate is designed for teams that need one shared operating view without forcing every audience into the same surface or vocabulary."
-            />
-
-            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {audienceCards.map((audience) => (
-                <MarketingCard
-                  key={audience.title}
-                  title={audience.title}
-                  description={audience.description}
-                />
-              ))}
-            </div>
-        </MarketingSection>
-
         <MarketingSection>
           <MarketingSectionHeading
-              eyebrow="How it works"
-              title="From intake to payout prep, in one calmer sequence."
-              description="The workflow stays intentionally narrow. Each step reduces ambiguity so partner programs can move forward with clearer attribution, clearer commission state, and cleaner finance handoff."
+            eyebrow="How AppAffiliate works"
+            title="A short path from creator invite to payout."
+            description="The workflow stays easy to understand: connect the app, assign the creator path, track results, review what matters, and reward real performance."
           />
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-5">
-            {workflowSteps.map((step) => (
-              <div
-                key={step.step}
-                className="rounded-[24px] border border-[#ECEFF3] bg-white p-6"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F1F5FF] text-sm font-semibold text-[#2E53FF]">
-                    {step.step}
-                  </span>
-                  <h3 className="text-lg font-semibold tracking-[-0.02em] text-[#1A1A1A]">
-                    {step.title}
-                  </h3>
-                </div>
-                <p className="mt-4 text-sm leading-7 text-[#5B6472]">
-                  {step.description}
-                </p>
-              </div>
+          <div className="mt-10">
+            <MarketingSteps steps={workflowSteps} />
+          </div>
+        </MarketingSection>
+
+        <MarketingSection muted>
+          <MarketingSectionHeading
+            eyebrow="Product surfaces"
+            title="Everything you need to run creator performance in one place."
+            description="AppAffiliate connects creator tracking, review, commissions, payouts, and creator visibility without turning the site into a product-tour maze."
+          />
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {productSurfaces.map((item) => (
+              <MarketingCard
+                key={item.title}
+                title={item.title}
+                description={item.description}
+              />
             ))}
           </div>
         </MarketingSection>
 
-        <MarketingSection muted>
-          <MarketingSectionHeading
-              eyebrow="Product surfaces"
-              title="The core surfaces stay focused on real workflow state."
-              description="AppAffiliate is not a broad all-purpose admin suite. Each product area exists to support a clearer path from partner activity to reviewed finance output."
-            />
-
-            <div className="mt-10 grid gap-4 lg:grid-cols-2">
-              {featureBlocks.map((feature) => (
-                <MarketingCard
-                  key={feature.title}
-                  title={feature.title}
-                  description={feature.description}
-                />
-              ))}
-            </div>
-        </MarketingSection>
-
         <MarketingSection>
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-start">
             <MarketingSectionHeading
-              eyebrow="Partner portal"
-              title="A separate read-only portal for partner visibility."
-              description="Partners should be able to review their own records without crossing into internal admin tools. AppAffiliate keeps that boundary explicit while still giving partners useful visibility into codes, performance, and payout status."
+              eyebrow="Creator trust"
+              title="Give creators a simple view of what they earned."
+              description="Creators do not need the internal workspace. They need a clean read-only view of codes, results, approved earnings, and payout history."
             />
 
-            <div className="rounded-[28px] border border-[#E8EBF0] bg-[#FAFBFC] p-6 shadow-[0_18px_48px_rgba(17,24,39,0.05)]">
-              <p className="text-sm font-medium text-[#1A1A1A]">What partners see</p>
-              <div className="mt-5">
-                <MarketingList items={partnerPortalPoints} />
+            <MarketingCard
+              title="Creator portal"
+              description="The portal stays simpler than admin: creator-friendly language, payout-safe status labels, and a calmer layout designed for trust instead of back-office complexity."
+              tone="contrast"
+            >
+              <div className="mt-5 grid gap-3">
+                {[
+                  "Codes and links that clearly belong to the creator",
+                  "Results driven by their audience",
+                  "Approved earnings, in payout, and paid history",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-[16px] border border-border bg-white px-4 py-3 text-sm leading-6 text-ink-muted"
+                  >
+                    {item}
+                  </div>
+                ))}
               </div>
-              <p className="mt-5 text-sm leading-7 text-[#7B8391]">
-                The portal stays intentionally narrow. No admin-only settings,
-                exports, audit logs, or internal notes leak into the partner
-                experience.
-              </p>
-            </div>
+            </MarketingCard>
           </div>
         </MarketingSection>
 
         <MarketingSection muted>
           <MarketingSectionHeading
-              eyebrow="Security and trust"
-              title="Controlled operations without heavyweight theater."
-              description="AppAffiliate keeps trust grounded in the actual product: role-aware access, org scoping, audited decisions, and safer finance-sensitive workflows."
-            />
+            eyebrow="Security and trust"
+            title="Built to keep performance and payouts trustworthy."
+            description="Trust is part of the growth model: role-aware access, clear review state, and finance-safe payout handling all reinforce the public promise."
+          />
 
-            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {securityPoints.map((point) => (
-                <MarketingCard
-                  key={point.title}
-                  title={point.title}
-                  description={point.description}
-                />
-              ))}
-            </div>
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            {trustBlocks.map((item) => (
+              <MarketingCard
+                key={item.title}
+                title={item.title}
+                description={item.description}
+              />
+            ))}
+          </div>
         </MarketingSection>
 
         <MarketingSection>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Access and rollout"
-              title="Request access when the workflow fits."
-              description="AppAffiliate is currently rolled out directly with invited teams. If the operating model matches your program, request access. If you already have invited access, sign in."
+              eyebrow="Final step"
+              title="Start rewarding results instead of guessing on hype."
+              description="If you want creator growth without risky upfront influencer deals, review the workflow and request access for a guided rollout."
               primaryHref="/request-access"
               primaryLabel="Request access"
-              secondaryHref="/login"
-              secondaryLabel="Sign in"
+              secondaryHref="/product"
+              secondaryLabel="See product"
             />
           </div>
         </MarketingSection>

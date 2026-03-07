@@ -16,7 +16,8 @@ export const metadata: Metadata = {
     default: "AppAffiliate",
     template: "%s | AppAffiliate",
   },
-  description: "AppAffiliate admin workspace built with Next.js App Router.",
+  description:
+    "AppAffiliate helps iOS app teams grow through creators without risky upfront influencer fees.",
 };
 
 export default function RootLayout({

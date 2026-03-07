@@ -1,6 +1,7 @@
 import { ActionLink } from "@/components/app-shell";
 import {
   EmptyState,
+  InsetPanel,
   SectionCard,
   StatusBadge,
 } from "@/components/admin-ui";
@@ -101,10 +102,7 @@ export default async function SettingsRulesPage() {
               ) : null}
 
               {data.commissionRules.map((rule) => (
-                <div
-                  key={rule.id}
-                  className="rounded-2xl border border-border bg-surface px-4 py-3"
-                >
+                <InsetPanel key={rule.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-ink">{rule.name}</p>
@@ -117,7 +115,7 @@ export default async function SettingsRulesPage() {
                   <p className="mt-3 text-sm text-ink-muted">
                     {rule.payoutLabel} • Updated {new Date(rule.updatedAt).toLocaleDateString("en-US")}
                   </p>
-                </div>
+                </InsetPanel>
               ))}
             </div>
           </SectionCard>
@@ -136,10 +134,7 @@ export default async function SettingsRulesPage() {
               ) : null}
 
               {data.appleReadiness.map((app) => (
-                <div
-                  key={app.id}
-                  className="rounded-2xl border border-border bg-surface px-4 py-3"
-                >
+                <InsetPanel key={app.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-ink">{app.appName}</p>
@@ -163,7 +158,7 @@ export default async function SettingsRulesPage() {
                         })} UTC.`
                       : "No Apple receipts have been stored for this app yet."}
                   </p>
-                </div>
+                </InsetPanel>
               ))}
             </div>
           </SectionCard>

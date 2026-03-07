@@ -1,6 +1,8 @@
 import { ActionLink } from "@/components/app-shell";
 import {
+  ActionButton,
   EmptyState,
+  InsetPanel,
   SectionCard,
   StatusBadge,
 } from "@/components/admin-ui";
@@ -82,7 +84,7 @@ export default async function SettingsOrganizationPage({
       {!data.hasWorkspaceAccess ? (
         <SectionCard
           title="Internal workspace access required"
-          description="Organization settings remain part of the internal admin surface."
+          description="Organization settings remain part of the internal workspace."
         >
           <EmptyState
             eyebrow="Access required"
@@ -115,18 +117,19 @@ export default async function SettingsOrganizationPage({
                 />
               </label>
 
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink-muted">
+              <InsetPanel tone="neutral" className="text-sm text-ink-muted">
                 Workspace slug: <span className="font-medium text-ink">{data.organizationSlug}</span>
-              </div>
+              </InsetPanel>
 
               <div className="flex justify-end">
-                <button
+                <ActionButton
                   type="submit"
+                  variant="primary"
                   disabled={!data.canManageOrganization}
-                  className="aa-button aa-button-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-muted disabled:text-ink-muted"
+                  className="disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-muted disabled:text-ink-muted"
                 >
                   Save organization settings
-                </button>
+                </ActionButton>
               </div>
             </form>
           </SectionCard>

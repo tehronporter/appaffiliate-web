@@ -2,11 +2,16 @@ import Link from "next/link";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
+  ActionButton,
+  DetailList,
   DetailPanel,
   EmptyState,
   FilterBar,
   FilterChipLink,
+  InfoPanel,
+  InsetPanel,
   ListTable,
+  NoticeBanner,
   PageHeader,
   SectionCard,
   StatCard,
@@ -133,7 +138,7 @@ export default async function CommissionsPage({
       <PageHeader
         eyebrow="Finance"
         title="Commissions"
-        description="Review the commission ledger with enough context to approve, reject, and prepare payout-safe records without losing attribution detail."
+        description="Review what was earned, why it was earned, and whether it is ready to move toward payout."
         actions={
           <>
             <ActionLink href="/unattributed">Open queue</ActionLink>
@@ -146,20 +151,16 @@ export default async function CommissionsPage({
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone="primary">Commission ledger</StatusBadge>
           <StatusBadge tone="warning">Manual finance approval</StatusBadge>
-          <StatusBadge>Audit-safe review states</StatusBadge>
+          <StatusBadge>Money state stays explicit</StatusBadge>
         </div>
       </PageHeader>
 
       {banner ? (
-        <SurfaceCard>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-ink">{banner.title}</p>
-              <p className="mt-1 text-sm text-ink-muted">{banner.detail}</p>
-            </div>
-            <StatusBadge tone={banner.tone}>{banner.title}</StatusBadge>
-          </div>
-        </SurfaceCard>
+        <NoticeBanner
+          title={banner.title}
+          detail={banner.detail}
+          tone={banner.tone}
+        />
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-5">
@@ -168,30 +169,35 @@ export default async function CommissionsPage({
           value={String(data.stats.pendingReview)}
           detail="These items still need a finance decision before they can move toward payout."
           tone="warning"
+          size="compact"
         />
         <StatCard
           label="Approved"
           value={String(data.stats.approved)}
           detail="Approved items are not yet in a payout batch."
           tone="primary"
+          size="compact"
         />
         <StatCard
           label="Rejected"
           value={String(data.stats.rejected)}
           detail="Rejected items stay visible rather than disappearing from audit review."
           tone="danger"
+          size="compact"
         />
         <StatCard
           label="Payout-ready"
           value={String(data.stats.payoutReady)}
           detail="These items are already tracked inside a draft or exported payout batch."
           tone="primary"
+          size="compact"
         />
         <StatCard
           label="Paid"
           value={String(data.stats.paid)}
           detail="Paid items remain visible for reconciliation history."
           tone="success"
+          size="compact"
         />
       </div>
 
@@ -211,32 +217,20 @@ export default async function CommissionsPage({
       ) : (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_minmax(340px,0.82fr)]">
           <div className="space-y-4">
-            <SurfaceCard>
+            <SurfaceCard density="compact">
               <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                  <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                    Review posture
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-ink-muted">
-                    {reviewableCount} ledger items are still moving through review or payout preparation.
-                  </p>
-                </div>
-                <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                  <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                    Approval boundary
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-ink-muted">
-                    Approval remains explicit. Rejected items stay visible for finance history and later audit review.
-                  </p>
-                </div>
-                <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                  <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                    Next best follow-up
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-ink-muted">
-                    Clear pending review first, then move approved items into payout tracking without collapsing those states together.
-                  </p>
-                </div>
+                <InfoPanel
+                  title="Current state"
+                  description={`${reviewableCount} ledger items are still moving through review or payout preparation.`}
+                />
+                <InfoPanel
+                  title="Decision boundary"
+                  description="Approval remains explicit. Rejected items stay visible for finance history and later audit review."
+                />
+                <InfoPanel
+                  title="Next action"
+                  description="Clear pending review first, then move approved items into payout tracking without collapsing those states together."
+                />
               </div>
             </SurfaceCard>
 
@@ -356,9 +350,9 @@ export default async function CommissionsPage({
           </div>
 
           {selectedItem ? (
-            <DetailPanel
-              eyebrow="Ledger inspector"
-              title={`${selectedItem.partnerName} commission item`}
+          <DetailPanel
+            eyebrow="Ledger inspector"
+            title={`${selectedItem.partnerName} commission item`}
               description={
                 selectedItem.note ??
                 "Review the event source, current finance posture, and whether the amount is safe to approve."
@@ -370,27 +364,43 @@ export default async function CommissionsPage({
               }
             >
               <SectionCard
-                title="Finance context"
+                title="Money context"
                 description="Keep attribution, rule, and payout context visible before changing review state."
-                items={[
-                  `App: ${selectedItem.appName}.`,
-                  `Code: ${selectedItem.codeLabel ?? "No code attached."}`,
-                  `Event: ${selectedItem.eventType} (${selectedItem.eventStatus}).`,
-                  `Occurred: ${new Date(selectedItem.occurredAt).toLocaleString()}.`,
-                  `Received: ${
-                    selectedItem.receivedAt
-                      ? new Date(selectedItem.receivedAt).toLocaleString()
-                      : "Unknown"
-                  }.`,
-                  `Source lane: ${selectedItem.sourceLabel}.`,
-                ]}
-              />
+              >
+                <DetailList
+                  items={[
+                    { label: "App", value: selectedItem.appName },
+                    {
+                      label: "Code",
+                      value: selectedItem.codeLabel ?? "No code attached",
+                    },
+                    {
+                      label: "Event",
+                      value: `${selectedItem.eventType} (${selectedItem.eventStatus})`,
+                    },
+                    {
+                      label: "Occurred",
+                      value: new Date(selectedItem.occurredAt).toLocaleString(),
+                    },
+                    {
+                      label: "Received",
+                      value: selectedItem.receivedAt
+                        ? new Date(selectedItem.receivedAt).toLocaleString()
+                        : "Unknown",
+                    },
+                    {
+                      label: "Source lane",
+                      value: selectedItem.sourceLabel,
+                    },
+                  ]}
+                />
+              </SectionCard>
 
               <SurfaceCard className="bg-surface">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
                   Basis and rule context
                 </p>
-                <div className="mt-4 overflow-hidden rounded-[22px] border border-border bg-surface-elevated">
+                <InsetPanel tone="neutral" className="mt-4 overflow-hidden px-0 py-0">
                   <div className="flex flex-col gap-4 border-b border-border px-4 py-4">
                     <p className="text-sm font-semibold text-ink">
                       Basis: {selectedItem.basisAmountLabel}
@@ -416,7 +426,7 @@ export default async function CommissionsPage({
                         : "Not yet assigned to a payout batch"}
                     </p>
                   </div>
-                </div>
+                </InsetPanel>
               </SurfaceCard>
 
               {selectedItem.canApprove ? (
@@ -438,7 +448,7 @@ export default async function CommissionsPage({
                         defaultValue={formatDefaultAmount(
                           selectedItem.commissionAmount ?? selectedItem.suggestedAmount,
                         )}
-                        className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white"
+                        className="aa-field"
                       />
                     </label>
 
@@ -448,7 +458,7 @@ export default async function CommissionsPage({
                         name="currency"
                         type="text"
                         defaultValue={selectedItem.currency}
-                        className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm uppercase text-ink outline-none transition focus:border-primary focus:bg-white"
+                        className="aa-field uppercase"
                       />
                     </label>
 
@@ -458,17 +468,14 @@ export default async function CommissionsPage({
                         name="note"
                         rows={3}
                         defaultValue={selectedItem.note ?? ""}
-                        className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white"
+                        className="aa-field"
                       />
                     </label>
 
                     <div className="flex justify-end">
-                      <button
-                        type="submit"
-                        className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
-                      >
+                      <ActionButton type="submit" variant="primary">
                         Approve commission
-                      </button>
+                      </ActionButton>
                     </div>
                   </form>
                 </SurfaceCard>
@@ -488,17 +495,14 @@ export default async function CommissionsPage({
                         name="note"
                         rows={3}
                         defaultValue={selectedItem.note ?? ""}
-                        className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white"
+                        className="aa-field"
                       />
                     </label>
 
                     <div className="flex justify-end">
-                      <button
-                        type="submit"
-                        className="rounded-full border border-danger bg-danger px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-danger)_88%,black)]"
-                      >
+                      <ActionButton type="submit" variant="destructive">
                         Reject commission
-                      </button>
+                      </ActionButton>
                     </div>
                   </form>
                 </SurfaceCard>

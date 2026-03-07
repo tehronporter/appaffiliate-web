@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { InsetPanel, SurfaceCard } from "@/components/admin-ui";
 import { syncSessionCookie } from "@/lib/auth-client";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 
@@ -72,18 +73,18 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   }
 
   return (
-    <div className="rounded-[32px] border border-border bg-surface-elevated p-6 shadow-[var(--shadow-strong)] sm:p-8">
+    <SurfaceCard tone="public-access" density="hero">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
           Sign in
         </p>
-        <h2 className="text-2xl font-semibold tracking-tight text-ink">
+        <h2 className="text-2xl font-semibold tracking-[-0.04em] text-ink">
           Use your invited email and password
         </h2>
         <p className="text-sm leading-6 text-ink-muted">
           Sign in with the account already provisioned for you. AppAffiliate
-          uses the same entry point for invited internal users and linked
-          partner users.
+          routes invited users to either the internal workspace or the read-only
+          creator portal after login.
         </p>
       </div>
 
@@ -117,7 +118,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         </label>
 
         {errorMessage ? (
-          <p className="rounded-2xl border border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
+          <p className="rounded-[16px] border border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
             {errorMessage}
           </p>
         ) : null}
@@ -135,19 +136,19 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         </button>
       </form>
 
-      <div className="mt-6 rounded-3xl border border-border bg-surface p-4">
+      <InsetPanel className="mt-6">
         <p className="text-sm font-medium text-ink">Access note</p>
         <p className="mt-2 text-sm leading-6 text-ink-muted">
-          Public signup is not enabled. If you do not already have invited
-          access, use the request-access page instead.
+          Public signup is not enabled. If you are still evaluating fit, use the
+          request-access page instead.
         </p>
-      </div>
+      </InsetPanel>
 
       <p className="mt-6 text-sm text-ink-muted">
         <Link href="/" className="font-medium text-primary hover:opacity-80">
           Back to site
         </Link>
       </p>
-    </div>
+    </SurfaceCard>
   );
 }

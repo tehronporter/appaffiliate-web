@@ -1,6 +1,8 @@
 import { ActionLink } from "@/components/app-shell";
 import {
+  ActionButton,
   EmptyState,
+  InsetPanel,
   SectionCard,
   StatusBadge,
 } from "@/components/admin-ui";
@@ -109,9 +111,9 @@ export default async function SettingsTeamPage({
               ) : null}
 
               {data.members.map((member) => (
-                <div
+                <InsetPanel
                   key={member.membershipId}
-                  className="rounded-[24px] border border-border bg-surface p-5"
+                  className="rounded-[var(--radius-card)] bg-[rgba(255,255,255,0.94)] p-5 shadow-[var(--shadow-soft)]"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -158,23 +160,20 @@ export default async function SettingsTeamPage({
                         </select>
                       </label>
 
-                      <button
-                        type="submit"
-                        className="aa-button aa-button-primary"
-                      >
+                      <ActionButton type="submit" variant="primary">
                         Save role
-                      </button>
+                      </ActionButton>
                     </form>
                   ) : (
-                    <div className="mt-4 rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink-muted">
+                    <InsetPanel tone="neutral" className="mt-4 text-sm text-ink-muted">
                       {member.isCurrentUser
                         ? "Self role changes are intentionally blocked so the current session cannot remove its own admin access."
                         : member.roleKey === "owner"
                           ? "Owner role changes stay out of scope for the current product."
                           : "This role is read-only under the current actor permissions."}
-                    </div>
+                    </InsetPanel>
                   )}
-                </div>
+                </InsetPanel>
               ))}
             </div>
           </SectionCard>
@@ -201,9 +200,9 @@ export default async function SettingsTeamPage({
                   description="This route shows existing membership state only. If invited rows already exist in the workspace model, they will appear in the real count above."
                 />
               ) : (
-                <div className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink-muted">
+                <InsetPanel className="text-sm text-ink-muted">
                   {data.pendingInviteCount} invited membership rows are visible, but invite send and accept flows remain intentionally out of scope.
-                </div>
+                </InsetPanel>
               )}
             </SectionCard>
           </div>

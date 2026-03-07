@@ -7,6 +7,7 @@ import {
   MarketingHero,
   MarketingSection,
   MarketingSectionHeading,
+  MarketingSteps,
 } from "@/components/marketing-page";
 import { MarketingShell } from "@/components/marketing-shell";
 import {
@@ -19,69 +20,57 @@ import {
 export const metadata: Metadata = {
   title: "How It Works",
   description:
-    "See how AppAffiliate moves from app setup and partner codes through attribution review, commissions, payouts, exports, and partner visibility.",
+    "Add your app, invite creators, assign codes or links, track subscription results, and reward creators based on performance.",
 };
 
 const steps = [
   {
     number: "01",
-    title: "Set up your app",
+    title: "Add your app",
     description:
-      "Start with Apple ingestion readiness and app-level visibility so receipt flow and operational health are visible from the beginning.",
+      "Connect your iOS app so AppAffiliate can turn creator promotion into a real subscription growth channel.",
   },
   {
     number: "02",
-    title: "Add partners and codes",
+    title: "Invite creators",
     description:
-      "Create the partner and promo code structure that keeps ownership and program coverage readable.",
+      "Work with creators you already trust instead of defaulting to risky upfront influencer deals.",
   },
   {
     number: "03",
-    title: "Review activity",
+    title: "Assign codes or links",
     description:
-      "Inspect attributed and unattributed activity without forcing the team to bounce between disconnected tools.",
+      "Give each creator a clear trackable path so ownership stays readable from the start.",
   },
   {
     number: "04",
-    title: "Resolve unattributed items",
+    title: "Track real subscription results",
     description:
-      "Use the unattributed queue to work through ambiguous activity with explicit decisions and clear queue state.",
+      "See what actually converted, what still needs review, and what is ready to become approved earnings.",
   },
   {
     number: "05",
-    title: "Approve commissions",
+    title: "Reward creators based on performance",
     description:
-      "Keep commission state explicit so reviewed items are separated from work that still needs attention.",
-  },
-  {
-    number: "06",
-    title: "Prepare payouts and exports",
-    description:
-      "Move approved work into payout batches, keep export state visible, and hand finance a clearer operational record.",
-  },
-  {
-    number: "07",
-    title: "Give partners visibility",
-    description:
-      "Provide a separate read-only portal for partner codes, performance, and payout status without exposing internal tools.",
+      "Approve earnings, move them into payout, and keep creators updated with a simple read-only portal.",
   },
 ];
 
 const outcomes = [
   {
-    title: "Clearer review state",
+    title: "Less wasted spend",
     description:
-      "The product is designed so attribution, commission, and payout status are explicit rather than implied.",
+      "You stop paying for creator promotion without knowing whether it turned into real subscriptions.",
   },
   {
-    title: "Fewer side channels",
+    title: "Fairer creator rewards",
     description:
-      "Decisions stay closer to the workflow instead of drifting into inboxes and disconnected documents.",
+      "Creators get paid when their audience actually converts, with clearer visibility into what changed.",
   },
   {
-    title: "Safer finance handoff",
+    title: "More trust across the workflow",
     description:
-      "Exports, payout batches, and review state remain visible in one operating system.",
+      "Tracking, review, commissions, and payouts stay connected so decisions are easier to explain later.",
   },
 ];
 
@@ -96,31 +85,29 @@ export default function HowItWorksPage() {
     >
       <main>
         <MarketingHero
-          eyebrow="How it works"
-          title="A clearer path from intake to payout."
-          description="AppAffiliate gives partner programs a readable sequence: app readiness, partner setup, activity review, commission approval, payout preparation, exports, and partner visibility."
+          eyebrow="How AppAffiliate works"
+          title="A simple five-step creator growth system."
+          description="Add your app, invite creators, assign codes or links, track real subscription results, and reward creators based on performance."
           actions={
             <>
-              <Link href="/product" className="aa-button aa-button-primary px-5 py-3">
-                See product
-              </Link>
-              <Link href="/request-access" className="aa-button aa-button-secondary px-5 py-3">
+              <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
                 Request access
+              </Link>
+              <Link href="/product" className="aa-button aa-button-secondary px-5 py-3">
+                See product
               </Link>
             </>
           }
         >
-          <p className="text-sm font-medium text-[#1A1A1A]">What the workflow replaces</p>
-          <div className="mt-5 space-y-3">
+          <div className="grid gap-3">
             {[
-              "Spreadsheet-based partner tracking",
-              "Loose attribution decisions in side channels",
-              "Unclear commission state before payout prep",
-              "Partner visibility handled through manual updates",
+              "Built for iOS founders and lean app teams",
+              "Designed around real subscription outcomes",
+              "Keeps creator rewards and payout trust connected",
             ].map((item) => (
               <div
                 key={item}
-                className="rounded-[18px] border border-[#E9EDF3] bg-white px-4 py-4 text-sm leading-7 text-[#5B6472]"
+                className="rounded-[16px] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
               >
                 {item}
               </div>
@@ -130,48 +117,29 @@ export default function HowItWorksPage() {
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="Workflow"
-            title="Each step reduces ambiguity."
-            description="The product is designed to keep the sequence readable for growth, operations, and finance users without turning the workflow into a maze."
+            eyebrow="The sequence"
+            title="Each step is easy to scan and easier to trust."
+            description="The workflow is intentionally short. Founders should understand how the model works in a few minutes, not after reading internal docs."
           />
 
-          <div className="mt-10 space-y-4">
-            {steps.map((step) => (
-              <div
-                key={step.number}
-                className="rounded-[26px] border border-[#ECEFF3] bg-white p-6 sm:p-7"
-              >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#F1F5FF] text-sm font-semibold text-[#2E53FF]">
-                    {step.number}
-                  </span>
-                  <div className="max-w-3xl">
-                    <h2 className="text-2xl font-semibold tracking-[-0.03em] text-[#1A1A1A]">
-                      {step.title}
-                    </h2>
-                    <p className="mt-3 text-sm leading-7 text-[#5B6472]">
-                      {step.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="mt-10">
+            <MarketingSteps steps={steps} />
           </div>
         </MarketingSection>
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="What that creates"
-            title="A calmer program operating rhythm."
-            description="The flow matters because it gives internal teams and partners a clearer record of what has been reviewed, what is still pending, and what is ready for finance."
+            eyebrow="Why that matters"
+            title="The system works because the economics are clearer."
+            description="The point is not just to track creator activity. The point is to run creator promotion as a performance channel instead of a guessing game."
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
-            {outcomes.map((outcome) => (
+            {outcomes.map((item) => (
               <MarketingCard
-                key={outcome.title}
-                title={outcome.title}
-                description={outcome.description}
+                key={item.title}
+                title={item.title}
+                description={item.description}
               />
             ))}
           </div>
@@ -180,9 +148,9 @@ export default function HowItWorksPage() {
         <MarketingSection>
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
-              eyebrow="Access"
-              title="See whether the workflow fits your program."
-              description="If the model matches how your team handles partner activity, review, and finance handoff today, request access and continue the rollout conversation."
+              eyebrow="Next step"
+              title="See whether the model fits your app."
+              description="If you want to grow through creators without risky upfront influencer spend, review the product and request access."
               primaryHref="/request-access"
               primaryLabel="Request access"
               secondaryHref="/pricing"

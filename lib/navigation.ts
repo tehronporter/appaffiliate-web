@@ -20,13 +20,13 @@ export const workspaceNavGroups: NavGroup[] = [
       {
         href: "/dashboard",
         label: "Dashboard",
-        description: "Workspace health, queue posture, and launch readiness.",
+        description: "Performance, review posture, and next actions.",
         match: "exact",
       },
       {
         href: "/onboarding",
-        label: "Launch checklist",
-        description: "Readiness across apps, partners, finance, and controls.",
+        label: "Activation",
+        description: "First-run milestones and launch readiness.",
         match: "exact",
       },
     ],
@@ -37,17 +37,17 @@ export const workspaceNavGroups: NavGroup[] = [
       {
         href: "/partners",
         label: "Partners",
-        description: "Partner records, ownership context, and program coverage.",
+        description: "Creator records and program coverage.",
       },
       {
         href: "/codes",
         label: "Codes",
-        description: "Promo code ownership, status, and linked apps.",
+        description: "Code ownership, status, and app links.",
       },
       {
         href: "/apps/demo-app/apple-health",
         label: "Apple Health",
-        description: "Apple ingest readiness and receipt health by app.",
+        description: "Apple ingest readiness by app.",
         activePrefixes: ["/apps/"],
       },
     ],
@@ -58,12 +58,12 @@ export const workspaceNavGroups: NavGroup[] = [
       {
         href: "/events",
         label: "Events",
-        description: "Inspect event flow and attributed state safely.",
+        description: "Inspect event flow and tracked state.",
       },
       {
         href: "/unattributed",
         label: "Unattributed",
-        description: "Resolve items that still need partner or code attribution.",
+        description: "Resolve items still waiting for attribution.",
       },
     ],
   },
@@ -73,22 +73,22 @@ export const workspaceNavGroups: NavGroup[] = [
       {
         href: "/commissions",
         label: "Commissions",
-        description: "Review commission state before payout preparation.",
+        description: "Review commission state before payout prep.",
       },
       {
         href: "/payouts",
         label: "Payouts",
-        description: "Track payout status across approved records.",
+        description: "Track payout status across approved work.",
       },
       {
         href: "/payout-batches",
         label: "Payout batches",
-        description: "Group payout-ready work into exportable batches.",
+        description: "Group payout-ready work into batches.",
       },
       {
         href: "/settings/exports",
         label: "Exports",
-        description: "Finance-ready exports and download history.",
+        description: "Finance exports and download history.",
         match: "exact",
         activePrefixes: ["/settings/exports"],
       },
@@ -100,7 +100,7 @@ export const workspaceNavGroups: NavGroup[] = [
       {
         href: "/settings",
         label: "Settings",
-        description: "Organization details, team context, and rules.",
+        description: "Organization, team, and rules.",
         match: "exact",
         activePrefixes: [
           "/settings/organization",
@@ -111,7 +111,7 @@ export const workspaceNavGroups: NavGroup[] = [
       {
         href: "/settings/audit",
         label: "Audit",
-        description: "Activity history for internal workflow changes.",
+        description: "Activity history and operational trail.",
         match: "exact",
         activePrefixes: ["/settings/audit"],
       },

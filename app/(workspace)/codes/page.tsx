@@ -2,11 +2,15 @@ import Link from "next/link";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
+  ActionButton,
+  DetailList,
   DetailPanel,
   EmptyState,
   FilterBar,
   FilterChipLink,
+  InfoPanel,
   ListTable,
+  NoticeBanner,
   PageHeader,
   SectionCard,
   StatCard,
@@ -126,7 +130,7 @@ function CodeFormFields(props: {
           name="appId"
           required
           defaultValue={props.defaultAppId ?? props.appOptions[0]?.id ?? ""}
-          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          className="aa-field"
         >
           {props.appOptions.map((app) => (
             <option key={app.id} value={app.id}>
@@ -137,13 +141,13 @@ function CodeFormFields(props: {
       </label>
 
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Partner</span>
+        <span className="text-sm font-medium text-ink">Creator owner</span>
         <select
           name="partnerId"
           defaultValue={props.defaultPartnerId ?? "none"}
-          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          className="aa-field"
         >
-          <option value="none">Unassigned</option>
+          <option value="none">Choose later</option>
           {props.partnerOptions.map((partner) => (
             <option key={partner.id} value={partner.id}>
               {partner.label}
@@ -153,13 +157,13 @@ function CodeFormFields(props: {
       </label>
 
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Code</span>
+        <span className="text-sm font-medium text-ink">Code or link label</span>
         <input
           name="code"
           type="text"
           required
           defaultValue={props.defaultCode ?? ""}
-          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm uppercase text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          className="aa-field uppercase"
         />
       </label>
 
@@ -169,7 +173,7 @@ function CodeFormFields(props: {
           <select
             name="status"
             defaultValue={props.defaultStatus ?? "active"}
-            className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+            className="aa-field"
           >
             <option value="draft">Draft</option>
             <option value="active">Active</option>
@@ -180,11 +184,11 @@ function CodeFormFields(props: {
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Type</span>
+          <span className="text-sm font-medium text-ink">Asset type</span>
           <select
             name="codeType"
             defaultValue={props.defaultCodeType ?? "promo"}
-            className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+            className="aa-field"
           >
             <option value="promo">Promo</option>
             <option value="referral">Referral</option>
@@ -195,12 +199,12 @@ function CodeFormFields(props: {
       </div>
 
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Channel</span>
+        <span className="text-sm font-medium text-ink">Channel note</span>
         <input
           name="channel"
           type="text"
           defaultValue={props.defaultChannel ?? ""}
-          className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-surface-elevated"
+          className="aa-field"
         />
       </label>
     </div>
@@ -240,7 +244,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
       <PageHeader
         eyebrow="Program"
         title="Codes"
-        description="Use codes as the attribution register for app coverage, partner ownership, and duplicate-active review."
+        description="Use codes as the ownership register for attribution trust, linked apps, and fast mapping review."
         actions={
           <>
             <ActionLink href="/partners">Open partners</ActionLink>
@@ -251,22 +255,18 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="primary">Promo code register</StatusBadge>
-          <StatusBadge tone="warning">Duplicate-active review</StatusBadge>
-          <StatusBadge>App and partner scoped</StatusBadge>
+          <StatusBadge tone="primary">Code ownership register</StatusBadge>
+          <StatusBadge tone="warning">Needs review</StatusBadge>
+          <StatusBadge>Linked app and owner visible</StatusBadge>
         </div>
       </PageHeader>
 
       {banner ? (
-        <SurfaceCard>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-ink">{banner.title}</p>
-              <p className="mt-1 text-sm text-ink-muted">{banner.detail}</p>
-            </div>
-            <StatusBadge tone={banner.tone}>{banner.title}</StatusBadge>
-          </div>
-        </SurfaceCard>
+        <NoticeBanner
+          title={banner.title}
+          detail={banner.detail}
+          tone={banner.tone}
+        />
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -275,51 +275,46 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
           value={String(data.stats.active)}
           detail="Active codes stay visible because they anchor attribution coverage and partner ownership."
           tone="success"
+          size="compact"
         />
         <StatCard
           label="Assigned"
           value={`${data.stats.assigned}/${data.codes.length}`}
           detail={`${unassignedCount} codes are still unassigned in the current workspace view.`}
           tone="primary"
+          size="compact"
         />
         <StatCard
-          label="Duplicate active"
+          label="Needs review"
           value={String(data.stats.duplicateActive)}
           detail={`Codes currently span ${appCoverageCount} apps in the visible register.`}
           tone="warning"
+          size="compact"
         />
       </div>
 
-      <SurfaceCard>
+      <SurfaceCard density="compact">
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              Ownership posture
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              {unassignedCount > 0
+          <InfoPanel
+            title="Owner gaps"
+            description={
+              unassignedCount > 0
                 ? `${unassignedCount} codes still need a partner assignment.`
-                : "Every visible code already has partner ownership assigned."}
-            </p>
-          </div>
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              App coverage
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              {appCoverageCount} apps are represented in the current code register.
-            </p>
-          </div>
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              Duplicate-active risk
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              {data.stats.duplicateActive > 0
+                : "Every visible code already has partner ownership assigned."
+            }
+          />
+          <InfoPanel
+            title="Linked apps"
+            description={`${appCoverageCount} apps are represented in the current code register.`}
+          />
+          <InfoPanel
+            title="Needs review"
+            description={
+              data.stats.duplicateActive > 0
                 ? `${data.stats.duplicateActive} active code lanes still need review for overlap.`
-                : "No duplicate-active code lanes are visible right now."}
-            </p>
-          </div>
+                : "No duplicate-active code lanes are visible right now."
+            }
+          />
         </div>
       </SurfaceCard>
 
@@ -327,37 +322,38 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
         <div className="space-y-4">
           <SectionCard
             eyebrow="Create"
-            title="Add code"
-            description="Create the minimum code record needed for app coverage and partner attribution."
+            title="Set up your first code or link"
+            description="Create the first trackable asset that connects a creator to real subscription results."
           >
             {data.appOptions.length === 0 ? (
               <EmptyState
                 eyebrow="Apps required"
-                title="Create an app before adding codes"
-                description="Codes must belong to a workspace app, so this form becomes useful after at least one app record exists."
-                action={<ActionLink href="/dashboard">Open dashboard</ActionLink>}
+                title="Add your app before you set up codes"
+                description="Codes and links only matter after there is an app lane ready to receive creator-driven results."
+                action={<ActionLink href="/onboarding">Open activation guide</ActionLink>}
               />
             ) : (
               <form action={createPromoCodeAction} className="space-y-4">
+                <InfoPanel
+                  title="Why this matters"
+                  description="Ownership is the point. The first correctly assigned code makes the first result easier to trust and easier to explain later."
+                />
                 <CodeFormFields
                   appOptions={data.appOptions}
                   partnerOptions={data.partnerOptions}
                 />
                 <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
-                  >
-                    Create code
-                  </button>
+                  <ActionButton type="submit" variant="primary">
+                    Create first code
+                  </ActionButton>
                 </div>
               </form>
             )}
           </SectionCard>
 
           <FilterBar
-            title="Register filters"
-            description="Review lifecycle and ownership without losing the list-and-detail flow."
+            title="Code filters"
+            description="Review status and ownership without losing the list-and-detail flow."
           >
             <FilterChipLink
               href={buildHref({ status: "all", ownership, code: selectedCode?.id })}
@@ -411,8 +407,8 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
 
           <ListTable
             eyebrow="Register"
-            title="Workspace codes"
-            description="Review app coverage, partner ownership, and duplicate-active context in one register."
+            title="Code ownership register"
+            description="Review linked app coverage, code owner, and duplicate-active context in one register."
           >
             <div className="hidden grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Code</span>
@@ -504,19 +500,34 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
             }
           >
             <SectionCard
-              title="Operational context"
-              description="Keep the app and ownership context visible before editing the code record."
-              items={[
-                `App: ${selectedCode.appName}.`,
-                `Partner: ${selectedCode.partnerName ?? "Unassigned"}.`,
-                `Type: ${selectedCode.codeType}.`,
-                `Channel: ${selectedCode.channel ?? "No channel note yet"}.`,
-              ]}
-            />
+              title="Ownership context"
+              description="Keep the linked app, owner, and channel context visible before editing the code record."
+            >
+              <DetailList
+                items={[
+                  {
+                    label: "Code owner",
+                    value: selectedCode.partnerName ?? "Unassigned",
+                  },
+                  {
+                    label: "Linked app",
+                    value: selectedCode.appName,
+                  },
+                  {
+                    label: "Status",
+                    value: statusLabel(selectedCode.status),
+                  },
+                  {
+                    label: "Channel",
+                    value: selectedCode.channel ?? "No channel note yet",
+                  },
+                ]}
+              />
+            </SectionCard>
 
             <SectionCard
               title="Update code"
-              description="Update status, app, ownership, or channel context without turning this page into a broad code management system."
+              description="Update status, linked app, owner, or channel context without turning this page into a broad code-management tool."
             >
               <form action={updatePromoCodeAction} className="space-y-4">
                 <input type="hidden" name="promoCodeId" value={selectedCode.id} />
@@ -531,12 +542,9 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
                   defaultChannel={selectedCode.channel}
                 />
                 <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
-                  >
+                  <ActionButton type="submit" variant="primary">
                     Save changes
-                  </button>
+                  </ActionButton>
                 </div>
               </form>
             </SectionCard>

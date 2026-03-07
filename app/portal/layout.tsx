@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { StatusBadge } from "@/components/admin-ui";
+import { BrandLogoLink } from "@/components/brand-logo";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { PartnerPortalNav } from "@/components/partner-portal-nav";
 import { getPortalViewerState } from "@/lib/services/portal";
@@ -32,29 +33,27 @@ export default async function PartnerPortalLayout({
   const viewer = await getPortalViewerState();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--color-primary)_7%,transparent)_0%,transparent_28%),linear-gradient(180deg,#FCFDFE_0%,#F6F8FB_100%)] text-ink">
-      <header className="border-b border-border bg-[rgba(255,255,255,0.82)] backdrop-blur">
-        <div className="mx-auto flex max-w-[1180px] flex-col gap-5 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(46,83,255,0.1)_0%,transparent_30%),linear-gradient(180deg,#fbfcff_0%,#f3f7fc_100%)] text-ink">
+      <header className="border-b border-border bg-[rgba(251,252,255,0.88)] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[var(--portal-max-width)] flex-col gap-5 px-4 py-5 sm:px-6 lg:flex-row lg:items-start lg:justify-between lg:px-8">
           <div>
-            <Link
+            <BrandLogoLink
               href="/portal"
-              className="text-sm font-semibold uppercase tracking-[0.28em] text-primary"
-            >
-              AppAffiliate
-            </Link>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-semibold tracking-[-0.03em] text-ink sm:text-2xl">
-                Partner portal
-              </h1>
-              <StatusBadge tone="primary">Read-only</StatusBadge>
-              <StatusBadge tone="primary">
-                {viewer.partnerName ?? viewer.displayName ?? "Partner access"}
-              </StatusBadge>
+              ariaLabel="Open AppAffiliate creator portal"
+              size="portal"
+              priority
+            />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <StatusBadge tone="primary">Creator portal</StatusBadge>
+              <StatusBadge tone="success">Read-only</StatusBadge>
             </div>
-            <p className="mt-2 text-sm leading-6 text-ink-muted">
-              Review your own codes, performance, commission status, and payout history in a partner-safe view that stays separate from internal operations.
+            <h1 className="mt-4 text-[1.9rem] font-semibold tracking-[-0.05em] text-ink sm:text-[2.35rem]">
+              {viewer.partnerName ?? viewer.displayName ?? "Your creator performance"}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-ink-muted sm:text-[0.98rem]">
+              Review your own codes, audience results, approved earnings, and payout history in a simpler read-only space built for creators.
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {viewer.organizationName ? (
                 <StatusBadge>{viewer.organizationName}</StatusBadge>
               ) : null}
@@ -64,12 +63,12 @@ export default async function PartnerPortalLayout({
                 </StatusBadge>
               ) : null}
               {viewer.hasPortalRole && !viewer.isLinkedToPartner ? (
-                <StatusBadge tone="warning">Partner link required</StatusBadge>
+                <StatusBadge tone="warning">Creator link required</StatusBadge>
               ) : null}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 lg:pt-1">
             {viewer.isAuthenticated ? <SignOutButton /> : null}
             {!viewer.isAuthenticated ? (
               <Link
@@ -84,7 +83,7 @@ export default async function PartnerPortalLayout({
                 href="/dashboard"
                 className="aa-button aa-button-primary"
               >
-                Open admin workspace
+                Open workspace
               </Link>
             ) : null}
           </div>

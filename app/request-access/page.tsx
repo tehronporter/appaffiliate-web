@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
-  MarketingCard,
+  MarketingCtaPanel,
   MarketingHero,
   MarketingSection,
   MarketingSectionHeading,
 } from "@/components/marketing-page";
 import { MarketingShell } from "@/components/marketing-shell";
+import { FaqGroup, SupportCard, SupportChecklist } from "@/components/support-ui";
 import {
   publicFooterLinks,
   publicNavLinks,
@@ -18,31 +19,70 @@ import {
 export const metadata: Metadata = {
   title: "Request Access",
   description:
-    "Request access to AppAffiliate through the current guided rollout model. Existing users can sign in; new teams join through an onboarding-led process.",
+    "See if AppAffiliate fits your growth model and understand what we need to know before inviting your team into the product.",
 };
 
-const rolloutSteps = [
+const fitSignals = [
   {
-    title: "Review fit first",
+    title: "Built for iOS founders",
     description:
-      "Start with the product, workflow, pricing, and security pages so the operating model is clear before access is requested.",
+      "AppAffiliate fits best when your team wants creator growth tied to real subscription results.",
   },
   {
-    title: "Guided rollout",
+    title: "Best for results-based creator programs",
     description:
-      "AppAffiliate access is currently provisioned during a direct rollout rather than through public self-serve signup.",
+      "The product is built for teams that want to stop paying upfront for hype and start rewarding performance.",
   },
   {
-    title: "Invited access",
+    title: "Works best for lean teams",
     description:
-      "When a team moves forward, internal users and any linked partner users are invited into the appropriate experience.",
+      "The current product is designed for founder-led and operator-led teams that want clear tracking, review, and payout visibility.",
   },
 ];
 
-const pageNotes = [
-  "There is no self-serve request form or in-product billing flow yet.",
-  "Existing users should use the sign-in page instead of requesting access again.",
-  "Partner portal access is configured separately from the internal admin workspace.",
+const accessQuestions = [
+  {
+    label: "Your role",
+    detail: "Founder, growth lead, ops lead, finance reviewer, or another core decision-maker.",
+  },
+  {
+    label: "Your app type",
+    detail: "What kind of iOS app you run and how subscription growth matters to the business.",
+  },
+  {
+    label: "How you promote today",
+    detail: "Whether you already work with creators, rely on paid influencer deals, or want a better model.",
+  },
+  {
+    label: "Your creator strategy",
+    detail: "How you want to work with creators, codes, links, and performance-based rewards.",
+  },
+  {
+    label: "Approximate scale",
+    detail: "A simple sense of how many creators, campaigns, or app lanes you expect to manage first.",
+  },
+  {
+    label: "Where you want help",
+    detail: "Setup, tracking, creator onboarding, payouts, or understanding whether the model fits at all.",
+  },
+];
+
+const requestFaq = [
+  {
+    question: "See if AppAffiliate fits your growth model",
+    answer:
+      "AppAffiliate is for iOS teams that want to grow through creators without risky upfront influencer fees and without losing payout trust later.",
+  },
+  {
+    question: "Tell us how you promote your app today and how you want to work with creators",
+    answer:
+      "That context helps determine whether the current product and rollout path match your stage and the way you want to run creator growth.",
+  },
+  {
+    question: "What happens after request access?",
+    answer:
+      "The next step is a guided rollout conversation, not an automated self-serve signup. That keeps the access path aligned with the real product today.",
+  },
 ];
 
 export default function RequestAccessPage() {
@@ -57,27 +97,30 @@ export default function RequestAccessPage() {
       <main>
         <MarketingHero
           eyebrow="Request access"
-          title="Request access through guided rollout."
-          description="AppAffiliate does not use a public self-serve access form yet. New teams are onboarded directly, and existing users should continue through the sign-in page."
+          title="See if AppAffiliate fits your growth model"
+          description="Tell us how you promote your app today and how you want to work with creators. AppAffiliate is built for iOS teams that want to pay for results, not hype."
           actions={
             <>
-              <Link href="/product" className="aa-button aa-button-primary px-5 py-3">
-                See product
+              <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
+                See how it works
               </Link>
               <Link href="/login" className="aa-button aa-button-secondary px-5 py-3">
-                Sign in
+                Already invited? Sign in
               </Link>
             </>
           }
         >
-          <p className="text-sm font-medium text-[#1A1A1A]">Current access model</p>
-          <div className="mt-5 space-y-3">
-            {pageNotes.map((note) => (
+          <div className="grid gap-3">
+            {[
+              "Designed as a fit assessment, not a bloated sales form",
+              "Guided access stays aligned with the real product today",
+              "Already invited? Sign in to your workspace or creator portal",
+            ].map((item) => (
               <div
-                key={note}
-                className="rounded-[18px] border border-[#E9EDF3] bg-white px-4 py-4 text-sm leading-7 text-[#5B6472]"
+                key={item}
+                className="rounded-[16px] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
               >
-                {note}
+                {item}
               </div>
             ))}
           </div>
@@ -85,47 +128,79 @@ export default function RequestAccessPage() {
 
         <MarketingSection>
           <MarketingSectionHeading
-            eyebrow="What this page does"
-            title="An honest access page without fake submission flows."
-            description="This page explains the current access process clearly. It keeps the public site professional without pretending there is a live self-serve request pipeline behind the scenes."
+            eyebrow="Who this is for"
+            title="A clearer path for founder-fit evaluation."
+            description="Request access should quickly help founders understand whether the product matches how they want to grow through creators."
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
-            {rolloutSteps.map((step) => (
-              <MarketingCard
-                key={step.title}
-                title={step.title}
-                description={step.description}
+            {fitSignals.map((item) => (
+              <SupportCard
+                key={item.title}
+                title={item.title}
+                description={item.description}
               />
             ))}
           </div>
         </MarketingSection>
 
         <MarketingSection muted>
-          <div className="mx-auto max-w-4xl rounded-[28px] border border-border bg-white p-7 shadow-[var(--shadow-soft)]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-              What to do next
-            </p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-ink">
-              Use the public site to finish evaluation.
-            </h2>
-            <p className="mt-4 text-base leading-8 text-ink-muted">
-              If you are still assessing fit, start with the product, workflow,
-              pricing, and security pages. If you already have invited access,
-              the sign-in page is the correct next step.
-            </p>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+            <SupportChecklist
+              title="What we need to understand first"
+              description="There is no live public request form yet, so this page makes the qualification questions explicit instead of pretending there is a hidden intake system."
+              items={accessQuestions}
+            />
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
-                How it works
-              </Link>
-              <Link href="/pricing" className="aa-button aa-button-secondary px-5 py-3">
-                View pricing
-              </Link>
-              <Link href="/login" className="aa-button aa-button-secondary px-5 py-3">
-                Sign in
-              </Link>
-            </div>
+            <FaqGroup
+              eyebrow="Request access"
+              title="The short version"
+              description="A few direct answers before you decide whether to keep evaluating or ask for access."
+              items={requestFaq}
+            />
+          </div>
+        </MarketingSection>
+
+        <MarketingSection>
+          <MarketingSectionHeading
+            eyebrow="Next paths"
+            title="Choose the clearest next step."
+            description="If you are still evaluating fit, keep reading. If you already have invited access, go straight to sign-in."
+          />
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            <SupportCard
+              title="Review the product"
+              description="See how creator tracking, review, payouts, and creator visibility fit together."
+              href="/product"
+              label="See product"
+            />
+            <SupportCard
+              title="Learn the workflow"
+              description="Walk through the short sequence from app setup to first creator-driven result."
+              href="/how-it-works"
+              label="See how it works"
+            />
+            <SupportCard
+              title="Already invited?"
+              description="Sign in to the right surface if your team or creator account already has access."
+              href="/login"
+              label="Sign in"
+            />
+          </div>
+        </MarketingSection>
+
+        <MarketingSection muted>
+          <div className="mx-auto max-w-5xl">
+            <MarketingCtaPanel
+              eyebrow="Next step"
+              title="Keep evaluating, or sign in if you are already invited."
+              description="Use the public site to finish assessing fit. Invited users should go straight to sign-in."
+              primaryHref="/product"
+              primaryLabel="See product"
+              secondaryHref="/login"
+              secondaryLabel="Sign in"
+            />
           </div>
         </MarketingSection>
       </main>

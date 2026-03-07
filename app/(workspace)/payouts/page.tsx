@@ -2,15 +2,21 @@ import Link from "next/link";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
+  ActionButton,
+  DetailList,
   DetailPanel,
   EmptyState,
   FilterBar,
   FilterChipLink,
+  InfoPanel,
+  InsetPanel,
   ListTable,
+  NoticeBanner,
   PageHeader,
   SectionCard,
   StatCard,
   StatusBadge,
+  StatusTimeline,
   SurfaceCard,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -19,6 +25,7 @@ import {
   markPayoutBatchExportedAction,
   markPayoutBatchPaidAction,
 } from "@/app/(workspace)/payouts/actions";
+import { formatOperationalTimestamp } from "@/lib/services/apple-read-model";
 import { listPayoutsData } from "@/lib/services/finance";
 
 type PayoutsPageProps = {
@@ -35,7 +42,7 @@ function batchTone(status: string): StatusTone {
     return "success";
   }
 
-  if (status === "exported" || status === "approved") {
+  if (status === "exported") {
     return "primary";
   }
 
@@ -44,6 +51,133 @@ function batchTone(status: string): StatusTone {
   }
 
   return "warning";
+}
+
+function batchItemTone(status: string): StatusTone {
+  if (status === "paid") {
+    return "success";
+  }
+
+  if (status === "exported") {
+    return "primary";
+  }
+
+  if (status === "failed" || status === "cancelled") {
+    return "danger";
+  }
+
+  return "warning";
+}
+
+function batchItemLabel(status: string) {
+  if (status === "pending") {
+    return "Reserved";
+  }
+
+  if (status === "failed") {
+    return "Blocked";
+  }
+
+  if (status === "cancelled") {
+    return "Removed";
+  }
+
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function batchStateMeaning(status: string) {
+  if (status === "paid") {
+    return "Payment is marked complete and the batch remains visible for reconciliation.";
+  }
+
+  if (status === "exported") {
+    return "Finance has an exported handoff, but payment still needs a separate confirmation step.";
+  }
+
+  if (status === "approved") {
+    return "The batch is approved internally and is waiting on export handoff.";
+  }
+
+  if (status === "reviewing") {
+    return "The batch is still being checked before finance handoff.";
+  }
+
+  if (status === "cancelled") {
+    return "The batch was stopped and should not be treated as payable.";
+  }
+
+  return "The batch is drafted but still needs explicit export confirmation.";
+}
+
+function buildBatchTimeline(batch: {
+  status: string;
+  createdAt: string;
+  approvedAt: string | null;
+  updatedAt: string;
+}) {
+  const exportComplete = batch.status === "exported" || batch.status === "paid";
+  const paidComplete = batch.status === "paid";
+
+  return [
+    {
+      label: "Draft created",
+      detail: "Approved commissions were pulled into a tracked payout batch.",
+      meta: formatOperationalTimestamp(batch.createdAt),
+      status: "complete" as const,
+    },
+    {
+      label: "Ready for export",
+      detail:
+        batch.status === "draft"
+          ? "The batch is still waiting for export confirmation."
+          : "The batch cleared internal review and is ready for finance handoff.",
+      meta: batch.approvedAt ? formatOperationalTimestamp(batch.approvedAt) : undefined,
+      status:
+        batch.status === "draft" ? ("current" as const) : ("complete" as const),
+    },
+    {
+      label: "Exported",
+      detail:
+        exportComplete
+          ? "Finance handoff has been recorded explicitly."
+          : "Export has not been confirmed yet.",
+      meta: exportComplete ? formatOperationalTimestamp(batch.updatedAt) : undefined,
+      status: exportComplete
+        ? ("complete" as const)
+        : batch.status === "approved" || batch.status === "reviewing"
+          ? ("current" as const)
+          : ("upcoming" as const),
+    },
+    {
+      label: "Paid",
+      detail:
+        paidComplete
+          ? "Payment completion is recorded on the batch and its linked items."
+          : "Payment should only be confirmed after remittance completes.",
+      meta: paidComplete ? formatOperationalTimestamp(batch.updatedAt) : undefined,
+      status: paidComplete ? ("current" as const) : ("upcoming" as const),
+    },
+  ];
+}
+
+function formatAggregateAmount(
+  items: Array<{ totalAmount: number; currency: string }>,
+  emptyLabel: string,
+) {
+  if (items.length === 0) {
+    return emptyLabel;
+  }
+
+  const currencies = Array.from(new Set(items.map((item) => item.currency)));
+
+  if (currencies.length !== 1) {
+    return "Mixed";
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currencies[0],
+  }).format(items.reduce((sum, item) => sum + item.totalAmount, 0) / 100);
 }
 
 function buildHref(params: {
@@ -74,7 +208,7 @@ function noticeCopy(notice: string | undefined) {
     return {
       tone: "success" as const,
       title: "Draft batch created",
-      detail: "Approved commission items are now tracked inside a real payout batch.",
+      detail: "Approved commission entries are now reserved inside a tracked payout batch.",
     };
   }
 
@@ -82,7 +216,7 @@ function noticeCopy(notice: string | undefined) {
     return {
       tone: "primary" as const,
       title: "Batch exported",
-      detail: "Export status is now recorded without implying remittance is complete.",
+      detail: "Finance handoff is now recorded without implying payment is complete.",
     };
   }
 
@@ -90,7 +224,7 @@ function noticeCopy(notice: string | undefined) {
     return {
       tone: "success" as const,
       title: "Batch marked paid",
-      detail: "Batch items and linked ledger entries now reflect a paid state.",
+      detail: "The batch and its linked payout items now reflect payment completion.",
     };
   }
 
@@ -98,7 +232,7 @@ function noticeCopy(notice: string | undefined) {
     return {
       tone: "danger" as const,
       title: "Payout action failed",
-      detail: "Review the current batch or group state and try again.",
+      detail: "Review the current batch or ready group state and try again.",
     };
   }
 
@@ -122,16 +256,25 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
     data.batches.find((batch) => batch.id === selectedBatchId) ??
     data.batches[0] ??
     null;
-
+  const draftLikeBatches = data.batches.filter(
+    (batch) =>
+      batch.status === "draft" ||
+      batch.status === "reviewing" ||
+      batch.status === "approved",
+  );
+  const exportedBatches = data.batches.filter((batch) => batch.status === "exported");
+  const paidBatches = data.batches.filter((batch) => batch.status === "paid");
   const showReady = view === "all" || view === "ready";
   const showBatches = view === "all" || view === "batches";
+  const showBatchInspector =
+    view === "batches" || (view === "all" && Boolean(selectedBatchId && selectedBatch));
 
   return (
     <PageContainer>
       <PageHeader
         eyebrow="Finance"
-        title="Payouts"
-        description="Move approved commission items into deliberate payout tracking with clear separation between draft, exported, and paid states."
+        title="Keep payout states readable and trustworthy"
+        description="See what is ready to pay, what is already reserved inside a batch, and what finance has exported or paid without losing the reasoning."
         actions={
           <>
             <ActionLink href="/commissions">Open commissions</ActionLink>
@@ -142,83 +285,65 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         }
       >
         <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="warning">Manual batch preparation</StatusBadge>
+          <StatusBadge tone="warning">Ready and reserved stay separate</StatusBadge>
           <StatusBadge tone="primary">Export and paid stay separate</StatusBadge>
-          <StatusBadge>Tracked payout workflow</StatusBadge>
+          <StatusBadge>Finance handoff stays explicit</StatusBadge>
         </div>
       </PageHeader>
 
       {banner ? (
-        <SurfaceCard>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-ink">{banner.title}</p>
-              <p className="mt-1 text-sm text-ink-muted">{banner.detail}</p>
-            </div>
-            <StatusBadge tone={banner.tone}>{banner.title}</StatusBadge>
-          </div>
-        </SurfaceCard>
+        <NoticeBanner
+          title={banner.title}
+          detail={banner.detail}
+          tone={banner.tone}
+        />
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-4">
         <StatCard
-          label="Ready groups"
-          value={String(data.stats.readyGroups)}
-          detail="Partner-grouped approved items that are not yet inside a payout batch."
+          label="Ready to batch"
+          value={formatAggregateAmount(data.readyGroups, "$0.00")}
+          detail={`${data.stats.readyGroups} partner groups across ${data.stats.readyEntries} approved entries can be batched next.`}
           tone="warning"
+          size="compact"
         />
         <StatCard
-          label="Ready entries"
-          value={String(data.stats.readyEntries)}
-          detail="Approved commission entries still waiting for explicit payout tracking."
-          tone="warning"
-        />
-        <StatCard
-          label="Draft batches"
-          value={String(data.stats.draftBatches)}
-          detail="Draft batches remain visible until finance explicitly exports them."
+          label="Reserved in batch"
+          value={formatAggregateAmount(draftLikeBatches, "$0.00")}
+          detail={`${draftLikeBatches.length} tracked batches still need export or payment follow-through.`}
           tone="primary"
+          size="compact"
         />
         <StatCard
           label="Exported"
-          value={String(data.stats.exportedBatches)}
-          detail="Exported batches still require a separate remittance confirmation step."
+          value={formatAggregateAmount(exportedBatches, "$0.00")}
+          detail={`${exportedBatches.length} batches already have a finance handoff but are not paid yet.`}
           tone="primary"
+          size="compact"
         />
         <StatCard
-          label="Paid"
-          value={String(data.stats.paidBatches)}
-          detail="Paid batches remain visible for reconciliation and audit history."
+          label="Recently paid"
+          value={formatAggregateAmount(paidBatches, "$0.00")}
+          detail={`${paidBatches.length} batches remain visible for reconciliation after payment is confirmed.`}
           tone="success"
+          size="compact"
         />
       </div>
 
-      <SurfaceCard>
+      <SurfaceCard density="compact">
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              Ready for payout tracking
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              {data.stats.readyGroups} partner groups contain {data.stats.readyEntries} approved entries that have not been batched yet.
-            </p>
-          </div>
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              In motion
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              {data.stats.draftBatches} draft and {data.stats.exportedBatches} exported batches are still in motion.
-            </p>
-          </div>
-          <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              What this page controls
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">
-              Create draft batches carefully, then confirm export and payment as separate finance actions.
-            </p>
-          </div>
+          <InfoPanel
+            title="What is ready now"
+            description={`${data.stats.readyGroups} partner groups contain approved earnings that are still outside payout tracking.`}
+          />
+          <InfoPanel
+            title="What finance can trust"
+            description="A batch only becomes a handoff record after export is confirmed. Payment stays a separate final step."
+          />
+          <InfoPanel
+            title="Current data limit"
+            description="The read model shows what is included in each group or batch. It does not expose exclusion rules yet, so this UI keeps that limit explicit."
+          />
         </div>
       </SurfaceCard>
 
@@ -236,11 +361,11 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
           />
         </SurfaceCard>
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.22fr)_minmax(320px,0.78fr)]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.22fr)_minmax(340px,0.78fr)]">
           <div className="space-y-4">
             <FilterBar
-              title="Payout filters"
-              description="Keep ready groups and tracked batches readable without losing the payout sequence."
+              title="Payout command bar"
+              description="Move between payout-ready groups and tracked batches without losing the current inspector context."
             >
               <FilterChipLink
                 href={buildHref({
@@ -259,7 +384,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                 })}
                 active={view === "ready"}
               >
-                Ready groups
+                Ready for payout
               </FilterChipLink>
               <FilterChipLink
                 href={buildHref({
@@ -274,14 +399,15 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
 
             {showReady ? (
               <ListTable
-                eyebrow="Ready by partner"
-                title="Approved items waiting for payout tracking"
-                description="Use these groups to create draft batches deliberately, not automatically or invisibly."
+                eyebrow="Ready for payout"
+                title="Approved earnings waiting for a batch"
+                description="Each row groups approved commissions that can be reserved into a draft batch as the next deliberate finance step."
               >
-                <div className="hidden grid-cols-[minmax(0,1.2fr)_120px_120px] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
+                <div className="hidden grid-cols-[minmax(0,1.2fr)_150px_120px_110px] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
                   <span>Partner</span>
-                  <span>Entries</span>
+                  <span>Readiness</span>
                   <span>Total</span>
+                  <span>Action</span>
                 </div>
 
                 <div className="divide-y divide-border bg-surface-elevated">
@@ -289,8 +415,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                     <div className="p-5">
                       <EmptyState
                         eyebrow="Queue clear"
-                        title="No payout-ready partner groups"
-                        description="Approved commission items will appear here once they are ready for manual batch creation."
+                        title="No payout-ready groups are waiting"
+                        description="Approved commission items will appear here when they are ready for a deliberate batch creation step."
                         action={
                           <ActionLink href="/commissions" variant="primary">
                             Review commission ledger
@@ -307,7 +433,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                         view: "ready",
                         group: group.id,
                       })}
-                      className={`grid gap-4 px-5 py-4 transition md:grid-cols-[minmax(0,1.2fr)_120px_120px] md:items-center ${
+                      className={`grid gap-4 px-5 py-4 transition md:grid-cols-[minmax(0,1.2fr)_150px_120px_110px] md:items-center ${
                         group.id === selectedGroup?.id
                           ? "bg-primary-soft/40"
                           : "hover:bg-surface"
@@ -318,12 +444,20 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                           {group.partnerName}
                         </h3>
                         <p className="mt-1 text-sm text-ink-muted">
-                          {group.appNames.join(", ") || "App context unavailable"}
+                          {group.entryCount} approved entries across{" "}
+                          {group.appNames.join(", ") || "unknown app context"}
                         </p>
                       </div>
-                      <div className="text-sm text-ink-muted">{group.entryCount}</div>
+                      <div className="text-sm text-ink-muted">
+                        {group.latestEffectiveAt
+                          ? formatOperationalTimestamp(group.latestEffectiveAt)
+                          : "Timing unavailable"}
+                      </div>
                       <div className="text-sm font-semibold text-ink">
                         {group.totalAmountLabel}
+                      </div>
+                      <div className="text-sm font-semibold text-primary">
+                        Build batch
                       </div>
                     </Link>
                   ))}
@@ -334,8 +468,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             {showBatches ? (
               <ListTable
                 eyebrow="Tracked batches"
-                title="Payout batch register"
-                description="Draft, exported, and paid states remain separate and auditable."
+                title="Reserved, exported, and paid payout work"
+                description="Use the batch register to inspect what has already moved into finance workflow and what still needs a handoff step."
               >
                 <div className="hidden grid-cols-[minmax(0,1.2fr)_120px_120px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
                   <span>Batch</span>
@@ -350,7 +484,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       <EmptyState
                         eyebrow="No batches yet"
                         title="No payout batches exist yet"
-                        description="Create a draft batch from an approved partner group to start real payout tracking."
+                        description="Create a draft batch from a ready group to start explicit payout tracking."
                         action={
                           <ActionLink
                             href={buildHref({
@@ -401,45 +535,94 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             ) : null}
           </div>
 
-          {(view === "batches" || (view === "all" && selectedBatchId && selectedBatch)) &&
-          selectedBatch ? (
+          {showBatchInspector && selectedBatch ? (
             <DetailPanel
               eyebrow="Batch inspector"
               title={selectedBatch.name}
-              description={
-                selectedBatch.note ??
-                "Keep export and paid confirmations as separate finance actions, even when the batch is already in motion."
-              }
+              description={batchStateMeaning(selectedBatch.status)}
               status={
                 <StatusBadge tone={batchTone(selectedBatch.status)}>
                   {selectedBatch.statusLabel}
                 </StatusBadge>
               }
             >
+              <InsetPanel tone={batchTone(selectedBatch.status)}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="max-w-3xl">
+                    <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                      Why this batch is in its current state
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-ink-muted">
+                      {batchStateMeaning(selectedBatch.status)}
+                    </p>
+                  </div>
+                  <StatusBadge tone={batchTone(selectedBatch.status)}>
+                    {selectedBatch.paymentStatusLabel}
+                  </StatusBadge>
+                </div>
+              </InsetPanel>
+
               <SectionCard
                 title="Batch summary"
-                description="Keep the current batch window, payout posture, and export state visible before taking the next action."
-                items={[
-                  `Window: ${selectedBatch.windowLabel}.`,
-                  `Entries: ${selectedBatch.entryCount}.`,
-                  `Partners: ${selectedBatch.partnerCount}.`,
-                  `Total: ${selectedBatch.totalAmountLabel}.`,
-                  `Export status: ${selectedBatch.exportStatusLabel}.`,
-                  `Payment status: ${selectedBatch.paymentStatusLabel}.`,
-                ]}
-              />
+                description="Keep the tracked amount, included partners, and export posture visible before taking the next finance action."
+              >
+                <DetailList
+                  items={[
+                    { label: "Window", value: selectedBatch.windowLabel },
+                    { label: "Entries", value: String(selectedBatch.entryCount) },
+                    { label: "Partners", value: String(selectedBatch.partnerCount) },
+                    { label: "Total", value: selectedBatch.totalAmountLabel },
+                    { label: "Export", value: selectedBatch.exportStatusLabel },
+                    { label: "Payment", value: selectedBatch.paymentStatusLabel },
+                  ]}
+                />
+              </SectionCard>
+
+              <SectionCard
+                title="State progression"
+                description="Show when the batch was created, when it cleared internal review, and whether finance handoff or payment is complete."
+              >
+                <StatusTimeline steps={buildBatchTimeline(selectedBatch)} />
+              </SectionCard>
+
+              <SectionCard
+                title="Finance handoff"
+                description="Make the current export reference and note readable for finance and support without opening raw records."
+              >
+                <DetailList
+                  items={[
+                    {
+                      label: "External reference",
+                      value: selectedBatch.externalReference ?? "No export reference recorded",
+                    },
+                    {
+                      label: "Internal note",
+                      value: selectedBatch.note ?? "No finance note recorded",
+                    },
+                    {
+                      label: "Partner scope",
+                      value:
+                        selectedBatch.partnerNames.join(", ") || "Partner scope unavailable",
+                    },
+                    {
+                      label: "Last update",
+                      value: formatOperationalTimestamp(selectedBatch.updatedAt),
+                    },
+                  ]}
+                />
+              </SectionCard>
 
               <SurfaceCard className="bg-surface">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                  Batch item preview
+                  Included payout items
                 </p>
-                <div className="mt-4 overflow-hidden rounded-[22px] border border-border bg-surface-elevated">
+                <InsetPanel tone="neutral" className="mt-4 overflow-hidden px-0 py-0">
                   {selectedBatch.items.length === 0 ? (
                     <div className="px-4 py-4 text-sm text-ink-muted">
                       No tracked items are attached to this batch yet.
                     </div>
                   ) : (
-                    selectedBatch.items.slice(0, 8).map((item) => (
+                    selectedBatch.items.map((item) => (
                       <div
                         key={item.id}
                         className="flex flex-col gap-3 border-b border-border px-4 py-4 last:border-b-0"
@@ -448,8 +631,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                           <p className="text-sm font-semibold text-ink">
                             {item.partnerName} • {item.amountLabel}
                           </p>
-                          <StatusBadge tone={batchTone(item.status)}>
-                            {item.status}
+                          <StatusBadge tone={batchItemTone(item.status)}>
+                            {batchItemLabel(item.status)}
                           </StatusBadge>
                         </div>
                         <p className="text-sm text-ink-muted">
@@ -460,13 +643,16 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       </div>
                     ))
                   )}
-                </div>
+                </InsetPanel>
               </SurfaceCard>
 
               {selectedBatch.status !== "exported" && selectedBatch.status !== "paid" ? (
                 <SurfaceCard className="bg-surface">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
                     Export confirmation
+                  </p>
+                  <p className="mt-4 text-sm text-ink-muted">
+                    Export only reviewed, approved commissions so finance receives a clean batch.
                   </p>
                   <form action={markPayoutBatchExportedAction} className="mt-5 space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -477,7 +663,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                         name="externalReference"
                         type="text"
                         defaultValue={selectedBatch.externalReference ?? ""}
-                        className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white"
+                        className="aa-field"
                       />
                     </label>
 
@@ -487,17 +673,14 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                         name="note"
                         rows={3}
                         defaultValue={selectedBatch.note ?? ""}
-                        className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white"
+                        className="aa-field"
                       />
                     </label>
 
                     <div className="flex justify-end">
-                      <button
-                        type="submit"
-                        className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
-                      >
-                        Mark exported
-                      </button>
+                      <ActionButton type="submit" variant="primary">
+                        Export batch
+                      </ActionButton>
                     </div>
                   </form>
                 </SurfaceCard>
@@ -508,6 +691,9 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
                     Payment confirmation
                   </p>
+                  <p className="mt-4 text-sm text-ink-muted">
+                    Mark the batch paid only after remittance is complete and the finance handoff has cleared.
+                  </p>
                   <form action={markPayoutBatchPaidAction} className="mt-5 space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
 
@@ -517,17 +703,18 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                         name="note"
                         rows={3}
                         defaultValue={selectedBatch.note ?? ""}
-                        className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white"
+                        className="aa-field"
                       />
                     </label>
 
                     <div className="flex justify-end">
-                      <button
+                      <ActionButton
                         type="submit"
-                        className="rounded-full border border-success bg-success px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-success)_88%,black)]"
+                        variant="primary"
+                        className="aa-button-success"
                       >
                         Mark paid
-                      </button>
+                      </ActionButton>
                     </div>
                   </form>
                 </SurfaceCard>
@@ -535,29 +722,106 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             </DetailPanel>
           ) : selectedGroup ? (
             <DetailPanel
-              eyebrow="Ready group inspector"
+              eyebrow="Batch builder"
               title={selectedGroup.partnerName}
-              description="Approved commission items remain outside payout tracking until finance explicitly creates a batch."
-              status={<StatusBadge tone="warning">Ready for batch</StatusBadge>}
+              description="This group is ready because the included commission entries are already approved and still outside payout tracking."
+              status={<StatusBadge tone="warning">Ready for payout</StatusBadge>}
             >
+              <InsetPanel tone="warning">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="max-w-3xl">
+                    <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                      Why this group is ready
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-ink-muted">
+                      These earnings have already cleared commission approval, but finance has not reserved them inside a payout batch yet.
+                    </p>
+                  </div>
+                  <StatusBadge tone="warning">{selectedGroup.totalAmountLabel}</StatusBadge>
+                </div>
+              </InsetPanel>
+
               <SectionCard
-                title="Partner grouping"
-                description="Use partner-grouped payout readiness to keep manual payout prep legible."
-                items={[
-                  `Entries: ${selectedGroup.entryCount}.`,
-                  `Total: ${selectedGroup.totalAmountLabel}.`,
-                  `Apps: ${selectedGroup.appNames.join(", ") || "No app context"}.`,
-                  `Latest activity: ${
-                    selectedGroup.latestEffectiveAt
-                      ? new Date(selectedGroup.latestEffectiveAt).toLocaleString()
-                      : "Unknown"
-                  }.`,
-                ]}
-              />
+                title="Included commissions"
+                description="Show what this draft batch would include before you reserve it."
+              >
+                <DetailList
+                  items={[
+                    { label: "Entries", value: String(selectedGroup.entryCount) },
+                    { label: "Total", value: selectedGroup.totalAmountLabel },
+                    {
+                      label: "Apps",
+                      value:
+                        selectedGroup.appNames.join(", ") || "No app context available",
+                    },
+                    {
+                      label: "Latest approved activity",
+                      value: selectedGroup.latestEffectiveAt
+                        ? formatOperationalTimestamp(selectedGroup.latestEffectiveAt)
+                        : "Unknown",
+                    },
+                  ]}
+                />
+              </SectionCard>
+
+              <SectionCard
+                title="State progression"
+                description="Keep the payout sequence obvious before this group becomes a tracked batch."
+              >
+                <StatusTimeline
+                  steps={[
+                    {
+                      label: "Approved earnings",
+                      detail: "Commission review is complete for the items in this group.",
+                      meta: `${selectedGroup.entryCount} entries`,
+                      status: "complete",
+                    },
+                    {
+                      label: "Ready for payout",
+                      detail:
+                        "The group is waiting for a deliberate draft-batch step so payout tracking becomes explicit.",
+                      meta: selectedGroup.totalAmountLabel,
+                      status: "current",
+                    },
+                    {
+                      label: "Exported to finance",
+                      detail:
+                        "Export only happens after a draft batch exists and finance confirms the handoff.",
+                      status: "upcoming",
+                    },
+                  ]}
+                />
+              </SectionCard>
+
+              <SectionCard
+                title="Export readiness"
+                description="Keep the handoff boundaries plain so finance and support can explain what is included."
+              >
+                <DetailList
+                  items={[
+                    {
+                      label: "Included scope",
+                      value: "Only the approved commissions already grouped here will enter the new batch.",
+                    },
+                    {
+                      label: "Exclusions visible",
+                      value:
+                        "Exclusions are not exposed in the current read model, so the UI keeps that limit explicit.",
+                    },
+                    {
+                      label: "Next action",
+                      value: "Create a draft batch to reserve these earnings for payout tracking.",
+                    },
+                  ]}
+                />
+              </SectionCard>
 
               <SurfaceCard className="bg-surface">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
                   Create draft batch
+                </p>
+                <p className="mt-4 text-sm text-ink-muted">
+                  Reserve these approved earnings inside a tracked batch before any export or payment step happens.
                 </p>
                 <form action={createDraftPayoutBatchAction} className="mt-5 space-y-4">
                   <input type="hidden" name="groupId" value={selectedGroup.id} />
@@ -568,17 +832,14 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       name="note"
                       rows={3}
                       defaultValue=""
-                      className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm text-ink outline-none transition focus:border-primary focus:bg-white"
+                      className="aa-field"
                     />
                   </label>
 
                   <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      className="rounded-full border border-primary bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:color-mix(in_srgb,var(--color-primary)_88%,black)]"
-                    >
-                        Create draft batch
-                    </button>
+                    <ActionButton type="submit" variant="primary">
+                      Create draft batch
+                    </ActionButton>
                   </div>
                 </form>
               </SurfaceCard>
@@ -587,15 +848,15 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             <DetailPanel
               eyebrow="Payout inspector"
               title="No payout context selected"
-            description="Choose a ready group or tracked batch to inspect payout context, batch state, and the next finance action."
-          >
-            <EmptyState
-              eyebrow="Empty inspector"
-              title="No payout item is available"
-              description="The inspector shows partner grouping or tracked batch detail once a payout record matches the current view."
-              action={
-                <ActionLink href="/payouts" variant="primary">
-                  Reset filters
+              description="Choose a ready group or tracked batch to inspect what is included, what state it is in, and what finance can safely do next."
+            >
+              <EmptyState
+                eyebrow="Empty inspector"
+                title="No payout item is available"
+                description="The inspector shows payout-ready groups or tracked batches once a record matches the current view."
+                action={
+                  <ActionLink href="/payouts" variant="primary">
+                    Reset filters
                   </ActionLink>
                 }
               />

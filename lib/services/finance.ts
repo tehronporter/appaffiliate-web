@@ -250,6 +250,8 @@ export type PayoutBatchView = {
   note: string | null;
   items: PayoutBatchItemView[];
   createdAt: string;
+  approvedAt: string | null;
+  updatedAt: string;
 };
 
 export type PayoutsPageData = {
@@ -980,6 +982,8 @@ function buildBatchViews(params: {
       note: batch.notes,
       items,
       createdAt: batch.created_at,
+      approvedAt: batch.approved_at,
+      updatedAt: batch.updated_at,
     } satisfies PayoutBatchView;
   });
 }

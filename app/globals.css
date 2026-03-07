@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f7fa;
+  --background: #eef3f8;
   --foreground: #141a24;
   --primary: #2e53ff;
-  --primary-soft: #f4f7ff;
+  --primary-soft: #eef3ff;
   --success: #2f7a62;
   --warning: #a96e21;
   --danger: #b25154;
-  --surface: #f8fafc;
-  --surface-muted: #f2f5f8;
+  --surface: #f4f7fb;
+  --surface-muted: #edf2f7;
   --surface-elevated: #ffffff;
-  --border: #e5eaf0;
-  --border-strong: #d2dae5;
+  --border: #d9e2ec;
+  --border-strong: #c2cfde;
   --ink: #141a24;
   --ink-muted: #5b6678;
   --ink-subtle: #7c8798;
-  --shadow-soft: 0 18px 48px rgba(17, 24, 39, 0.05);
-  --shadow-strong: 0 24px 64px rgba(17, 24, 39, 0.08);
-  --radius-card: 24px;
-  --radius-soft: 20px;
+  --shadow-soft: 0 12px 32px rgba(17, 24, 39, 0.05);
+  --shadow-strong: 0 20px 52px rgba(17, 24, 39, 0.08);
+  --radius-card: 18px;
+  --radius-soft: 14px;
   --radius-pill: 999px;
+  --page-max-width: 1360px;
+  --marketing-max-width: 1280px;
+  --portal-max-width: 1180px;
 }
 
 @theme inline {
@@ -52,10 +55,14 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(46, 83, 255, 0.05), transparent 30%),
+    linear-gradient(180deg, #f9fbfd 0%, var(--background) 100%);
   color: var(--ink);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
   line-height: 1.5;
@@ -70,11 +77,14 @@ input,
 textarea,
 select {
   font: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, white);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 24%, white),
+    0 0 0 4px color-mix(in srgb, var(--primary) 12%, white);
 }
 
 ::selection {
@@ -86,22 +96,30 @@ select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
+  min-height: 2.5rem;
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
   transition:
     background-color 160ms ease,
     border-color 160ms ease,
     color 160ms ease,
-    box-shadow 160ms ease;
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .aa-button:hover {
   border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.aa-button:active {
+  transform: translateY(0);
 }
 
 .aa-button-primary {
@@ -116,12 +134,13 @@ select {
 }
 
 .aa-button-secondary {
-  background: var(--surface-elevated);
+  background: rgba(255, 255, 255, 0.9);
   color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .aa-button-secondary:hover {
-  background: var(--surface);
+  background: #ffffff;
 }
 
 .aa-button-success {
@@ -152,14 +171,15 @@ select {
   background: var(--border-strong);
   color: #ffffff;
   box-shadow: none;
+  transform: none;
 }
 
 .aa-field {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 20px;
-  background: var(--surface);
-  padding: 0.8rem 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 0.85rem 1rem;
   font-size: 0.875rem;
   color: var(--ink);
   transition:
@@ -179,4 +199,24 @@ select {
 
 .aa-field::placeholder {
   color: var(--ink-subtle);
+}
+
+.aa-field:disabled {
+  cursor: not-allowed;
+  background: rgba(237, 242, 247, 0.9);
+  color: var(--ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

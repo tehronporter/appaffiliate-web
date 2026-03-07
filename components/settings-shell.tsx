@@ -49,9 +49,9 @@ export function SettingsPageFrame({
         <div className="space-y-4">
           {badges ?? (
             <div className="flex flex-wrap gap-3">
-              <StatusBadge tone="success">Live where backed</StatusBadge>
-              <StatusBadge tone="warning">Read-only where not yet modeled</StatusBadge>
-              <StatusBadge>Internal admin settings</StatusBadge>
+              <StatusBadge tone="success">Backed by live data</StatusBadge>
+              <StatusBadge tone="warning">Read-only where models stay narrow</StatusBadge>
+              <StatusBadge>Internal workspace settings</StatusBadge>
             </div>
           )}
 
@@ -81,6 +81,7 @@ export function SettingsPageFrame({
               value={stat.value}
               detail={stat.detail}
               tone={stat.tone}
+              size="compact"
             />
           ))}
         </div>
@@ -96,7 +97,7 @@ export function SettingsHubActions() {
     <>
       <ActionLink href="/dashboard">Open dashboard</ActionLink>
       <ActionLink href="/onboarding" variant="primary">
-        Open launch checklist
+        Open activation guide
       </ActionLink>
     </>
   );

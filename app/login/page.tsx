@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { SectionCard, StatCard } from "@/components/admin-ui";
+import { InsetPanel, SectionCard, StatusBadge } from "@/components/admin-ui";
 import { LoginForm } from "@/components/auth/login-form";
 import { PublicShell } from "@/components/public-shell";
 import { getAuthenticatedUser } from "@/lib/auth";
@@ -23,54 +23,62 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <PublicShell
-      eyebrow="Access"
-      title="Sign in to AppAffiliate"
-      description="Invited internal users and linked partners use the same sign-in page. After sign-in, AppAffiliate routes each account into the right workspace or portal."
+      eyebrow="Sign in"
+      title="Sign in to the right AppAffiliate surface"
+      description="Already invited? Sign in to your workspace or creator portal. New teams should use request access first so the rollout path stays clear."
     >
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          label="Flow"
-          value="Invited access"
-          detail="Sign-in is available for existing internal and partner-linked accounts only."
-          tone="primary"
-        />
-        <StatCard
-          label="Protection"
-          value="Server checked"
-          detail="Protected routes redirect back here when there is no valid session."
-          tone="success"
-        />
-        <StatCard
-          label="Scope"
-          value="Separate surfaces"
-          detail="Internal workspace access and partner portal access stay distinct even though they share one sign-in page."
-          tone="warning"
-        />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-        <LoginForm redirectTo={safeRedirectTo} />
-
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:gap-6">
         <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <InsetPanel tone="primary">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Internal workspace
+                </p>
+                <StatusBadge tone="primary">For your team</StatusBadge>
+              </div>
+              <p className="mt-2 text-sm leading-7 text-ink-muted">
+                Founders, operators, and finance users sign in here to manage tracking, review, commissions, and payouts.
+              </p>
+            </InsetPanel>
+
+            <InsetPanel tone="success">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Creator portal
+                </p>
+                <StatusBadge tone="success">Read-only</StatusBadge>
+              </div>
+              <p className="mt-2 text-sm leading-7 text-ink-muted">
+                Linked creators sign in here to view codes, results, approved earnings, and payout history.
+              </p>
+            </InsetPanel>
+          </div>
+
           <SectionCard
-            title="What to expect"
-            description="The access flow stays intentionally narrow and predictable."
+            tone="public-access"
+            title="What to expect after login"
+            description="The sign-in flow stays simple because AppAffiliate already knows which experience your account should open."
             items={[
-              "Sign in with the invited email and password already provisioned for your account.",
-              "A synced server-side session keeps protected routes readable after login.",
-              "After sign-in, AppAffiliate sends you back to the route you were trying to open.",
+              "Invited internal users land in the workspace built for creator performance operations.",
+              "Invited creators land in the lighter read-only portal built for earnings and payout visibility.",
+              "If you tried to open a protected route first, AppAffiliate returns you there after sign-in.",
             ]}
           />
+
           <SectionCard
-            title="Not yet available"
-            description="Access is still rollout-led rather than self-serve."
+            tone="public-access"
+            title="Need access first?"
+            description="Use request access if you are still deciding whether AppAffiliate fits your growth model."
             items={[
-              "No public signup or self-serve invite acceptance yet.",
-              "No password reset, invites, or magic links yet.",
-              "No deep account, billing, or profile management yet.",
+              "No public signup or invite acceptance flow yet.",
+              "Request access is the right path for new teams exploring the product.",
+              "Use sign-in only if your account has already been invited.",
             ]}
           />
         </div>
+
+        <LoginForm redirectTo={safeRedirectTo} />
       </div>
     </PublicShell>
   );

@@ -8,29 +8,32 @@ import { getRouteContext } from "@/lib/navigation";
 export function TopBar() {
   const pathname = usePathname();
   const routeContext = getRouteContext(pathname);
+  const isDashboard = pathname === "/dashboard";
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-[rgba(251,252,253,0.92)] backdrop-blur">
-      <div className="mx-auto flex max-w-[1360px] flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8 xl:flex-row xl:items-center xl:justify-between">
+    <header className="sticky top-0 z-20 border-b border-border bg-[rgba(248,250,253,0.84)] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-[var(--page-max-width)] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle">
-            Internal workspace
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-subtle">
+            {routeContext?.groupTitle ?? "Workspace"}
           </p>
-          <p className="mt-2 text-sm font-medium text-ink">
-            {(routeContext?.groupTitle ?? "Overview") + " / " + (routeContext?.item.label ?? "Dashboard")}
+          <p className="mt-1.5 text-sm font-semibold tracking-[-0.01em] text-ink">
+            {routeContext?.item.label ?? "Dashboard"}
           </p>
-          <p className="mt-1 text-sm leading-6 text-ink-muted">
+          <p className="mt-1 text-sm leading-5 text-ink-muted">
             {routeContext?.item.description ??
-              "Daily affiliate operations, finance handoff, and workspace controls."}
+              "Creator performance, review posture, and payout confidence."}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Link href="/dashboard" className="aa-button aa-button-secondary">
-            Open dashboard
-          </Link>
+          {!isDashboard ? (
+            <Link href="/dashboard" className="aa-button aa-button-secondary">
+              Dashboard
+            </Link>
+          ) : null}
           <Link href="/settings" className="aa-button aa-button-secondary">
-            Open settings
+            Settings
           </Link>
         </div>
       </div>

@@ -19,57 +19,57 @@ import {
 export const metadata: Metadata = {
   title: "Security",
   description:
-    "Learn how AppAffiliate handles role-aware access, org scoping, audited decisions, partner separation, server-side secret handling, and sanitized browser-facing data.",
+    "Built to keep performance and payouts trustworthy with role-aware access, org scoping, audited decisions, and finance-safe workflow boundaries.",
 };
 
 const trustAreas = [
   {
     title: "Role-aware access",
     description:
-      "Internal admin users and partner users enter different experiences with distinct route boundaries and permission checks.",
+      "Internal teams and creators enter different experiences with different visibility, even though the product logic stays connected.",
   },
   {
     title: "Organization scoping",
     description:
-      "Operational reads and writes stay scoped to the active organization to preserve multi-tenant safety.",
+      "Reads and writes stay scoped to the right organization so creator performance and payout data do not spill across teams.",
   },
   {
-    title: "Audit history",
+    title: "Audited decisions",
     description:
-      "Key manual decisions across attribution, commissions, payouts, and admin-sensitive changes remain auditable.",
+      "Key review and payout actions stay visible later when a founder, creator, or support teammate needs to understand what changed.",
   },
   {
-    title: "Partner and admin separation",
+    title: "Finance-safe workflows",
     description:
-      "The partner portal stays read-only and separate from internal settings, exports, audit trails, and admin tooling.",
+      "Approved earnings, payout batches, export handoff, and paid history stay separate so the money flow remains readable.",
   },
   {
-    title: "Server-side secret handling",
+    title: "Creator-safe portal",
     description:
-      "Sensitive service-role access and secret-backed operations stay on the server side rather than in browser-facing flows.",
+      "Creators get a simpler read-only portal that shows what they need without exposing internal workspace tools.",
   },
   {
-    title: "Sanitized browser views",
+    title: "Safer browser views",
     description:
-      "Browser-facing event and receipt surfaces avoid exposing raw sensitive Apple payloads.",
+      "Sensitive workflows stay server-side and browser views avoid exposing raw back-office detail unnecessarily.",
   },
 ];
 
-const honestyNotes = [
+const proofNotes = [
   {
-    title: "Trust grounded in the product",
+    title: "Trust as proof, not theater",
     description:
-      "This page describes what AppAffiliate does today. It does not claim enterprise certifications or programs that are not part of the current product.",
+      "This page describes the controls that exist today instead of leaning on vague enterprise language.",
   },
   {
-    title: "Finance-aware controls",
+    title: "Built for operational clarity",
     description:
-      "Exports, payout preparation, and manual review paths are permissioned because those workflows carry real operational consequences.",
+      "The product is designed so growth, review, and payout steps are easier to explain, not harder.",
   },
   {
-    title: "Operational rather than ornamental",
+    title: "Current and specific",
     description:
-      "The product’s trust model comes from explicit boundaries, narrow server actions, and readable workflow state rather than heavy compliance theater.",
+      "The public trust story stays grounded in the real product rather than certifications or claims that are not in scope.",
   },
 ];
 
@@ -85,8 +85,8 @@ export default function SecurityPage() {
       <main>
         <MarketingHero
           eyebrow="Security"
-          title="Security grounded in real controls."
-          description="AppAffiliate keeps the trust story grounded in the product: role-aware access, organization scoping, audited manual decisions, partner and admin separation, server-side secret handling, and safer browser-facing views."
+          title="Built to keep performance and payouts trustworthy."
+          description="AppAffiliate keeps trust grounded in the product: role-aware access, organization scoping, audited decisions, a creator-safe portal, and finance-safe payout workflows."
           actions={
             <>
               <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
@@ -98,20 +98,27 @@ export default function SecurityPage() {
             </>
           }
         >
-          <p className="text-sm font-medium text-[#1A1A1A]">Current trust posture</p>
-          <p className="mt-4 text-sm leading-7 text-[#5B6472]">
-            AppAffiliate is designed as a controlled operations product. The
-            current product emphasizes narrower access, explicit review state, and
-            server-side handling for sensitive paths rather than broad
-            enterprise claims.
-          </p>
+          <div className="grid gap-3">
+            {[
+              "Keep founders, operators, and creators in the right surface",
+              "Make review and payout decisions easier to trust later",
+              "Avoid heavy compliance theater in favor of specific workflow controls",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-[16px] border border-border bg-[rgba(255,255,255,0.88)] px-4 py-4 text-sm leading-7 text-ink-muted"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
             eyebrow="What exists today"
-            title="Security posture aligned to the real product."
-            description="The public site should make it easy to understand how AppAffiliate protects boundaries without overstating its scope."
+            title="Plain-language trust for a real product."
+            description="The security story should make founders more confident without turning the page into enterprise-heavy theater."
           />
 
           <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -127,17 +134,18 @@ export default function SecurityPage() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
-            eyebrow="How we describe trust"
-            title="Measured, specific, and current."
-            description="AppAffiliate should build confidence by naming the controls that exist now and the workflows they protect."
+            eyebrow="How we talk about trust"
+            title="Specific, current, and grounded."
+            description="Trust is stronger when the language matches the actual controls in the product and the workflows they protect."
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
-            {honestyNotes.map((note) => (
+            {proofNotes.map((note) => (
               <MarketingCard
                 key={note.title}
                 title={note.title}
                 description={note.description}
+                tone="contrast"
               />
             ))}
           </div>
@@ -148,7 +156,7 @@ export default function SecurityPage() {
             <MarketingCtaPanel
               eyebrow="Next step"
               title="Review the workflow and trust model together."
-              description="Security review is more useful when paired with the product and workflow pages, because access boundaries and auditability are part of the operating model itself."
+              description="Security is easier to evaluate when paired with the product and workflow pages, because review and payout boundaries are part of the operating model."
               primaryHref="/how-it-works"
               primaryLabel="See how it works"
               secondaryHref="/request-access"

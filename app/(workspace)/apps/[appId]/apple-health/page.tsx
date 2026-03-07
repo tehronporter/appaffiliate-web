@@ -2,7 +2,10 @@ import type { ReactNode } from "react";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
+  DetailList,
   EmptyState,
+  InfoPanel,
+  InsetPanel,
   InlineActionRow,
   ListTable,
   PageHeader,
@@ -95,12 +98,12 @@ export default async function AppleHealthPage({
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Program"
-        title={`Apple Health for ${appName}`}
-        description="Review Apple intake as an operational surface: ingest readiness, recent receipt posture, normalized event visibility, and the next action an operator should take."
+        eyebrow="Activation"
+        title={`Get ${appName} ready to track creator results`}
+        description="Use this page to confirm Apple intake, review the latest result signal, and clear blockers before the first creator-driven result matters."
         actions={
           <>
-            <ActionLink href="/events">Open events</ActionLink>
+            <ActionLink href="/onboarding">Open activation guide</ActionLink>
             <ActionLink href="/dashboard" variant="primary">
               Open dashboard
             </ActionLink>
@@ -112,19 +115,22 @@ export default async function AppleHealthPage({
           <StatusBadge tone={readiness.app?.ingest_key ? "success" : "warning"}>
             {readiness.app?.ingest_key ? "Ingest key assigned" : "Ingest key missing"}
           </StatusBadge>
-          <StatusBadge>{environmentLabel === "Unknown" ? "Environment unknown" : environmentLabel}</StatusBadge>
+          <StatusBadge>
+            {environmentLabel === "Unknown" ? "Environment unknown" : environmentLabel}
+          </StatusBadge>
         </div>
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard
-          label="Readiness"
+          label="App readiness"
           value={readiness.readinessLabel}
           detail={readiness.readinessDetail}
           tone={readiness.readinessTone}
+          size="compact"
         />
         <StatCard
-          label="Last receipt"
+          label="Last signal"
           value={
             readiness.latestReceipt
               ? formatOperationalTimestamp(readiness.latestReceipt.received_at)
@@ -136,9 +142,10 @@ export default async function AppleHealthPage({
               : "The app has not stored an Apple receipt yet."
           }
           tone={readiness.latestReceipt ? "success" : "primary"}
+          size="compact"
         />
         <StatCard
-          label="Last normalized event"
+          label="First result path"
           value={
             readiness.latestEvent
               ? formatOperationalTimestamp(
@@ -149,33 +156,35 @@ export default async function AppleHealthPage({
           detail={
             readiness.latestEvent
               ? `${readiness.latestEvent.eventType} is visible with ${readiness.latestEvent.state} operational state.`
-              : "Receipt intake can be live before the product safely produces a normalized event."
+              : "Receipt intake can be live before the product safely produces a first normalized result."
           }
           tone={readiness.latestEvent ? "success" : "primary"}
+          size="compact"
         />
         <StatCard
           label="Environment"
           value={environmentLabel}
           detail="Environment reflects the latest receipt or normalized event when Apple provided it."
           tone="primary"
+          size="compact"
         />
       </div>
 
       {!readiness.app ? (
         <SectionCard
           eyebrow="Current state"
-          title="This app is not ready for Apple intake yet"
-          description="The route path exists, but the current workspace does not have a matching app record to attach receipts and normalized events."
+          title="Add this app before you track creator-led results"
+          description="The route path exists, but the current workspace does not have a matching app record to attach receipts and normalized results."
         >
           <EmptyState
             eyebrow="App missing"
             title="Create or align the app record first"
-            description="Add the app row in the workspace database, assign an ingest key, and then point Apple at the public notification route for this app."
+            description="Add the app record, assign an ingest key, and then point Apple at the public notification route for this app."
             action={
               <>
-                <ActionLink href="/settings">Open settings</ActionLink>
-                <ActionLink href="/events" variant="primary">
-                  Review events
+                <ActionLink href="/onboarding">Open activation guide</ActionLink>
+                <ActionLink href="/settings" variant="primary">
+                  Open settings
                 </ActionLink>
               </>
             }
@@ -183,42 +192,35 @@ export default async function AppleHealthPage({
         </SectionCard>
       ) : (
         <>
-          <SurfaceCard>
+          <SurfaceCard density="compact">
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Readiness posture
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  {readiness.readinessDetail}
-                </p>
-              </div>
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Latest receipt
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  {readiness.latestReceipt
+              <InfoPanel
+                title="Readiness"
+                description={readiness.readinessDetail}
+              />
+              <InfoPanel
+                title="Latest signal"
+                description={
+                  readiness.latestReceipt
                     ? `${formatOperationalTimestamp(readiness.latestReceipt.received_at)} with ${receiptVerificationStatus} verification and ${receiptProcessingStatus} processing.`
-                    : "No Apple receipt has been stored for this app yet."}
-                </p>
-              </div>
-              <div className="rounded-[18px] border border-[#E8EDF3] bg-[#FAFBFC] px-4 py-4">
-                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Current product boundary
-                </p>
-                <p className="mt-2 text-sm leading-7 text-ink-muted">
-                  Receipt capture and best-effort normalization are live. Full Apple signature verification and historical reconciliation remain out of scope.
-                </p>
-              </div>
+                    : "No Apple receipt has been stored for this app yet."
+                }
+              />
+              <InfoPanel
+                title="Needs attention"
+                description={
+                  readiness.warningNote ??
+                  "No current warning note is attached to the latest receipt or event for this app."
+                }
+              />
             </div>
           </SurfaceCard>
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
             <ListTable
-              eyebrow="Readiness"
-              title="Apple intake operational checklist"
-              description="Keep the readiness picture concrete: where receipts land, how normalization looks, and which follow-up the operator should take next."
+              eyebrow="Activation"
+              title="App readiness steps"
+              description="Keep the path concrete: ingest key, first receipt, first normalized result, and the next follow-up if something is blocked."
             >
               {readinessSteps.map((step) => (
                 <InlineActionRow
@@ -233,24 +235,41 @@ export default async function AppleHealthPage({
 
             <SectionCard
               eyebrow="Guidance"
-              title="What operators should expect here"
-              description="This surface should answer the practical questions an internal operator will ask while Apple receipt handling remains intentionally narrow."
-              items={[
-                "Has this app started receiving Apple receipts yet?",
-                "Did the latest receipt normalize into an internal event row?",
-                "What environment did the latest activity indicate?",
-                "Is the latest warning about missing verification, failed processing, or app setup?",
-              ]}
-            />
+              title="What this page helps you confirm"
+              description="Use this page to answer one question quickly: is this app ready to support the first creator-driven result?"
+            >
+              <DetailList
+                items={[
+                  {
+                    label: "Linked creators",
+                    value: "Visible through code ownership and portal-linked records",
+                  },
+                  {
+                    label: "Ingestion status",
+                    value: readiness.app?.ingest_key ? "Ready" : "Needs ingest key",
+                  },
+                  {
+                    label: "Recent results",
+                    value: readiness.latestEvent
+                      ? readiness.latestEvent.eventType
+                      : "No normalized result yet",
+                  },
+                  {
+                    label: "Open issues",
+                    value: readiness.warningNote ?? "No open warning note",
+                  },
+                ]}
+              />
+            </SectionCard>
           </div>
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <SurfaceCard>
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-                Latest activity
+                First-result signals
               </p>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[24px] border border-border bg-surface p-5">
+                <InsetPanel className="p-5">
                   <StatusBadge tone="success">Receipt</StatusBadge>
                   <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink">
                     Last receipt received
@@ -260,21 +279,21 @@ export default async function AppleHealthPage({
                       ? `${formatOperationalTimestamp(readiness.latestReceipt.received_at)}. ${receiptNotificationType}${receiptNotificationSubtype ? ` / ${receiptNotificationSubtype}` : ""}.`
                       : "No receipt has been stored for this app yet."}
                   </p>
-                </div>
+                </InsetPanel>
 
-                <div className="rounded-[24px] border border-border bg-surface p-5">
+                <InsetPanel className="p-5">
                   <StatusBadge tone="primary">Normalization</StatusBadge>
                   <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink">
-                    Last normalized event
+                    Last normalized result
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-ink-muted">
                     {readiness.latestEvent
                       ? `${readiness.latestEvent.eventType} at ${formatOperationalTimestamp(readiness.latestEvent.receivedAt ?? readiness.latestEvent.occurredAt)} with ${readiness.latestEvent.eventStatus} processing.`
                       : "No normalized event is available yet for this app."}
                   </p>
-                </div>
+                </InsetPanel>
 
-                <div className="rounded-[24px] border border-border bg-surface p-5">
+                <InsetPanel className="p-5">
                   <StatusBadge tone="warning">Verification</StatusBadge>
                   <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink">
                     Verification posture
@@ -284,9 +303,9 @@ export default async function AppleHealthPage({
                       ? `The latest receipt is marked ${receiptVerificationStatus}. This page does not claim full Apple signature verification yet.`
                       : "Verification status becomes meaningful after the first receipt is stored."}
                   </p>
-                </div>
+                </InsetPanel>
 
-                <div className="rounded-[24px] border border-border bg-surface p-5">
+                <InsetPanel className="p-5">
                   <StatusBadge tone={readiness.warningNote ? "warning" : "success"}>
                     {readiness.warningNote ? "Warning note" : "No warning"}
                   </StatusBadge>
@@ -297,19 +316,19 @@ export default async function AppleHealthPage({
                     {readiness.warningNote ??
                       "The latest receipt and normalized event do not currently carry a warning note."}
                   </p>
-                </div>
+                </InsetPanel>
               </div>
             </SurfaceCard>
 
             <SectionCard
               eyebrow="Current state"
               title="Current product boundary"
-              description="The current product intentionally stops at receipt capture, best-effort normalization, and honest readiness visibility."
+              description="Keep the scope honest: receipt capture and readiness visibility are real, while deeper Apple validation remains outside the current product."
             >
               <EmptyState
                 eyebrow="Still intentionally limited"
                 title="Receipt capture is real; deeper Apple validation is not"
-                description="The public Apple endpoint now stores the raw signed payload server-side, records the current verification posture, and creates normalized events only when the payload can be interpreted safely. Full cryptographic validation, historical reconciliation, attribution actions, and payout behavior remain out of scope."
+                description="The public Apple endpoint stores the signed payload server-side, records the current verification posture, and creates normalized events only when the payload can be interpreted safely. Full cryptographic validation and historical reconciliation remain out of scope."
                 action={
                   <>
                     <ActionLink href="/events">Review events</ActionLink>
