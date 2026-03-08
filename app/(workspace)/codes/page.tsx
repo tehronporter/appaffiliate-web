@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Code2 } from "lucide-react";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
+import { CodeFormFields } from "@/components/code-form-fields";
 import {
   ActionButton,
   DetailList,
@@ -25,7 +26,6 @@ import {
 import {
   listWorkspacePromoCodes,
   type PromoCodeStatus,
-  type PromoCodeType,
 } from "@/lib/services/codes";
 import {
   toneForPromoCodeStatus,
@@ -112,105 +112,6 @@ function noticeCopy(notice: string | undefined) {
   }
 
   return null;
-}
-
-function CodeFormFields(props: {
-  appOptions: Array<{ id: string; label: string }>;
-  partnerOptions: Array<{ id: string; label: string }>;
-  defaultAppId?: string;
-  defaultPartnerId?: string | null;
-  defaultCode?: string;
-  defaultStatus?: PromoCodeStatus;
-  defaultCodeType?: PromoCodeType;
-  defaultChannel?: string | null;
-}) {
-  return (
-    <div className="grid gap-4">
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">App</span>
-        <select
-          name="appId"
-          required
-          defaultValue={props.defaultAppId ?? props.appOptions[0]?.id ?? ""}
-          className="aa-field"
-        >
-          {props.appOptions.map((app) => (
-            <option key={app.id} value={app.id}>
-              {app.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Creator owner</span>
-        <select
-          name="partnerId"
-          defaultValue={props.defaultPartnerId ?? "none"}
-          className="aa-field"
-        >
-          <option value="none">Choose later</option>
-          {props.partnerOptions.map((partner) => (
-            <option key={partner.id} value={partner.id}>
-              {partner.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Code or link label</span>
-        <input
-          name="code"
-          type="text"
-          required
-          defaultValue={props.defaultCode ?? ""}
-          className="aa-field uppercase"
-        />
-      </label>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Status</span>
-          <select
-            name="status"
-            defaultValue={props.defaultStatus ?? "active"}
-            className="aa-field"
-          >
-            <option value="draft">Draft</option>
-            <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="expired">Expired</option>
-            <option value="archived">Archived</option>
-          </select>
-        </label>
-
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Asset type</span>
-          <select
-            name="codeType"
-            defaultValue={props.defaultCodeType ?? "promo"}
-            className="aa-field"
-          >
-            <option value="promo">Promo</option>
-            <option value="referral">Referral</option>
-            <option value="campaign">Campaign</option>
-            <option value="vanity">Vanity</option>
-          </select>
-        </label>
-      </div>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Channel note</span>
-        <input
-          name="channel"
-          type="text"
-          defaultValue={props.defaultChannel ?? ""}
-          className="aa-field"
-        />
-      </label>
-    </div>
-  );
 }
 
 export default async function CodesPage({ searchParams }: CodesPageProps) {
