@@ -14,6 +14,7 @@ import {
   PageHeader,
   SectionCard,
   StatusBadge,
+  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -220,7 +221,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
       <PageHeader
         eyebrow="Program"
         title="Partners"
-        description="Manage creator records and code coverage."
+        description="Manage creator records and coverage."
         actions={
           <>
             <ActionLink href="/codes">Review codes</ActionLink>
@@ -230,9 +231,9 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           </>
         }
       >
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           <StatusBadge tone={toneForWorkspaceLabel()}>Creator directory</StatusBadge>
-          <StatusBadge tone="amber">Manual relationship updates</StatusBadge>
+          {withoutCodesCount > 0 ? <StatusBadge tone="amber">Needs setup</StatusBadge> : null}
         </div>
       </PageHeader>
 
@@ -249,13 +250,13 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           <MetricChip
             label="Creators"
             value={String(data.partners.length)}
-            detail="Visible in this workspace"
+            detail="In view"
             tone="blue"
           />
           <MetricChip
             label="Active"
             value={String(data.stats.active)}
-            detail="Live creator relationships"
+            detail="Live"
             tone="green"
           />
           <MetricChip
@@ -267,8 +268,8 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           <MetricChip
             label="Invites pending"
             value={String(pendingInviteCount)}
-            detail="Creator portal access still waiting on acceptance"
-            tone={pendingInviteCount > 0 ? "amber" : "green"}
+            detail="Awaiting acceptance"
+            tone={pendingInviteCount > 0 ? "amber" : "gray"}
           />
           <MetricChip
             label="Pending"
@@ -279,13 +280,21 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
       </section>
 
       <div className="space-y-3">
+        <SummaryBar
+          items={[
+            {
+              label: "Coverage",
+              value: withoutCodesCount > 0 ? `${withoutCodesCount} need codes` : "Coverage calm",
+            },
+            {
+              label: "Invites",
+              value: pendingInviteCount > 0 ? `${pendingInviteCount} pending` : "No pending invites",
+            },
+          ]}
+        />
+
         <FilterBar
-          title="Creator filters"
-          description={
-            withoutCodesCount > 0
-              ? `${withoutCodesCount} creators still need code coverage.`
-              : "Every visible creator already has code coverage."
-          }
+          title="Filters"
         >
           <FilterChipLink
             href={buildHref({ status: "all" })}
@@ -319,7 +328,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           </FilterChipLink>
         </FilterBar>
 
-        <ListTable className="w-full" eyebrow="Directory" title="Creators table" description="Click a row to inspect or update the creator record.">
+        <ListTable className="w-full" eyebrow="Directory" title="Creators" description="Select a row to inspect or edit.">
           <div className="hidden grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_90px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Creator</span>
               <span>Contact</span>
@@ -335,13 +344,13 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
                     eyebrow={data.hasWorkspaceAccess ? "Directory" : "Access required"}
                     title={
                       data.hasWorkspaceAccess
-                        ? "Invite your first creator to start tracking performance"
+                        ? "Invite your first creator"
                         : "Sign in to review creator records"
                     }
                     description={
                       data.hasWorkspaceAccess
-                        ? "Creator records will appear here once the workspace has at least one invited creator or you return to a wider directory view."
-                        : "An internal workspace membership is required before creator records can be read."
+                        ? "Creator records appear here after the first invite."
+                        : "An internal workspace membership is required."
                     }
                     action={
                       data.hasWorkspaceAccess ? (
@@ -363,7 +372,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
                   <div>
                     <h3 className="text-sm font-semibold text-ink">{partner.name}</h3>
                     <p className="mt-1 text-sm text-ink-muted">
-                      {partner.notes ?? "No internal note yet."}
+                      {partner.notes ?? "No note"}
                     </p>
                   </div>
                   <div className="text-sm text-ink-muted">
@@ -388,11 +397,11 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           closeHref={buildHref({ status })}
           eyebrow="Create"
           title="Invite creator"
-          description="Start with the minimum detail needed to assign ownership and track the first result."
+          description="Add the next creator record."
         >
           <SectionCard
-            title="Why this matters"
-            description="The first creator turns setup into a real growth test. Once this record exists, you can assign a code or link and start tracking results."
+            title="Creator details"
+            description="Keep only the detail needed to start."
           >
             <form action={createPartnerAction} className="space-y-4">
               <PartnerFormFields />
@@ -413,7 +422,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           title={selectedPartner.name}
           description={
             selectedPartner.notes ??
-            "No internal note has been added yet. Keep only the creator context operators actually need."
+            "No internal note yet."
           }
           status={
             <div className="flex flex-wrap gap-2">
@@ -429,8 +438,8 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           }
         >
             <SectionCard
-              title="Relationship context"
-              description="Keep ownership, linked apps, and contact detail visible before editing the record."
+              title="Context"
+              description="Current ownership and invite state."
             >
               <DetailList
                 items={[
@@ -464,8 +473,8 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
             </SectionCard>
 
             <SectionCard
-              title="Update creator record"
-              description="Update lifecycle, contact detail, or internal notes without expanding this page into a broader CRM tool."
+              title="Edit creator"
+              description="Update status, contact, or notes."
             >
               {selectedInvite?.status === "pending" ? (
                 <div className="mb-4 flex flex-wrap justify-end gap-2">

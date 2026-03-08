@@ -12,12 +12,13 @@ import {
   PageHeader,
   SectionCard,
   StatusBadge,
+  SummaryBar,
 } from "@/components/admin-ui";
 import {
   formatOperationalTimestamp,
   getAppleHealthReadinessData,
 } from "@/lib/services/apple-read-model";
-import { toneForSystemStatus, toneForWorkspaceLabel } from "@/lib/status-badges";
+import { toneForSystemStatus } from "@/lib/status-badges";
 
 type AppleHealthPageProps = {
   params: Promise<{
@@ -110,7 +111,7 @@ export default async function AppleHealthPage({
       <PageHeader
         eyebrow="Apple health"
         title={appName}
-        description="Check Apple intake, latest signals, and blockers for this app."
+        description="Check Apple intake and the next follow-up for this app."
         actions={
           <>
             <ActionLink href="/events">Open events</ActionLink>
@@ -120,63 +121,77 @@ export default async function AppleHealthPage({
           </>
         }
       >
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           <StatusBadge tone={toneForSystemStatus(readiness.readinessLabel)}>
             {readiness.readinessLabel}
           </StatusBadge>
           <StatusBadge tone={readiness.app?.ingest_key ? "green" : "amber"}>
             {readiness.app?.ingest_key ? "Ingest key assigned" : "Ingest key missing"}
           </StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>{environmentLabel}</StatusBadge>
         </div>
       </PageHeader>
 
-      <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex min-w-max gap-3">
-          <MetricChip
-            label="App readiness"
-            value={readiness.readinessLabel}
-            detail={readiness.readinessDetail}
-            tone={toneForSystemStatus(readiness.readinessLabel)}
-          />
-          <MetricChip
-            label="Last signal"
-            value={
-              readiness.latestReceipt
-                ? formatOperationalTimestamp(readiness.latestReceipt.received_at)
-                : "No receipts"
-            }
-            detail={
-              readiness.latestReceipt
-                ? `${receiptVerificationStatus} verification and ${receiptProcessingStatus} processing.`
-                : "The app has not stored an Apple receipt yet."
-            }
-            tone={readiness.latestReceipt ? "green" : "blue"}
-          />
-          <MetricChip
-            label="First result path"
-            value={
-              readiness.latestEvent
-                ? formatOperationalTimestamp(
-                    readiness.latestEvent.receivedAt ?? readiness.latestEvent.occurredAt,
-                  )
-                : "No normalized rows"
-            }
-            detail={
-              readiness.latestEvent
-                ? `${readiness.latestEvent.eventType} is visible with ${readiness.latestEvent.state} state.`
-                : "Receipt intake can be live before a first normalized result."
-            }
-            tone={readiness.latestEvent ? "green" : "blue"}
-          />
-          <MetricChip
-            label="Environment"
-            value={environmentLabel}
-            detail="Derived from the latest receipt or event."
-            tone="blue"
-          />
-        </div>
-      </section>
+      <div className="space-y-3">
+        <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <div className="flex min-w-max gap-3">
+            <MetricChip
+              label="App readiness"
+              value={readiness.readinessLabel}
+              detail={readiness.readinessDetail}
+              tone={toneForSystemStatus(readiness.readinessLabel)}
+            />
+            <MetricChip
+              label="Last signal"
+              value={
+                readiness.latestReceipt
+                  ? formatOperationalTimestamp(readiness.latestReceipt.received_at)
+                  : "No receipts"
+              }
+              detail={
+                readiness.latestReceipt
+                  ? `${receiptVerificationStatus} verification and ${receiptProcessingStatus} processing.`
+                  : "No Apple receipt stored yet."
+              }
+              tone={readiness.latestReceipt ? "green" : "blue"}
+            />
+            <MetricChip
+              label="First result path"
+              value={
+                readiness.latestEvent
+                  ? formatOperationalTimestamp(
+                      readiness.latestEvent.receivedAt ?? readiness.latestEvent.occurredAt,
+                    )
+                  : "No normalized rows"
+              }
+              detail={
+                readiness.latestEvent
+                  ? `${readiness.latestEvent.eventType} is visible with ${readiness.latestEvent.state} state.`
+                  : "Receipt intake can be live before the first normalized result."
+              }
+              tone={readiness.latestEvent ? "green" : "blue"}
+            />
+            <MetricChip
+              label="Environment"
+              value={environmentLabel}
+              detail="Derived from the latest receipt or event."
+              tone="blue"
+            />
+          </div>
+        </section>
+
+        <SummaryBar
+          items={[
+            {
+              label: "Environment",
+              value: environmentLabel,
+            },
+            {
+              label: "Follow-up",
+              value: recommendedAction.label,
+            },
+          ]}
+        />
+      </div>
 
       {!readiness.app ? (
         <SectionCard
@@ -199,8 +214,8 @@ export default async function AppleHealthPage({
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <ListTable
             eyebrow="Checks"
-            title="Apple health checks"
-            description="Keep the path concrete: ingest key, first receipt, first normalized result, and the next follow-up."
+            title="Checks"
+            description="Review ingest key, receipt flow, and the next step."
           >
             {readinessSteps.map((step) => (
               <InlineActionRow
@@ -230,8 +245,8 @@ export default async function AppleHealthPage({
             </InsetPanel>
 
             <SectionCard
-              title="Latest signal detail"
-              description="Keep the last receipt and last normalized event readable."
+              title="Latest signals"
+              description="Keep the last receipt and normalized event readable."
             >
               <DetailList
                 items={[

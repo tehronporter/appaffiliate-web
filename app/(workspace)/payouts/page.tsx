@@ -16,6 +16,7 @@ import {
   StatCard,
   StatusBadge,
   StatusTimeline,
+  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -30,6 +31,7 @@ import { listPayoutsData } from "@/lib/services/finance";
 import {
   toneForPayoutBatchItemStatus,
   toneForPayoutBatchStatus,
+  toneForWorkspaceLabel,
 } from "@/lib/status-badges";
 
 type PayoutsPageProps = {
@@ -258,7 +260,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
       <PageHeader
         eyebrow="Finance"
         title="Payouts"
-        description="Track ready, batched, exported, and paid states."
+        description="Move approved earnings into tracked payout work."
         actions={
           <>
             <ActionLink href="/commissions">Open commissions</ActionLink>
@@ -268,9 +270,9 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
           </>
         }
       >
-        <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="amber">Ready and reserved stay separate</StatusBadge>
-          <StatusBadge tone="gray">Export and paid stay separate</StatusBadge>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge tone={toneForWorkspaceLabel()}>Tracked payout work</StatusBadge>
+          {data.stats.readyGroups > 0 ? <StatusBadge tone="amber">Ready groups</StatusBadge> : null}
         </div>
       </PageHeader>
 
@@ -286,28 +288,28 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         <StatCard
           label="Ready to batch"
           value={formatAggregateAmount(data.readyGroups, "$0.00")}
-          detail={`${data.stats.readyGroups} partner groups across ${data.stats.readyEntries} approved entries can be batched next.`}
+          detail={`${data.stats.readyGroups} groups across ${data.stats.readyEntries} approved entries.`}
           tone="amber"
           size="compact"
         />
         <StatCard
           label="Reserved in batch"
           value={formatAggregateAmount(draftLikeBatches, "$0.00")}
-          detail={`${draftLikeBatches.length} tracked batches still need export or payment follow-through.`}
-          tone="green"
+          detail={`${draftLikeBatches.length} batches still need export or payment.`}
+          tone="blue"
           size="compact"
         />
         <StatCard
           label="Exported"
           value={formatAggregateAmount(exportedBatches, "$0.00")}
-          detail={`${exportedBatches.length} batches already have a finance handoff but are not paid yet.`}
+          detail={`${exportedBatches.length} batches have a finance handoff.`}
           tone="gray"
           size="compact"
         />
         <StatCard
           label="Recently paid"
           value={formatAggregateAmount(paidBatches, "$0.00")}
-          detail={`${paidBatches.length} batches remain visible for reconciliation after payment is confirmed.`}
+          detail={`${paidBatches.length} batches remain visible for reconciliation.`}
           tone="green"
           size="compact"
         />
@@ -322,7 +324,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             icon={Wallet}
             eyebrow="Finance access required"
             title="Open payout records with a finance-safe role"
-            description="Payout tracking is limited to owner, admin, or finance roles because it exposes real payout state."
+            description="Payout tracking is limited to owner, admin, or finance roles."
             action={
               <ActionLink href="/dashboard" variant="primary">
                 Open dashboard
@@ -332,27 +334,44 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         </SectionCard>
       ) : (
         <>
-          <FilterBar
-            title="Payout views"
-            description={`${data.stats.readyGroups} partner groups are ready and ${draftLikeBatches.length} batches are already in motion.`}
-          >
-            <FilterChipLink href={buildHref({ view: "all" })} active={view === "all"}>
-              All payout work
-            </FilterChipLink>
-            <FilterChipLink href={buildHref({ view: "ready" })} active={view === "ready"}>
-              Ready for payout
-            </FilterChipLink>
-            <FilterChipLink href={buildHref({ view: "batches" })} active={view === "batches"}>
-              Tracked batches
-            </FilterChipLink>
-          </FilterBar>
+          <div className="space-y-3">
+            <SummaryBar
+              items={[
+                {
+                  label: "Ready",
+                  value:
+                    data.stats.readyGroups > 0
+                      ? `${data.stats.readyGroups} groups`
+                      : "No ready groups",
+                },
+                {
+                  label: "In motion",
+                  value:
+                    draftLikeBatches.length > 0
+                      ? `${draftLikeBatches.length} batches`
+                      : "No tracked batches",
+                },
+              ]}
+            />
+
+            <FilterBar title="Views">
+              <FilterChipLink href={buildHref({ view: "all" })} active={view === "all"}>
+                All payout work
+              </FilterChipLink>
+              <FilterChipLink href={buildHref({ view: "ready" })} active={view === "ready"}>
+                Ready for payout
+              </FilterChipLink>
+              <FilterChipLink href={buildHref({ view: "batches" })} active={view === "batches"}>
+                Tracked batches
+              </FilterChipLink>
+            </FilterBar>
 
           {showReady ? (
             <ListTable
               className="w-full"
               eyebrow="Ready for payout"
-              title="Ready groups table"
-              description="Each row groups approved commissions that can be reserved into a draft batch as the next deliberate finance step."
+              title="Ready groups"
+              description="Select a row to build the next batch."
             >
               <div className="hidden grid-cols-[minmax(0,1.2fr)_150px_120px_110px] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
                 <span>Partner</span>
@@ -367,11 +386,11 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                     <EmptyState
                       icon={Wallet}
                       eyebrow="Ready for payout"
-                      title="Your first payout-ready group will appear here"
-                      description="Approved commission items show up here when they are ready for a deliberate draft-batch step."
+                      title="Next payout-ready group appears here"
+                      description="Approved commission items show up here when they are ready to batch."
                       action={
                         <ActionLink href="/commissions" variant="primary">
-                          Review commission ledger
+                          Review commissions
                         </ActionLink>
                       }
                     />
@@ -415,8 +434,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
             <ListTable
               className="w-full"
               eyebrow="Tracked batches"
-              title="Payout batches table"
-              description="Inspect what has already moved into finance workflow and what still needs a handoff step."
+              title="Batches"
+              description="Select a row to inspect handoff state."
             >
               <div className="hidden grid-cols-[minmax(0,1.2fr)_120px_120px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
                 <span>Batch</span>
@@ -431,8 +450,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                     <EmptyState
                       icon={Layers}
                       eyebrow="Tracked batches"
-                      title="Create a draft batch to start payout tracking"
-                      description="Batches appear here after finance reserves a payout-ready group into an explicit handoff record."
+                      title="Create a draft batch to start tracking"
+                      description="Batches appear here after finance reserves a ready group."
                       action={
                         <ActionLink href={buildHref({ view: "ready" })} variant="primary">
                           Review ready groups
@@ -473,6 +492,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               </div>
             </ListTable>
           ) : null}
+          </div>
 
           {showBatchInspector && selectedBatch ? (
             <WorkspaceDrawer
@@ -490,7 +510,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="max-w-3xl">
                     <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                      Why this batch is in its current state
+                      Why this batch is here
                     </p>
                     <p className="mt-2 text-sm leading-6 text-ink-muted">
                       {batchStateMeaning(selectedBatch.status)}
@@ -504,7 +524,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
 
               <SectionCard
                 title="Batch summary"
-                description="Keep the tracked amount, included partners, and export posture visible before taking the next finance action."
+                description="Keep amount, partner scope, and export posture visible."
               >
                 <DetailList
                   items={[
@@ -520,14 +540,14 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
 
               <SectionCard
                 title="State progression"
-                description="Show when the batch was created, when it cleared internal review, and whether finance handoff or payment is complete."
+                description="Show draft, export, and payment state."
               >
                 <StatusTimeline steps={buildBatchTimeline(selectedBatch)} />
               </SectionCard>
 
               <SectionCard
                 title="Finance handoff"
-                description="Make the current export reference and note readable for finance and support without opening raw records."
+                description="Keep the export reference and note readable."
               >
                 <DetailList
                   items={[
@@ -554,7 +574,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
 
               <SectionCard
                 title="Included payout items"
-                description="Keep the reserved payout rows readable without leaving the inspector."
+                description="Keep reserved payout rows readable."
               >
                 <InsetPanel tone="gray" className="overflow-hidden px-0 py-0">
                   {selectedBatch.items.length === 0 ? (
@@ -562,10 +582,10 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       <EmptyState
                         icon={Layers}
                         title="Reserved payout items will appear here"
-                        description="This panel fills with the batch's payout items after finance reserves approved earnings into the tracked batch."
+                        description="This panel fills after finance reserves approved earnings into the batch."
                         action={
                           <ActionLink href="/commissions" variant="primary">
-                            Review commission ledger
+                            Review commissions
                           </ActionLink>
                         }
                       />
@@ -598,7 +618,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               {selectedBatch.status !== "exported" && selectedBatch.status !== "paid" ? (
                 <SectionCard
                   title="Export confirmation"
-                  description="Export only reviewed, approved commissions so finance receives a clean batch."
+                  description="Record the finance handoff explicitly."
                 >
                   <form action={markPayoutBatchExportedAction} className="space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -635,7 +655,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               {selectedBatch.status !== "paid" ? (
                 <SectionCard
                   title="Payment confirmation"
-                  description="Mark the batch paid only after remittance is complete and the finance handoff has cleared."
+                  description="Confirm payment after remittance is complete."
                 >
                   <form action={markPayoutBatchPaidAction} className="space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -666,7 +686,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               {selectedBatch.status !== "paid" && selectedBatch.status !== "cancelled" ? (
                 <SectionCard
                   title="Cancel batch"
-                  description="Release reserved earnings back to payout-ready state if this batch should not move forward."
+                  description="Release reserved earnings if this batch should stop."
                 >
                   <form action={cancelPayoutBatchAction} className="space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -695,7 +715,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
               closeHref={buildHref({ view })}
               eyebrow="Batch builder"
               title={selectedGroup.partnerName}
-              description="This group is ready because the included commission entries are already approved and still outside payout tracking."
+              description="This group is approved and still outside payout tracking."
               status={<StatusBadge tone="green">Ready for payout</StatusBadge>}
             >
               <InsetPanel tone="green">
@@ -705,7 +725,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       Why this group is ready
                     </p>
                     <p className="mt-2 text-sm leading-6 text-ink-muted">
-                      These earnings have already cleared commission approval, but finance has not reserved them inside a payout batch yet.
+                      These earnings cleared commission approval but are not in a payout batch yet.
                     </p>
                   </div>
                   <StatusBadge tone="green">{selectedGroup.totalAmountLabel}</StatusBadge>
@@ -714,7 +734,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
 
               <SectionCard
                 title="Included commissions"
-                description="Show what this draft batch would include before you reserve it."
+                description="Show what this draft batch would include."
               >
                 <DetailList
                   items={[
@@ -736,7 +756,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
 
               <SectionCard
                 title="State progression"
-                description="Keep the payout sequence obvious before this group becomes a tracked batch."
+                description="Keep the payout sequence obvious before this becomes a tracked batch."
               >
                 <StatusTimeline
                   steps={[

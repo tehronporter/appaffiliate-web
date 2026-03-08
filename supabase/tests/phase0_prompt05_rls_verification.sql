@@ -95,6 +95,16 @@ from public.apps;
 select count(*) as visible_payout_batches
 from public.payout_batches;
 
+-- Internal members should see workspace billing state for their own organization only.
+select
+  count(*) filter (
+    where organization_id = (select organization_a_id from temp_rls_context)
+  ) as billing_rows_in_org_a,
+  count(*) filter (
+    where organization_id = (select organization_b_id from temp_rls_context)
+  ) as billing_rows_in_org_b
+from public.workspace_billing_states;
+
 -- ---------------------------------------------------------------------------
 -- Partner user checks
 -- ---------------------------------------------------------------------------
@@ -142,5 +152,8 @@ from public.normalized_events;
 
 select count(*) as payout_batches_visible_to_partner_user
 from public.payout_batches;
+
+select count(*) as workspace_billing_states_visible_to_partner_user
+from public.workspace_billing_states;
 
 rollback;

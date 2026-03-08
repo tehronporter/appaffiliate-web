@@ -47,12 +47,11 @@ export function SettingsPageFrame({
         description={description}
         actions={actions}
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
           {badges ?? (
-            <div className="flex flex-wrap gap-3">
-              <StatusBadge tone="green">Backed by live data</StatusBadge>
-              <StatusBadge tone="amber">Read-only where models stay narrow</StatusBadge>
-              <StatusBadge tone="blue">Internal workspace settings</StatusBadge>
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge tone="blue">Internal settings</StatusBadge>
+              <StatusBadge tone="gray">Live where available</StatusBadge>
             </div>
           )}
 
@@ -74,7 +73,7 @@ export function SettingsPageFrame({
       </PageHeader>
 
       {stats?.length ? (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           {stats.map((stat) => (
             <StatCard
               key={stat.label}
@@ -98,7 +97,7 @@ export function SettingsHubActions() {
     <>
       <ActionLink href="/dashboard">Open dashboard</ActionLink>
       <ActionLink href="/onboarding" variant="primary">
-        Open activation guide
+        Activation guide
       </ActionLink>
     </>
   );

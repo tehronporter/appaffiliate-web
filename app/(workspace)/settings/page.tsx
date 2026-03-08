@@ -63,13 +63,13 @@ export default async function SettingsPage() {
     <SettingsPageFrame
       activeSection="overview"
       title="Settings"
-      description="Keep organization, team, rules, exports, and audit controls dense, clear, and operational."
+      description="Manage organization, team, rules, exports, and audit controls."
       actions={<SettingsHubActions />}
       stats={[
         {
           label: "Organization",
           value: data.organizationName ?? "Access required",
-          detail: "Organization identity is live and org-scoped instead of shell-only.",
+          detail: "Live organization identity.",
           tone: toneForWorkspaceLabel(),
         },
         {
@@ -81,7 +81,7 @@ export default async function SettingsPage() {
         {
           label: "Visible members",
           value: String(data.visibleMemberCount),
-          detail: "The team surface reflects the real workspace membership directory allowed by the current auth model.",
+          detail: "Visible in the current workspace.",
           tone: "green",
         },
       ]}
@@ -89,12 +89,12 @@ export default async function SettingsPage() {
       {!data.hasWorkspaceAccess ? (
         <SectionCard
           title="Internal workspace access required"
-          description="These controls remain internal-only because they expose organization, operations, and finance context."
+          description="These controls remain internal-only."
         >
           <EmptyState
             eyebrow="Access required"
             title="Sign in with an internal workspace membership"
-            description="Partner portal identities and non-member sessions should not inherit internal settings, audit, or monitoring access."
+            description="Internal settings, audit, and monitoring require a workspace membership."
             action={
               <ActionLink href="/dashboard" variant="primary">
                 Open dashboard
@@ -132,7 +132,7 @@ export default async function SettingsPage() {
 
             <SectionCard
               title="Current state"
-              description="Keep the key operational signals close to settings so operators can tell whether the workspace is calm before drilling deeper."
+              description="Keep the key operational signals close to settings."
               items={[
                 `Overall launch posture: ${launch.overallLabel}.`,
                 `Recent Apple receipts in view: ${data.monitoring.recentReceiptCount}.`,
@@ -152,7 +152,7 @@ export default async function SettingsPage() {
           <div className="grid gap-6 xl:grid-cols-2">
             <SectionCard
               title="Next actions"
-              description="Use these live checks to decide what needs attention next."
+              description="Use these checks to decide what needs attention next."
             >
               <div className="space-y-3">
                 {launch.checklist.map((check) => (
@@ -170,8 +170,23 @@ export default async function SettingsPage() {
             </SectionCard>
 
             <SectionCard
+              title="Plan and trial"
+              description="Workspace billing state is persisted before Stripe is active."
+              items={[
+                launch.billingSummary.planName && launch.billingSummary.billingIntervalLabel
+                  ? `${launch.billingSummary.planName} · ${launch.billingSummary.billingIntervalLabel}.`
+                  : launch.billingSummary.statusLabel,
+                launch.billingSummary.detail,
+                launch.billingSummary.usage?.apps.summary ?? "App usage is not available.",
+                launch.billingSummary.usage?.activeCreators.summary ?? "Creator usage is not available.",
+                ...launch.billingSummary.notes,
+              ]}
+              actions={<ActionLink href="/pricing">Open pricing</ActionLink>}
+            />
+
+            <SectionCard
               title="Recent operational signals"
-              description="These signals stay intentionally shallow: enough to spot work that needs attention fast."
+              description="Enough to spot work that needs attention fast."
             >
               <div className="space-y-3">
                 {data.monitoring.recentReceipts.slice(0, 3).map((receipt) => (
@@ -194,10 +209,10 @@ export default async function SettingsPage() {
                   <EmptyState
                     eyebrow="No receipt traffic"
                     title="No Apple receipts are visible in the current window"
-                    description="This may be normal for a quiet app. Operators can confirm ingest readiness on the rules page or an app-specific Apple health view."
+                    description="This may be normal for a quiet app. Confirm ingest readiness on rules or app health."
                     action={
                       <ActionLink href="/settings/rules" variant="primary">
-                        Review rules and readiness
+                        Review rules
                       </ActionLink>
                     }
                   />
@@ -207,9 +222,10 @@ export default async function SettingsPage() {
 
             <SectionCard
               title="Runbook boundary"
-              description="Keep billing honest and the final operator sequence explicit without expanding the app into a billing product."
+              description="Keep the launch sequence explicit while payment collection and billing administration remain off-platform."
               items={[
-                ...launch.billingReadiness.notes,
+                "Stripe, invoices, and charge collection are still deferred.",
+                "Trial expiry is tracked in-product, but workspace access remains soft until billing ships.",
                 "Apply database migrations in filename order before launch smoke testing.",
                 "Confirm Apple ingest, unattributed backlog, finance review, and export access before calling the workspace launch-ready.",
               ]}

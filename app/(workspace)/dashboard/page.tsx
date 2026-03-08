@@ -16,6 +16,7 @@ import type { ReactNode } from "react";
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
   EmptyState,
+  PageHeader,
   StatusBadge,
   SurfaceCard,
 } from "@/components/admin-ui";
@@ -28,7 +29,6 @@ import {
 import {
   toneForActivationState,
   toneForLaunchStatus,
-  toneForRoleLabel,
   toneForWorkspaceLabel,
 } from "@/lib/status-badges";
 import { buildActivationProgress } from "@/lib/activation-progress";
@@ -87,6 +87,20 @@ function dashboardMetricCardToneClass(tone: DashboardMetricTone) {
 
 function dashboardMetricBadgeTone(tone: DashboardMetricTone) {
   return tone;
+}
+
+function billingStatusTone(
+  status: Awaited<ReturnType<typeof getLaunchReadinessData>>["billingSummary"]["status"],
+) {
+  if (status === "trial_expired" || status === "missing") {
+    return "amber" as const;
+  }
+
+  if (status === "manual_contact") {
+    return "blue" as const;
+  }
+
+  return "green" as const;
 }
 
 function DashboardMetricCard({
@@ -182,11 +196,10 @@ export default async function DashboardPage() {
   const reviewQueuePreview = actionableChecks.slice(0, 2);
   const readyApps = launch.rules?.appleReadiness.filter((app) => app.ingestReady).length ?? 0;
   const totalApps = launch.rules?.appleReadiness.length ?? 0;
-  const activeCreators = launch.team?.partnerUserCount ?? 0;
+  const activeCreators = launch.billingSummary.usage?.activeCreators.used ?? 0;
   const needsReviewCount =
     monitoring.queueVolume +
     (financeSummary.hasFinanceAccess ? financeSummary.pendingReviewCount : 0);
-  const workspaceRole = workspace.role?.name ?? "No active membership";
   const workspaceName =
     workspace.organization?.name ??
     launch.organizationName ??
@@ -202,8 +215,8 @@ export default async function DashboardPage() {
       value: String(monitoring.recentReceiptCount),
       detail:
         monitoring.recentReceiptCount > 0
-          ? "Recent Apple receipts are flowing."
-          : "No recent results visible.",
+          ? "Recent receipts flowing."
+          : "No recent results yet.",
       tone: monitoring.recentReceiptCount > 0 ? ("blue" as const) : ("amber" as const),
       badge: "Tracked results",
       icon: Activity,
@@ -224,8 +237,8 @@ export default async function DashboardPage() {
         ? String(financeSummary.approvedCount)
         : "Hidden",
       detail: financeSummary.hasFinanceAccess
-        ? "Reviewed commissions cleared for payout."
-        : "Visible only to finance-safe roles.",
+        ? "Cleared for payout."
+        : "Finance-only.",
       tone:
         financeSummary.hasFinanceAccess && financeSummary.approvedCount > 0
           ? ("green" as const)
@@ -239,8 +252,8 @@ export default async function DashboardPage() {
         ? String(financeSummary.payoutTrackedCount)
         : "Hidden",
       detail: financeSummary.hasFinanceAccess
-        ? `${financeSummary.draftBatchCount} draft and ${financeSummary.exportedBatchCount} exported batches in motion.`
-        : "Visible only to finance-safe roles.",
+        ? `${financeSummary.draftBatchCount} draft and ${financeSummary.exportedBatchCount} exported in motion.`
+        : "Finance-only.",
       tone:
         financeSummary.hasFinanceAccess && financeSummary.payoutTrackedCount > 0
           ? ("green" as const)
@@ -253,8 +266,8 @@ export default async function DashboardPage() {
       value: String(activeCreators),
       detail:
         activeCreators > 0
-          ? "Creator-linked identities are active."
-          : "No active creator links yet.",
+          ? "Creator records live."
+          : "No active creators yet.",
       tone: activeCreators > 0 ? ("green" as const) : ("amber" as const),
       badge: "Active creators",
       icon: Users,
@@ -266,8 +279,8 @@ export default async function DashboardPage() {
         totalApps === 0
           ? "Add the first app lane."
           : monitoring.failedReceiptCount > 0 || monitoring.pendingReceiptCount > 0
-            ? `${monitoring.failedReceiptCount} failed and ${monitoring.pendingReceiptCount} pending receipts need review.`
-            : "Apple intake looks calm.",
+            ? `${monitoring.failedReceiptCount} failed and ${monitoring.pendingReceiptCount} pending.`
+            : "Apple intake calm.",
       tone:
         monitoring.failedReceiptCount > 0
           ? ("red" as const)
@@ -282,37 +295,37 @@ export default async function DashboardPage() {
   const quickActions = [
     {
       href: "/onboarding",
-      title: "Continue activation",
-      description: "Keep the first creator path moving.",
-      badge: <StatusBadge tone="blue">Setup</StatusBadge>,
+      title: "Activation guide",
+      description: "Continue setup.",
+      badge: undefined,
       icon: Rocket,
     },
     {
       href: "/codes",
       title: "Add code",
-      description: "Create or assign the next trackable asset.",
-      badge: <StatusBadge tone="blue">Program</StatusBadge>,
+      description: "Create or assign the next asset.",
+      badge: undefined,
       icon: Code2,
     },
     {
       href: "/events",
       title: "Review activity",
-      description: "Inspect the newest tracked results.",
-      badge: <StatusBadge tone="blue">Activity</StatusBadge>,
+      description: "Inspect tracked results.",
+      badge: undefined,
       icon: Activity,
     },
     {
       href: "/payouts",
       title: "Open payouts",
-      description: "Move approved work toward payout.",
-      badge: <StatusBadge tone="blue">Finance</StatusBadge>,
+      description: "Move approved work forward.",
+      badge: undefined,
       icon: Wallet,
     },
     {
       href: launch.appleHealthHref,
       title: "Open Apple health",
-      description: "Check ingest readiness and receipt posture.",
-      badge: <StatusBadge tone="blue">Apps</StatusBadge>,
+      description: "Check ingest readiness.",
+      badge: undefined,
       icon: Heart,
     },
   ];
@@ -322,21 +335,22 @@ export default async function DashboardPage() {
 
   return (
     <PageContainer>
-      <section className="space-y-3">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <h1 className="text-[22px] font-bold tracking-[-0.03em] text-ink">Dashboard</h1>
+      <PageHeader
+        title="Dashboard"
+        description="Review priorities and recent results."
+        actions={
           <ActionLink href="/unattributed" variant="primary">
             Review queue
           </ActionLink>
-        </div>
+        }
+      >
         <div className="flex flex-wrap gap-2">
           <StatusBadge tone={toneForWorkspaceLabel()}>{workspaceName}</StatusBadge>
-          <StatusBadge tone={toneForRoleLabel()}>{workspaceRole}</StatusBadge>
-          <StatusBadge tone={toneForLaunchStatus(launch.overallStatus)}>
-            {launch.completedChecks}/{launch.totalChecks} checks calm
+          <StatusBadge tone={billingStatusTone(launch.billingSummary.status)}>
+            {launch.billingSummary.planName ?? "No plan"}
           </StatusBadge>
         </div>
-      </section>
+      </PageHeader>
 
       <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <div className="flex min-w-max gap-3">
@@ -423,7 +437,7 @@ export default async function DashboardPage() {
                 description="New priorities will appear here when setup or review needs attention."
                 action={
                   <ActionLink href="/onboarding" variant="primary">
-                    Continue activation
+                    Activation guide
                   </ActionLink>
                 }
               />
@@ -471,10 +485,10 @@ export default async function DashboardPage() {
               <EmptyState
                 icon={Activity}
                 title="Your first tracked result will appear here"
-                description="This feed fills with the newest creator-linked results after app, creator, and code setup are live."
+                description="Results show after app, creator, and code setup."
                 action={
                   <ActionLink href="/onboarding" variant="primary">
-                    Continue activation
+                    Activation guide
                   </ActionLink>
                 }
               />
@@ -488,7 +502,7 @@ export default async function DashboardPage() {
                 href="/unattributed"
                 className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
               >
-                Open full queue
+                Open queue
               </Link>
             }
           >
@@ -516,7 +530,7 @@ export default async function DashboardPage() {
               <EmptyState
                 icon={AlertTriangle}
                 title="The next review item will appear here"
-                description="Records that need an attribution or readiness decision show up here after results start landing."
+                description="Records that need a decision appear here."
                 action={
                   <ActionLink href="/events" variant="primary">
                     Open events
@@ -528,6 +542,63 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-5">
+          <DashboardPanel
+            label="Plan and trial"
+            action={
+              <Link
+                href="/settings"
+                className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
+              >
+                Open settings
+              </Link>
+            }
+          >
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[15px] font-semibold text-ink">
+                    {launch.billingSummary.planName ?? "Workspace billing"}
+                  </p>
+                {launch.billingSummary.billingIntervalLabel ? (
+                  <StatusBadge tone="blue">
+                    {launch.billingSummary.billingIntervalLabel}
+                  </StatusBadge>
+                ) : null}
+                <StatusBadge tone={billingStatusTone(launch.billingSummary.status)}>
+                  {launch.billingSummary.statusLabel}
+                </StatusBadge>
+              </div>
+              <p className="text-sm leading-6 text-ink-muted">
+                {launch.billingSummary.detail}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-surface px-3.5 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+                    Trial end
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-ink">
+                    {launch.billingSummary.trialEndsLabel ?? "Manual contact"}
+                  </p>
+                </div>
+                <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-surface px-3.5 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+                    Usage
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-ink">
+                    {launch.billingSummary.usage?.apps.used ?? 0} apps ·{" "}
+                    {launch.billingSummary.usage?.activeCreators.used ?? 0} active creators
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {launch.billingSummary.notes.slice(0, 2).map((note) => (
+                  <p key={note} className="text-sm leading-6 text-ink-muted">
+                    {note}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </DashboardPanel>
+
           <DashboardPanel label="Utilities">
             <div className="space-y-0.5">
               {quickActions.map((action) => {
@@ -563,7 +634,7 @@ export default async function DashboardPage() {
                   href="/onboarding"
                   className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
                 >
-                  Continue activation →
+                  Activation guide
                 </Link>
               }
             >
@@ -571,7 +642,7 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-[15px] font-semibold text-ink">Activation is still in progress</p>
                   <p className="mt-1 text-sm text-ink-muted">
-                    Keep the first creator path moving.
+                    Keep setup moving.
                   </p>
                 </div>
                 <StatusBadge tone={toneForActivationState("in_progress")}>
@@ -597,7 +668,7 @@ export default async function DashboardPage() {
               </p>
               <div className="mt-3">
                 <ActionLink href="/onboarding" variant="primary">
-                  Continue activation →
+                  Activation guide
                 </ActionLink>
               </div>
             </DashboardPanel>

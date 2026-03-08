@@ -10,7 +10,7 @@ type BrandLogoSize =
   | "portal";
 
 const logoSizeClasses: Record<BrandLogoSize, string> = {
-  "marketing-header": "w-[138px] sm:w-[152px]",
+  "marketing-header": "w-[148px] sm:w-[164px]",
   "marketing-footer": "w-[164px] sm:w-[180px]",
   "public-header": "w-[138px] sm:w-[150px]",
   "workspace-compact": "w-[96px]",
@@ -19,7 +19,7 @@ const logoSizeClasses: Record<BrandLogoSize, string> = {
 };
 
 const logoSizes: Record<BrandLogoSize, string> = {
-  "marketing-header": "(min-width: 640px) 152px, 138px",
+  "marketing-header": "(min-width: 640px) 164px, 148px",
   "marketing-footer": "(min-width: 640px) 180px, 164px",
   "public-header": "(min-width: 640px) 150px, 138px",
   "workspace-compact": "96px",
@@ -42,10 +42,10 @@ const lockupSizes: Partial<
   >
 > = {
   "marketing-header": {
-    containerClassName: "h-12 gap-3 sm:h-14 sm:gap-3.5",
-    iconClassName: "h-[34px] w-[34px] sm:h-9 sm:w-9",
+    containerClassName: "h-12 gap-3.5 sm:h-14 sm:gap-4",
+    iconClassName: "h-[36px] w-[36px] sm:h-10 sm:w-10",
     wordmarkClassName:
-      "hidden text-[16px] font-bold tracking-[-0.02em] text-ink sm:inline-flex",
+      "hidden text-[17px] font-bold tracking-[-0.02em] text-ink sm:inline-flex",
   },
   "public-header": {
     containerClassName: "h-12 gap-3 sm:h-14 sm:gap-3.5",

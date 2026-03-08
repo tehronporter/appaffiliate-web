@@ -5,6 +5,10 @@ import {
   type FinanceExportOverview,
 } from "@/lib/services/finance";
 import {
+  getWorkspaceBillingSummary,
+  type WorkspaceBillingSummary,
+} from "@/lib/services/billing";
+import {
   getOrganizationSettingsData,
   getRulesSettingsData,
   getSettingsOverviewData,
@@ -31,12 +35,6 @@ export type LaunchReadinessCheck = {
   href: string;
 };
 
-export type BillingReadinessData = {
-  status: "planning_only";
-  label: string;
-  notes: string[];
-};
-
 export type LaunchReadinessData = {
   hasWorkspaceAccess: boolean;
   organizationName: string | null;
@@ -52,7 +50,7 @@ export type LaunchReadinessData = {
   team: TeamSettingsData | null;
   rules: RulesSettingsData | null;
   exports: FinanceExportOverview | null;
-  billingReadiness: BillingReadinessData;
+  billingSummary: WorkspaceBillingSummary;
   checklist: LaunchReadinessCheck[];
 };
 
@@ -106,18 +104,6 @@ function overallDetail(status: Exclude<LaunchReadinessStatus, "informational">) 
   return "Core launch controls look present for the current workspace view. Continue with smoke testing and operator runbook review.";
 }
 
-function buildBillingReadiness(): BillingReadinessData {
-  return {
-    status: "planning_only",
-    label: "Billing is not active in-product",
-    notes: [
-      "This MVP does not include Stripe, subscriptions, invoicing, or a customer-facing billing workflow.",
-      "Finance exports and payout tracking are live, but charge collection and billing administration remain off-platform.",
-      "Treat billing as a launch-planning note only until a durable billing model and operator workflow are added.",
-    ],
-  };
-}
-
 function buildChecklist(params: {
   appleHealthHref: string;
   overview: SettingsOverviewData;
@@ -125,7 +111,7 @@ function buildChecklist(params: {
   team: TeamSettingsData;
   rules: RulesSettingsData;
   exports: FinanceExportOverview;
-  billingReadiness: BillingReadinessData;
+  billingSummary: WorkspaceBillingSummary;
 }) {
   const ingestReadyApps = params.rules.appleReadiness.filter((app) => app.ingestReady).length;
   const totalApps = params.rules.appleReadiness.length;
@@ -138,6 +124,12 @@ function buildChecklist(params: {
     params.overview.financeSummary.pendingReviewCount +
     params.overview.financeSummary.draftBatchCount +
     params.overview.financeSummary.exportedBatchCount;
+  const billingAttention =
+    params.billingSummary.status === "missing" ||
+    params.billingSummary.status === "trial_expired" ||
+    (params.billingSummary.status === "trialing" &&
+      params.billingSummary.trialDaysRemaining !== null &&
+      params.billingSummary.trialDaysRemaining <= 3);
 
   const checklist: LaunchReadinessCheck[] = [
     {
@@ -253,10 +245,15 @@ function buildChecklist(params: {
     },
     {
       id: "billing",
-      title: "Billing planning",
-      status: "informational",
-      label: params.billingReadiness.label,
-      detail: params.billingReadiness.notes[0],
+      title: "Plan and trial state",
+      status:
+        params.billingSummary.status === "manual_contact"
+          ? "informational"
+          : billingAttention
+            ? "attention"
+            : "ready",
+      label: params.billingSummary.statusLabel,
+      detail: params.billingSummary.detail,
       href: "/settings",
     },
   ];
@@ -274,8 +271,10 @@ function buildChecklist(params: {
 
 export async function getLaunchReadinessData() {
   const workspace = await getCurrentWorkspaceContext();
-  const overview = await getSettingsOverviewData();
-  const billingReadiness = buildBillingReadiness();
+  const [overview, billingSummary] = await Promise.all([
+    getSettingsOverviewData(),
+    getWorkspaceBillingSummary(),
+  ]);
 
   if (!overview.hasWorkspaceAccess) {
     return {
@@ -294,7 +293,7 @@ export async function getLaunchReadinessData() {
       team: null,
       rules: null,
       exports: null,
-      billingReadiness,
+      billingSummary,
       checklist: [
         {
           id: "workspace-access",
@@ -307,10 +306,10 @@ export async function getLaunchReadinessData() {
         },
         {
           id: "billing",
-          title: "Billing readiness",
+          title: "Plan and trial state",
           status: "informational",
-          label: billingReadiness.label,
-          detail: billingReadiness.notes[0],
+          label: billingSummary.statusLabel,
+          detail: billingSummary.detail,
           href: "/settings",
         },
       ],
@@ -334,7 +333,7 @@ export async function getLaunchReadinessData() {
     team,
     rules,
     exports,
-    billingReadiness,
+    billingSummary,
   });
   const actionableChecks = checklist.filter(
     (check) => check.status !== "informational",
@@ -359,7 +358,7 @@ export async function getLaunchReadinessData() {
     team,
     rules,
     exports,
-    billingReadiness,
+    billingSummary,
     checklist,
   } satisfies LaunchReadinessData;
 }

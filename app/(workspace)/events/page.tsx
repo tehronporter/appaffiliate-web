@@ -15,6 +15,7 @@ import {
   SectionCard,
   StatusBadge,
   StatusTimeline,
+  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -146,84 +147,99 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
       <PageHeader
         eyebrow="Attribution"
         title="Events"
-        description="Inspect tracked results and see what needs attention."
+        description="Inspect tracked results."
         actions={
           <>
             <ActionLink href="/apple-health">Open app health</ActionLink>
             <ActionLink href="/unattributed" variant="primary">
-              Open review queue
+              Review queue
             </ActionLink>
           </>
         }
       >
-        <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="amber">Needs review visible</StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>Reason-first inspection</StatusBadge>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge tone={toneForWorkspaceLabel()}>Reason-first</StatusBadge>
+          {eventData.stats.unattributed > 0 ? <StatusBadge tone="amber">Needs review</StatusBadge> : null}
         </div>
       </PageHeader>
-
-      <FilterBar
-        title="Review states"
-        description={`${eventData.stats.unattributed} results need review and ${eventData.stats.failed} are blocked.`}
-      >
-        <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
-          All records
-        </FilterChipLink>
-        <FilterChipLink
-          href={buildHref({ state: "unattributed" })}
-          active={state === "unattributed"}
-        >
-          Needs review
-        </FilterChipLink>
-        <FilterChipLink
-          href={buildHref({ state: "attributed" })}
-          active={state === "attributed"}
-        >
-          Matched
-        </FilterChipLink>
-        <FilterChipLink href={buildHref({ state: "ignored" })} active={state === "ignored"}>
-          Ignored
-        </FilterChipLink>
-        <FilterChipLink href={buildHref({ state: "failed" })} active={state === "failed"}>
-          Blocked
-        </FilterChipLink>
-      </FilterBar>
 
       <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <div className="flex min-w-max gap-3">
           <MetricChip
             label="Needs review"
             value={String(eventData.stats.unattributed)}
-            detail="Ownership still missing"
+            detail="Ownership missing"
             tone="amber"
           />
           <MetricChip
             label="Matched"
             value={String(eventData.stats.attributed)}
-            detail="Ready for earning logic"
+            detail="Ready"
             tone="green"
           />
           <MetricChip
             label="Blocked"
             value={String(eventData.stats.failed)}
-            detail="Normalization or intake issue"
+            detail="Intake issue"
             tone="red"
           />
           <MetricChip
             label="Value visible"
             value={String(valueVisibleCount)}
-            detail="Safe value fields present"
+            detail="Value fields present"
             tone="blue"
           />
         </div>
       </section>
 
-      <ListTable
-        className="w-full"
-        eyebrow="Register"
-        title="Events table"
-        description="Click a row to inspect the result and next action."
-      >
+      <div className="space-y-3">
+        <SummaryBar
+          items={[
+            {
+              label: "Review",
+              value:
+                eventData.stats.unattributed > 0
+                  ? `${eventData.stats.unattributed} need review`
+                  : "Queue calm",
+            },
+            {
+              label: "Blocked",
+              value:
+                eventData.stats.failed > 0 ? `${eventData.stats.failed} blocked` : "No blockers",
+            },
+          ]}
+        />
+
+        <FilterBar title="States">
+          <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
+            All records
+          </FilterChipLink>
+          <FilterChipLink
+            href={buildHref({ state: "unattributed" })}
+            active={state === "unattributed"}
+          >
+            Needs review
+          </FilterChipLink>
+          <FilterChipLink
+            href={buildHref({ state: "attributed" })}
+            active={state === "attributed"}
+          >
+            Matched
+          </FilterChipLink>
+          <FilterChipLink href={buildHref({ state: "ignored" })} active={state === "ignored"}>
+            Ignored
+          </FilterChipLink>
+          <FilterChipLink href={buildHref({ state: "failed" })} active={state === "failed"}>
+            Blocked
+          </FilterChipLink>
+        </FilterBar>
+
+        <ListTable
+          className="w-full"
+          eyebrow="Register"
+          title="Events"
+          description="Select a row to inspect the result."
+        >
         <div className="hidden grid-cols-[110px_minmax(0,1.45fr)_minmax(0,0.9fr)_120px_150px_110px] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
           <span>State</span>
           <span>Result</span>
@@ -246,13 +262,13 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                 }
                 description={
                   eventData.hasWorkspaceAccess
-                    ? "Tracked results fill this register after creator-linked activity is stored or when a record needs review."
-                    : "The event review register becomes available after the current user has an active organization membership."
+                    ? "Tracked results appear after creator-linked activity is stored."
+                    : "The event register requires an active internal membership."
                 }
                 action={
                   eventData.hasWorkspaceAccess ? (
                     <ActionLink href="/onboarding" variant="primary">
-                      Continue activation
+                      Activation guide
                     </ActionLink>
                   ) : null
                 }
@@ -292,7 +308,8 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             </Link>
           ))}
         </div>
-      </ListTable>
+        </ListTable>
+      </div>
 
       {selectedEvent ? (
         <WorkspaceDrawer

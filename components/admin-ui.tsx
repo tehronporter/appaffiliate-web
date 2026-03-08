@@ -33,15 +33,15 @@ function resolveStatusTone(tone: StatusTone): SemanticStatusTone {
 }
 
 const badgeToneClasses: Record<SemanticStatusTone, string> = {
-  gray: "border-[var(--aa-shell-border)] bg-surface text-ink-muted",
+  gray: "border-[var(--aa-shell-border)] bg-white text-ink-muted",
   blue:
-    "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary",
+    "border-[color:color-mix(in_srgb,var(--color-primary)_12%,white)] bg-[color:color-mix(in_srgb,var(--color-primary)_7%,white)] text-primary",
   green:
-    "border-[color:color-mix(in_srgb,var(--color-success)_18%,white)] bg-success-soft text-success",
+    "border-[color:color-mix(in_srgb,var(--color-success)_14%,white)] bg-[color:color-mix(in_srgb,var(--color-success)_6%,white)] text-success",
   amber:
-    "border-[color:color-mix(in_srgb,var(--color-warning)_18%,white)] bg-warning-soft text-warning",
+    "border-[color:color-mix(in_srgb,var(--color-warning)_14%,white)] bg-[color:color-mix(in_srgb,var(--color-warning)_7%,white)] text-warning",
   red:
-    "border-[color:color-mix(in_srgb,var(--color-danger)_18%,white)] bg-danger-soft text-danger",
+    "border-[color:color-mix(in_srgb,var(--color-danger)_14%,white)] bg-[color:color-mix(in_srgb,var(--color-danger)_6%,white)] text-danger",
 };
 
 const surfaceToneClasses: Record<SurfaceTone, string> = {
@@ -149,6 +149,7 @@ type PageHeaderProps = {
   actions?: ReactNode;
   children?: ReactNode;
   tone?: SurfaceTone;
+  framed?: boolean;
 };
 
 export function PageHeader({
@@ -158,29 +159,38 @@ export function PageHeader({
   actions,
   children,
   tone = "workspace",
+  framed = false,
 }: PageHeaderProps) {
+  const content = (
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+      <div className="min-w-0">
+        {eyebrow ? (
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h1 className="mt-1 text-[24px] font-semibold leading-7 tracking-[-0.04em] text-ink">
+          {title}
+        </h1>
+        <p className="mt-1 max-w-2xl text-sm leading-5 text-ink-muted">
+          {description}
+        </p>
+        {children ? <div className="mt-2 flex flex-wrap gap-2">{children}</div> : null}
+      </div>
+
+      {actions ? (
+        <div className="flex flex-wrap gap-2 xl:justify-end xl:self-start">{actions}</div>
+      ) : null}
+    </div>
+  );
+
+  if (!framed) {
+    return content;
+  }
+
   return (
     <SurfaceCard tone={tone} density="compact" className="shadow-none">
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
-        <div className="min-w-0">
-          {eyebrow ? (
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-              {eyebrow}
-            </p>
-          ) : null}
-          <h1 className="mt-1 text-[28px] font-bold leading-8 tracking-[-0.04em] text-ink">
-            {title}
-          </h1>
-          <p className="mt-1 max-w-3xl text-sm leading-5 text-ink-muted">
-            {description}
-          </p>
-          {children ? <div className="mt-2 flex flex-wrap gap-2">{children}</div> : null}
-        </div>
-
-        {actions ? (
-          <div className="flex flex-wrap gap-2 xl:justify-end xl:self-start">{actions}</div>
-        ) : null}
-      </div>
+      {content}
     </SurfaceCard>
   );
 }
@@ -199,7 +209,7 @@ export function StatusBadge({
   return (
     <span
       className={joinClasses(
-        "inline-flex min-h-5 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-[-0.01em]",
+        "inline-flex min-h-5 items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tracking-[-0.01em]",
         badgeToneClasses[resolveStatusTone(tone)],
         className,
       )}
@@ -327,15 +337,15 @@ export function NoticeBanner({
   className,
 }: NoticeBannerProps) {
   return (
-    <SurfaceCard density="compact" className={className}>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold text-ink">{title}</p>
-          <p className="mt-1 text-sm text-ink-muted">{detail}</p>
-        </div>
-        <StatusBadge tone={tone}>{title}</StatusBadge>
-      </div>
-    </SurfaceCard>
+    <div
+      className={joinClasses(
+        "flex flex-wrap items-center gap-3 rounded-[10px] border border-[var(--aa-shell-border)] bg-white px-3.5 py-2.5",
+        className,
+      )}
+    >
+      <StatusBadge tone={tone}>{title}</StatusBadge>
+      <p className="text-sm text-ink-muted">{detail}</p>
+    </div>
   );
 }
 
@@ -376,10 +386,7 @@ export function StatCard({
           : "bg-primary";
 
   return (
-    <SurfaceCard
-      density={size === "compact" ? "compact" : "default"}
-      className={joinClasses("relative overflow-hidden", urgencyClass, className)}
-    >
+    <SurfaceCard density="compact" className={joinClasses("relative overflow-hidden", urgencyClass, className)}>
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
           {label}
@@ -389,8 +396,8 @@ export function StatCard({
       <p
         className={joinClasses(
           size === "compact"
-            ? "mt-3 text-[28px] font-semibold tracking-[-0.05em] text-ink sm:text-[28px]"
-            : "mt-4 text-[32px] font-semibold tracking-[-0.05em] text-ink sm:text-[36px]",
+            ? "mt-2.5 text-[24px] font-semibold tracking-[-0.05em] text-ink sm:text-[24px]"
+            : "mt-3 text-[30px] font-semibold tracking-[-0.05em] text-ink sm:text-[32px]",
         )}
       >
         {value}
@@ -398,8 +405,8 @@ export function StatCard({
       <p
         className={joinClasses(
           size === "compact"
-            ? "mt-2 text-sm leading-5 text-ink-muted"
-            : "mt-3 text-sm leading-5 text-ink-muted",
+            ? "mt-1 text-xs leading-5 text-ink-muted"
+            : "mt-2 text-sm leading-5 text-ink-muted",
         )}
       >
         {detail}
@@ -425,8 +432,8 @@ export function MetricChip({
 }: MetricChipProps) {
   return (
     <div
-        className={joinClasses(
-        "min-w-[132px] rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white px-3.5 py-2.5 transition-colors hover:border-[var(--aa-shell-border-strong)]",
+      className={joinClasses(
+        "min-w-[124px] rounded-[10px] border border-[var(--aa-shell-border)] bg-white px-3 py-2 transition-colors hover:border-[var(--aa-shell-border-strong)]",
         className,
       )}
     >
@@ -434,11 +441,11 @@ export function MetricChip({
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
           {label}
         </p>
-        <StatusBadge tone={tone} className="min-h-6 px-2 py-0.5 text-[10px]">
+        <StatusBadge tone={tone} className="min-h-5 px-2 py-0 text-[10px]">
           {value}
         </StatusBadge>
       </div>
-      {detail ? <p className="mt-1.5 text-xs leading-5 text-ink-muted">{detail}</p> : null}
+      {detail ? <p className="mt-1 text-xs leading-4.5 text-ink-muted">{detail}</p> : null}
     </div>
   );
 }
@@ -717,23 +724,23 @@ export function EmptyState({
   return (
     <InsetPanel
       tone={tone}
-      className={joinClasses("flex flex-col items-center px-4 py-6 text-center", className)}
+      className={joinClasses("flex flex-col items-center px-4 py-4 text-center", className)}
     >
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft/60 text-primary/55">
-        <Icon size={20} strokeWidth={1.75} />
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft/60 text-primary/55">
+        <Icon size={18} strokeWidth={1.75} />
       </span>
       {eyebrow ? (
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+        <p className="mt-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
           {eyebrow}
         </p>
       ) : null}
       <h3 className="mt-2 text-[15px] font-semibold tracking-[-0.01em] text-ink">
         {title}
       </h3>
-      <p className="mt-1.5 max-w-lg text-sm leading-5 text-ink-muted">
+      <p className="mt-1 max-w-lg text-sm leading-5 text-ink-muted">
         {description}
       </p>
-      {action ? <div className="mt-4 flex flex-wrap justify-center gap-3">{action}</div> : null}
+      {action ? <div className="mt-3 flex flex-wrap justify-center gap-3">{action}</div> : null}
     </InsetPanel>
   );
 }
@@ -755,10 +762,9 @@ export function ListTable({
   actions,
   children,
   className,
-  tone = "workspace",
 }: ListTableProps) {
   return (
-    <SurfaceCard className={className} tone={tone} density="compact">
+    <div className={joinClasses(className)}>
       <SectionHeader
         eyebrow={eyebrow}
         title={title}
@@ -766,10 +772,10 @@ export function ListTable({
         actions={actions}
       />
 
-      <div className="mt-3 overflow-hidden rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)]">
+      <div className="mt-2 overflow-hidden rounded-[10px] border border-[var(--aa-shell-border)] bg-white">
         {children}
       </div>
-    </SurfaceCard>
+    </div>
   );
 }
 
@@ -791,7 +797,7 @@ export function InlineActionRow({
   return (
     <div
       className={joinClasses(
-        "flex flex-col gap-4 border-b border-[var(--aa-shell-border)] px-4 py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-3 border-b border-[var(--aa-shell-border)] px-4 py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
@@ -800,7 +806,7 @@ export function InlineActionRow({
           <p className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</p>
           {badge}
         </div>
-        <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
+        <p className="mt-1 text-sm leading-5 text-ink-muted">{description}</p>
       </div>
 
       {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
@@ -814,6 +820,7 @@ type FilterBarProps = {
   children: ReactNode;
   className?: string;
   tone?: SurfaceTone;
+  sticky?: boolean;
 };
 
 export function FilterBar({
@@ -821,19 +828,18 @@ export function FilterBar({
   description,
   children,
   className,
-  tone = "workspace",
+  sticky = false,
 }: FilterBarProps) {
   return (
-    <SurfaceCard
-      tone={tone}
+    <div
       className={joinClasses(
-        "z-10 lg:sticky lg:top-[var(--aa-shell-top-offset)]",
+        "flex flex-col gap-2 rounded-[10px] border border-[var(--aa-shell-border)] bg-white px-3.5 py-3",
+        sticky && "z-10 lg:sticky lg:top-[var(--aa-shell-top-offset)]",
         className,
       )}
-      density="compact"
     >
       {title ? (
-        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2.5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
             {title}
           </p>
@@ -843,10 +849,10 @@ export function FilterBar({
         </div>
       ) : null}
 
-      <div className={title ? "mt-3 flex flex-wrap gap-2" : "flex flex-wrap gap-2"}>
+      <div className={title ? "flex flex-wrap gap-2" : "flex flex-wrap gap-2"}>
         {children}
       </div>
-    </SurfaceCard>
+    </div>
   );
 }
 
@@ -865,7 +871,7 @@ export function FilterChipLink({
     <Link
       href={href}
       className={joinClasses(
-        "inline-flex min-h-[44px] items-center rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white",
+        "inline-flex min-h-[38px] items-center rounded-full border px-3.5 py-1.5 text-sm font-semibold transition focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)] focus-visible:bg-white",
         active
           ? "border-[color:color-mix(in_srgb,var(--color-primary)_14%,white)] bg-primary-soft text-primary"
           : "border-[var(--aa-shell-border)] bg-white text-ink-muted hover:border-[var(--aa-shell-border-strong)] hover:bg-[var(--aa-shell-panel-muted)] hover:text-ink",
@@ -949,11 +955,11 @@ export function WorkspaceDrawer({
       <Link
         href={closeHref}
         aria-label="Close drawer"
-        className="aa-drawer-backdrop fixed inset-0 top-16 z-30 bg-[rgba(17,24,39,0.08)] backdrop-blur-[2px]"
+        className="aa-drawer-backdrop fixed inset-0 top-[var(--aa-shell-top-offset)] z-30 bg-[rgba(17,24,39,0.08)] backdrop-blur-[2px]"
       />
       <aside
         className={joinClasses(
-          "aa-drawer-panel fixed inset-y-16 right-0 z-40 w-full max-w-[520px] border-l border-[var(--aa-shell-border)] bg-white",
+          "aa-drawer-panel fixed inset-y-[var(--aa-shell-top-offset)] right-0 z-40 w-full max-w-[520px] border-l border-[var(--aa-shell-border)] bg-white",
           className,
         )}
       >

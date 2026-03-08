@@ -15,6 +15,7 @@ import {
   PageHeader,
   SectionCard,
   StatusBadge,
+  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -127,7 +128,7 @@ export default async function CommissionsPage({
       <PageHeader
         eyebrow="Finance"
         title="Commissions"
-        description="Review earnings and move approved items toward payout."
+        description="Review earnings before payout."
         actions={
           <>
             <ActionLink href="/unattributed">Open queue</ActionLink>
@@ -137,9 +138,9 @@ export default async function CommissionsPage({
           </>
         }
       >
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           <StatusBadge tone={toneForWorkspaceLabel()}>Commission ledger</StatusBadge>
-          <StatusBadge tone="amber">Manual finance approval</StatusBadge>
+          {data.stats.pendingReview > 0 ? <StatusBadge tone="amber">Needs review</StatusBadge> : null}
         </div>
       </PageHeader>
 
@@ -156,13 +157,13 @@ export default async function CommissionsPage({
           <MetricChip
             label="Pending review"
             value={String(data.stats.pendingReview)}
-            detail="Needs a finance decision"
+            detail="Finance decision"
             tone="amber"
           />
           <MetricChip
             label="Approved"
             value={String(data.stats.approved)}
-            detail="Not yet batched"
+            detail="Not batched"
             tone="green"
           />
           <MetricChip
@@ -174,13 +175,13 @@ export default async function CommissionsPage({
           <MetricChip
             label="Payout-ready"
             value={String(data.stats.payoutReady)}
-            detail="Inside payout tracking"
+            detail="In payout flow"
             tone="green"
           />
           <MetricChip
             label="Paid"
             value={String(data.stats.paid)}
-            detail="Reconciled history"
+            detail="History"
             tone="green"
           />
         </div>
@@ -204,46 +205,59 @@ export default async function CommissionsPage({
         </SectionCard>
       ) : (
         <>
-          <FilterBar
-            title="Ledger filters"
-            description={
-              data.stats.pendingReview > 0
-                ? `${data.stats.pendingReview} items still need review before batching.`
-                : `${reviewableCount} items are moving through review or payout preparation.`
-            }
-          >
-            <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
-              All items
-            </FilterChipLink>
-            <FilterChipLink
-              href={buildHref({ state: "pending_review" })}
-              active={state === "pending_review"}
-            >
-              Pending review
-            </FilterChipLink>
-            <FilterChipLink href={buildHref({ state: "approved" })} active={state === "approved"}>
-              Approved
-            </FilterChipLink>
-            <FilterChipLink href={buildHref({ state: "rejected" })} active={state === "rejected"}>
-              Rejected
-            </FilterChipLink>
-            <FilterChipLink
-              href={buildHref({ state: "payout_ready" })}
-              active={state === "payout_ready"}
-            >
-              Payout-ready
-            </FilterChipLink>
-            <FilterChipLink href={buildHref({ state: "paid" })} active={state === "paid"}>
-              Paid
-            </FilterChipLink>
-          </FilterBar>
+          <div className="space-y-3">
+            <SummaryBar
+              items={[
+                {
+                  label: "Review",
+                  value:
+                    data.stats.pendingReview > 0
+                      ? `${data.stats.pendingReview} pending`
+                      : "Queue calm",
+                },
+                {
+                  label: "In payout flow",
+                  value:
+                    reviewableCount > 0
+                      ? `${reviewableCount} in motion`
+                      : "No approved items yet",
+                },
+              ]}
+            />
 
-          <ListTable
-            className="w-full"
-            eyebrow="Ledger"
-            title="Commission table"
-            description="Click a row to inspect the basis, amount, and payout posture."
-          >
+            <FilterBar title="Filters">
+              <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
+                All items
+              </FilterChipLink>
+              <FilterChipLink
+                href={buildHref({ state: "pending_review" })}
+                active={state === "pending_review"}
+              >
+                Pending review
+              </FilterChipLink>
+              <FilterChipLink href={buildHref({ state: "approved" })} active={state === "approved"}>
+                Approved
+              </FilterChipLink>
+              <FilterChipLink href={buildHref({ state: "rejected" })} active={state === "rejected"}>
+                Rejected
+              </FilterChipLink>
+              <FilterChipLink
+                href={buildHref({ state: "payout_ready" })}
+                active={state === "payout_ready"}
+              >
+                Payout-ready
+              </FilterChipLink>
+              <FilterChipLink href={buildHref({ state: "paid" })} active={state === "paid"}>
+                Paid
+              </FilterChipLink>
+            </FilterBar>
+
+            <ListTable
+              className="w-full"
+              eyebrow="Ledger"
+              title="Commissions"
+              description="Select a row to review."
+            >
             <div className="hidden grid-cols-[minmax(0,1.4fr)_140px_140px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Partner / event</span>
               <span>Basis</span>
@@ -257,8 +271,8 @@ export default async function CommissionsPage({
                   <EmptyState
                     icon={DollarSign}
                     eyebrow="Ledger"
-                    title="Approved results will appear here as commission items"
-                    description="The register fills after tracked results are reviewed and ready for a finance decision or you return to a wider ledger view."
+                    title="Commission items appear here"
+                    description="The register fills after tracked results are ready for finance review."
                     action={
                       <ActionLink href="/events" variant="primary">
                         Review results
@@ -298,7 +312,8 @@ export default async function CommissionsPage({
                 </Link>
               ))}
             </div>
-          </ListTable>
+            </ListTable>
+          </div>
 
           {selectedItem ? (
             <WorkspaceDrawer
@@ -317,16 +332,16 @@ export default async function CommissionsPage({
             >
               <InsetPanel tone={stateTone(selectedItem.reviewState)}>
                 <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Money context
+                  Finance context
                 </p>
                 <p className="mt-2 text-sm leading-6 text-ink-muted">
-                  Approval remains explicit. Keep the event source, rule summary, and payout posture visible before changing state.
+                  Keep the event source, rule summary, and payout state visible.
                 </p>
               </InsetPanel>
 
               <SectionCard
-                title="Money context"
-                description="Keep attribution, rule, and payout context visible before changing review state."
+                title="Context"
+                description="Keep attribution and payout state visible."
               >
                 <DetailList
                   items={[
@@ -358,8 +373,8 @@ export default async function CommissionsPage({
               </SectionCard>
 
               <SectionCard
-                title="Basis and rule context"
-                description="Show the event basis, rule summary, and latest decision note together."
+                title="Basis and rule"
+                description="Keep the event basis and latest decision together."
               >
                 <DetailList
                   items={[
@@ -391,7 +406,7 @@ export default async function CommissionsPage({
               {selectedItem.canApprove ? (
                 <SectionCard
                   title="Approve commission"
-                  description="Approve only after the amount and supporting note are ready for finance history."
+                  description="Approve when the amount and note are ready."
                 >
                   <form action={approveCommissionAction} className="space-y-4">
                     <input type="hidden" name="eventId" value={selectedItem.eventId} />
@@ -441,7 +456,7 @@ export default async function CommissionsPage({
               {selectedItem.canReject ? (
                 <SectionCard
                   title="Reject commission"
-                  description="Keep a clear review reason when this item should not move toward payout."
+                  description="Keep a clear review reason."
                 >
                   <form action={rejectCommissionAction} className="space-y-4">
                     <input type="hidden" name="eventId" value={selectedItem.eventId} />

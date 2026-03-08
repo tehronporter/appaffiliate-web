@@ -20,14 +20,14 @@ export const publicFooterLinks: Array<{ href: string; label: string }> = [
   { href: "/pricing", label: "Pricing" },
   { href: "/security", label: "Security" },
   { href: "/docs", label: "Docs" },
-  { href: "/signup", label: "Sign up" },
+  { href: "/signup", label: "Start free trial" },
   { href: "/login", label: "Sign in" },
   { href: "/request-access", label: "Request access" },
 ];
 
 export const publicPrimaryAction = {
   href: "/signup",
-  label: "Sign up",
+  label: "Start free trial",
   variant: "primary" as const,
 };
 

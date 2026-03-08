@@ -16,6 +16,7 @@ import {
   StatCard,
   StatusBadge,
   StatusTimeline,
+  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -238,7 +239,7 @@ export default async function PayoutBatchesPage({
       <PageHeader
         eyebrow="Finance"
         title="Payout batches"
-        description="Track draft, exported, and paid batches."
+        description="Track draft, export, and payment handoff."
         actions={
           <>
             <ActionLink href="/payouts">Open payouts</ActionLink>
@@ -248,9 +249,9 @@ export default async function PayoutBatchesPage({
           </>
         }
       >
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           <StatusBadge tone={toneForWorkspaceLabel()}>Audit-safe register</StatusBadge>
-          <StatusBadge tone="amber">Handoff stays explicit</StatusBadge>
+          {draftLikeBatches.length > 0 ? <StatusBadge tone="amber">In review</StatusBadge> : null}
         </div>
       </PageHeader>
 
@@ -266,7 +267,7 @@ export default async function PayoutBatchesPage({
         <StatCard
           label="In review"
           value={formatAggregateAmount(draftLikeBatches, "$0.00")}
-          detail={`${draftLikeBatches.length} batches are still being drafted, reviewed, or prepared for export.`}
+          detail={`${draftLikeBatches.length} batches are still being drafted or prepared for export.`}
           tone="amber"
           size="compact"
         />
@@ -287,8 +288,8 @@ export default async function PayoutBatchesPage({
         <StatCard
           label="Tracked entries"
           value={String(data.batches.reduce((sum, batch) => sum + batch.entryCount, 0))}
-          detail="Every entry in this register is already reserved inside a real payout batch."
-          tone="blue"
+          detail="Every entry in this register is already reserved in a payout batch."
+          tone="gray"
           size="compact"
         />
       </div>
@@ -312,30 +313,47 @@ export default async function PayoutBatchesPage({
         </SectionCard>
       ) : (
         <>
-          <FilterBar
-            title="Batch filters"
-            description={`${draftLikeBatches.length} batches are still in motion and ${exportedBatches.length} are waiting on payment confirmation.`}
-          >
-            <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
-              All batches
-            </FilterChipLink>
-            <FilterChipLink href={buildHref({ state: "draft" })} active={state === "draft"}>
-              Draft
-            </FilterChipLink>
-            <FilterChipLink href={buildHref({ state: "exported" })} active={state === "exported"}>
-              Exported
-            </FilterChipLink>
-            <FilterChipLink href={buildHref({ state: "paid" })} active={state === "paid"}>
-              Paid
-            </FilterChipLink>
-          </FilterBar>
+          <div className="space-y-3">
+            <SummaryBar
+              items={[
+                {
+                  label: "In motion",
+                  value:
+                    draftLikeBatches.length > 0
+                      ? `${draftLikeBatches.length} batches`
+                      : "No active batches",
+                },
+                {
+                  label: "Awaiting payment",
+                  value:
+                    exportedBatches.length > 0
+                      ? `${exportedBatches.length} exported`
+                      : "No exported batches",
+                },
+              ]}
+            />
 
-          <ListTable
-            className="w-full"
-            eyebrow="Batch register"
-            title="Payout batches table"
-            description="Read the register by batch state, amount, and handoff status without carrying a permanent inspector."
-          >
+            <FilterBar title="Filters">
+              <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
+                All batches
+              </FilterChipLink>
+              <FilterChipLink href={buildHref({ state: "draft" })} active={state === "draft"}>
+                Draft
+              </FilterChipLink>
+              <FilterChipLink href={buildHref({ state: "exported" })} active={state === "exported"}>
+                Exported
+              </FilterChipLink>
+              <FilterChipLink href={buildHref({ state: "paid" })} active={state === "paid"}>
+                Paid
+              </FilterChipLink>
+            </FilterBar>
+
+            <ListTable
+              className="w-full"
+              eyebrow="Batch register"
+              title="Batches"
+              description="Select a row to inspect handoff state."
+            >
             <div className="hidden grid-cols-[minmax(0,1.15fr)_150px_120px_120px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Batch</span>
               <span>Window</span>
@@ -350,8 +368,8 @@ export default async function PayoutBatchesPage({
                   <EmptyState
                     icon={Layers}
                     eyebrow="Batch register"
-                    title="Your next payout batch will appear here"
-                    description="The register fills after finance creates or exports a batch, or when you return to a wider state filter."
+                    title="Next payout batch appears here"
+                    description="The register fills after finance creates or exports a batch."
                     action={
                       <ActionLink href="/payouts" variant="primary">
                         Open payouts
@@ -390,7 +408,8 @@ export default async function PayoutBatchesPage({
                 </Link>
               ))}
             </div>
-          </ListTable>
+            </ListTable>
+          </div>
 
           {selectedBatch ? (
             <WorkspaceDrawer
@@ -408,7 +427,7 @@ export default async function PayoutBatchesPage({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="max-w-3xl">
                     <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                      Why this batch is in this state
+                      Why this batch is here
                     </p>
                     <p className="mt-2 text-sm leading-5 text-ink-muted">
                       {batchStateMeaning(selectedBatch.status)}
@@ -422,7 +441,7 @@ export default async function PayoutBatchesPage({
 
               <SectionCard
                 title="Batch summary"
-                description="Keep the tracked amount, partner scope, and export posture easy to inspect."
+                description="Keep amount, partner scope, and export posture easy to inspect."
               >
                 <DetailList
                   items={[
@@ -438,14 +457,14 @@ export default async function PayoutBatchesPage({
 
               <SectionCard
                 title="State progression"
-                description="Keep the draft, export, and payment path visible for finance and support."
+                description="Keep the draft, export, and payment path visible."
               >
                 <StatusTimeline steps={buildBatchTimeline(selectedBatch)} />
               </SectionCard>
 
               <SectionCard
                 title="Handoff detail"
-                description="Make the finance reference, notes, and last meaningful update visible without opening exports separately."
+                description="Keep the finance reference and latest note visible."
               >
                 <DetailList
                   items={[
@@ -472,15 +491,15 @@ export default async function PayoutBatchesPage({
 
               <SectionCard
                 title="Included payout items"
-                description="Included payout items stay visible here after finance reserves earnings into this batch."
+                description="Included payout items stay visible here."
               >
                 <InsetPanel tone="gray" className="overflow-hidden px-0 py-0">
                   {selectedBatch.items.length === 0 ? (
                     <div className="p-4">
                       <EmptyState
                         icon={Layers}
-                        title="Batch items will appear here after finance reserves earnings"
-                        description="Included payout items show up in this panel once approved commissions are attached to the selected batch."
+                        title="Batch items appear here after finance reserves earnings"
+                        description="Included payout items show up once approved commissions are attached to the selected batch."
                         action={
                           <ActionLink href="/payouts" variant="primary">
                             Open payouts
@@ -516,7 +535,7 @@ export default async function PayoutBatchesPage({
               {selectedBatch.status !== "exported" && selectedBatch.status !== "paid" ? (
                 <SectionCard
                   title="Export confirmation"
-                  description="Record the finance handoff explicitly so the batch register stays trustworthy later."
+                  description="Record the finance handoff explicitly."
                 >
                   <form action={markPayoutBatchExportedAction} className="space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -553,7 +572,7 @@ export default async function PayoutBatchesPage({
               {selectedBatch.status !== "paid" ? (
                 <SectionCard
                   title="Payment confirmation"
-                  description="Confirm payment only after remittance is complete so the register remains finance-safe."
+                  description="Confirm payment after remittance is complete."
                 >
                   <form action={markPayoutBatchPaidAction} className="space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />
@@ -580,7 +599,7 @@ export default async function PayoutBatchesPage({
               {selectedBatch.status !== "paid" && selectedBatch.status !== "cancelled" ? (
                 <SectionCard
                   title="Cancel batch"
-                  description="Release reserved earnings if this batch should not continue to export or payment."
+                  description="Release reserved earnings if this batch should stop."
                 >
                   <form action={cancelPayoutBatchAction} className="space-y-4">
                     <input type="hidden" name="batchId" value={selectedBatch.id} />

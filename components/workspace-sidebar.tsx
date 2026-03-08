@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   AlertTriangle,
-  ChevronDown,
   Code2,
   DollarSign,
   Heart,
@@ -18,7 +17,6 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { BrandLogoLink } from "@/components/brand-logo";
 import type {
   WorkspaceActivationReminder,
   WorkspaceShellUser,
@@ -64,26 +62,14 @@ export function WorkspaceSidebar({
 
   return (
     <div className="flex h-full flex-col bg-white">
-      <div className="border-b border-[var(--aa-shell-border)] px-4 py-4">
-        <div className="flex items-center justify-between gap-3">
-          <BrandLogoLink
-            href="/dashboard"
-            ariaLabel="Open AppAffiliate dashboard"
-            size="workspace-compact"
-            priority
-          />
-          <button
-            type="button"
-            aria-label="Workspace switching placeholder"
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-subtle"
-          >
-            <ChevronDown size={16} strokeWidth={1.75} />
-          </button>
-        </div>
-        <p className="mt-2 text-xs font-medium text-ink-subtle">{compactWorkspaceName}</p>
+      <div className="border-b border-[var(--aa-shell-border)] px-4 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+          Workspace
+        </p>
+        <p className="mt-1 truncate text-sm font-semibold text-ink">{compactWorkspaceName}</p>
       </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-2.5">
         <div className="space-y-1">
           {workspaceSidebarNavItems.map((item) => {
             const active = isNavItemActive(pathname, item);
@@ -100,9 +86,9 @@ export function WorkspaceSidebar({
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={joinClasses(
-                    "flex min-h-[44px] items-center gap-3 rounded-[var(--radius-card)] border-l-2 px-3 py-2 text-sm font-medium transition",
+                    "flex min-h-[40px] items-center gap-3 rounded-[10px] border-l-2 px-3 py-2 text-sm font-medium transition",
                     active
-                      ? "border-l-primary bg-primary-soft text-ink"
+                      ? "border-l-primary bg-[color:color-mix(in_srgb,var(--color-primary)_7%,white)] text-ink"
                       : "border-l-transparent text-ink-muted hover:bg-surface hover:text-ink",
                   )}
                 >
@@ -131,7 +117,7 @@ export function WorkspaceSidebar({
                 </Link>
 
                 {item.dividerAfter ? (
-                  <div className="mx-3 my-2.5 border-t border-[var(--aa-shell-border)]" />
+                  <div className="mx-3 my-2 border-t border-[var(--aa-shell-border)]" />
                 ) : null}
               </div>
             );
@@ -139,9 +125,9 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      <div className="mt-auto border-t border-[var(--aa-shell-border)] px-3 py-3">
-        <div className="flex items-center gap-3 rounded-[var(--radius-card)] px-2 py-1.5">
-          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
+      <div className="mt-auto border-t border-[var(--aa-shell-border)] px-3 py-2.5">
+        <div className="flex items-center gap-3 rounded-[10px] px-2 py-1">
+          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
             {user.initials}
           </span>
           <div className="min-w-0 flex-1">
@@ -152,7 +138,7 @@ export function WorkspaceSidebar({
             <Link
               href={workspaceUtilityNavItems[0].href}
               aria-label={workspaceUtilityNavItems[0].label}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink"
             >
               <Settings size={16} strokeWidth={1.75} />
             </Link>

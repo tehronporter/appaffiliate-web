@@ -16,6 +16,7 @@ import {
   SectionCard,
   StatusBadge,
   StatusTimeline,
+  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -140,7 +141,7 @@ export default async function UnattributedPage({
       <PageHeader
         eyebrow="Attribution"
         title="Unattributed"
-        description="Review unresolved results and approve ownership safely."
+        description="Review unresolved results."
         actions={
           <>
             <ActionLink href="/events">Open events</ActionLink>
@@ -150,9 +151,9 @@ export default async function UnattributedPage({
           </>
         }
       >
-        <div className="flex flex-wrap gap-3">
-          <StatusBadge tone="amber">Needs decision stays explicit</StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>Hold and approve stay separate</StatusBadge>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge tone={toneForWorkspaceLabel()}>Decision queue</StatusBadge>
+          {data.stats.unresolved > 0 ? <StatusBadge tone="amber">Needs review</StatusBadge> : null}
         </div>
       </PageHeader>
 
@@ -169,54 +170,69 @@ export default async function UnattributedPage({
           <MetricChip
             label="Needs decision"
             value={String(data.stats.unresolved)}
-            detail="Open manual reviews"
+            detail="Open"
             tone="amber"
           />
           <MetricChip
             label="Held"
             value={String(data.stats.inReview)}
-            detail="Waiting on follow-up"
+            detail="Follow-up"
             tone="amber"
           />
           <MetricChip
             label="Safe suggestions"
             value={String(suggestionCount)}
-            detail="Creator or code candidate visible"
+            detail="Suggestion visible"
             tone="green"
           />
           <MetricChip
             label="No safe match"
             value={String(noSafeMatchCount)}
-            detail="Manual decision required"
+            detail="Manual match"
             tone={noSafeMatchCount > 0 ? "red" : "green"}
           />
         </div>
       </section>
 
-      <FilterBar
-        title="Review filters"
-        description={`${data.stats.unresolved} records are open and ${data.stats.inReview} are already held.`}
-      >
-        <FilterChipLink href={buildHref({ reason: "all" })} active={reason === "all"}>
-          All records
-        </FilterChipLink>
-        {data.reasonOptions.map((option) => (
-          <FilterChipLink
-            key={option}
-            href={buildHref({ reason: option })}
-            active={reason === option}
-          >
-            {option.replaceAll("_", " ")}
-          </FilterChipLink>
-        ))}
-      </FilterBar>
+      <div className="space-y-3">
+        <SummaryBar
+          items={[
+            {
+              label: "Open",
+              value:
+                data.stats.unresolved > 0
+                  ? `${data.stats.unresolved} need review`
+                  : "Queue calm",
+            },
+            {
+              label: "Suggestions",
+              value:
+                suggestionCount > 0 ? `${suggestionCount} visible` : "No safe suggestion",
+            },
+          ]}
+        />
 
-      <ListTable
-        className="w-full"
-        eyebrow="Manual review"
-        title="Unattributed queue table"
-        description="Lead with why the result is unresolved and the safest next action."
-      >
+        <FilterBar title="Filters">
+          <FilterChipLink href={buildHref({ reason: "all" })} active={reason === "all"}>
+            All records
+          </FilterChipLink>
+          {data.reasonOptions.map((option) => (
+            <FilterChipLink
+              key={option}
+              href={buildHref({ reason: option })}
+              active={reason === option}
+            >
+              {option.replaceAll("_", " ")}
+            </FilterChipLink>
+          ))}
+        </FilterBar>
+
+        <ListTable
+          className="w-full"
+          eyebrow="Queue"
+          title="Unattributed"
+          description="Select a row to review."
+        >
         <div className="hidden grid-cols-[120px_minmax(0,1.35fr)_minmax(0,0.95fr)_130px_150px_110px] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
           <span>State</span>
           <span>Why it is here</span>
@@ -234,12 +250,12 @@ export default async function UnattributedPage({
                 eyebrow={data.hasWorkspaceAccess ? "Manual review" : "Access required"}
                 title={
                   data.hasWorkspaceAccess
-                    ? "Your next unresolved result will appear here"
+                    ? "Next review item appears here"
                     : "Sign in to review unattributed results"
                 }
                 description={
                   data.hasWorkspaceAccess
-                    ? "Results that still need a creator or code decision fill this queue when a human review is required."
+                    ? "Unresolved results land here when ownership needs a manual decision."
                     : "An internal workspace membership is required before the attribution queue can be reviewed."
                 }
                 action={
@@ -285,7 +301,8 @@ export default async function UnattributedPage({
             </Link>
           ))}
         </div>
-      </ListTable>
+        </ListTable>
+      </div>
 
       {selectedItem ? (
         <WorkspaceDrawer
@@ -303,7 +320,7 @@ export default async function UnattributedPage({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="max-w-3xl">
                 <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-                  Why this result needs review
+                  Why this needs review
                 </p>
                 <p className="mt-2 text-sm leading-5 text-ink-muted">
                   {selectedItem.reasonDetail}
@@ -316,8 +333,8 @@ export default async function UnattributedPage({
           </InsetPanel>
 
           <SectionCard
-            title="Record summary"
-            description="Keep the current review state, app context, and confidence visible before changing anything."
+            title="Summary"
+            description="Keep the current state visible before changing it."
           >
             <DetailList
               items={[
@@ -337,8 +354,8 @@ export default async function UnattributedPage({
           </SectionCard>
 
           <SectionCard
-            title="Visible evidence"
-            description="Use the strongest visible ownership clues first and fall back to manual selection only when needed."
+            title="Evidence"
+            description="Use the strongest visible ownership clue first."
           >
             <DetailList
               items={[
@@ -370,7 +387,7 @@ export default async function UnattributedPage({
 
           <SectionCard
             title="Decision path"
-            description="Show what happened, why the record paused, and what the current state means."
+            description="Show what happened and what the current state means."
           >
             <StatusTimeline
               steps={[
@@ -400,7 +417,7 @@ export default async function UnattributedPage({
 
           <SectionCard
             title="Hold for follow-up"
-            description="Use this when the reviewer needs more evidence before trusting the attribution."
+            description="Use this when more evidence is needed."
           >
             <form action={markUnattributedReviewAction} className="space-y-4">
               <input type="hidden" name="eventId" value={selectedItem.eventId} />
@@ -421,7 +438,7 @@ export default async function UnattributedPage({
 
           <SectionCard
             title="Approve attribution"
-            description="Save the creator and code decision only when the ownership story is strong enough to trust later."
+            description="Save the creator and code when the ownership story is clear."
           >
             <form action={applyManualAttributionAction} className="space-y-4">
               <input type="hidden" name="eventId" value={selectedItem.eventId} />
