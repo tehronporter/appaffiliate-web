@@ -127,24 +127,26 @@ export default function HowItWorksPage() {
         <MarketingHero
           eyebrow="THE FIVE STEPS"
           title="A simple five-step creator growth system."
-          description="The whole channel runs in one place. No additional tools, no spreadsheets, no manual payout math."
+          description="The whole channel runs in one place, with a short path from creator invite to payout."
           wrapVisual={false}
           actions={
             <>
-              <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
-                Request access
+              <Link href="/signup" className="aa-button aa-button-primary px-5 py-3">
+                Start free trial
               </Link>
-              <Link href="/product" className="aa-button aa-button-secondary px-5 py-3">
-                See product
+              <Link href="/pricing" className="aa-button aa-button-secondary px-5 py-3">
+                View pricing
               </Link>
             </>
           }
+          actionsFooter="Self-serve plans start with a 14-day free trial."
         >
           <MarketingHeroProofStack items={heroProofItems} />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
+            eyebrow="HOW IT WORKS"
             title="Each step is easy to scan and easier to trust."
             description="The workflow is intentionally short. Founders should understand it in a few minutes, not after reading internal docs."
           />
@@ -156,6 +158,7 @@ export default function HowItWorksPage() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
+            eyebrow="WHY THE MODEL WORKS"
             title="It works because the economics make sense."
             description="The point is not just to track creator activity. It is to run creator promotion as a performance channel instead of a guessing game."
           />
@@ -176,10 +179,10 @@ export default function HowItWorksPage() {
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
               eyebrow="GET STARTED"
-              title="See whether the model fits your app."
-              description="If you want to grow through creators without risky upfront influencer spend, review the product and request access."
-              primaryHref="/request-access"
-              primaryLabel="Request access"
+              title="Start when the model fits your app."
+              description="Try AppAffiliate free for 14 days, or review pricing first if you want to compare plans."
+              primaryHref="/signup"
+              primaryLabel="Start free trial"
               secondaryHref="/pricing"
               secondaryLabel="View pricing"
             />

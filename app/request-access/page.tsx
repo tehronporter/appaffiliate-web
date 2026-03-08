@@ -21,81 +21,77 @@ import {
 export const metadata: Metadata = {
   title: "Request Access",
   description:
-    "See if AppAffiliate fits your growth model and understand what we need to know before inviting your team into the product.",
+    "Talk to AppAffiliate about a more tailored rollout, higher limits, or implementation help beyond the self-serve plans.",
 };
 
 const fitSignals = [
   {
-    title: "Built for iOS founders",
+    title: "Higher limits",
     description:
-      "AppAffiliate fits best when your team wants creator growth tied to real subscription results.",
+      "Use this path if you need more apps, more creators, or a larger rollout than the self-serve plans cover.",
   },
   {
-    title: "Best for results-based creator programs",
+    title: "Tailored onboarding",
     description:
-      "The product is built for teams that want to stop paying upfront for hype and start rewarding performance.",
+      "Some teams need help with rollout planning, training, or implementation before they go live.",
   },
   {
-    title: "Works best for lean teams",
+    title: "More complex operations",
     description:
-      "The current product is designed for founder-led and operator-led teams that want clear tracking, review, and payout visibility.",
+      "Multi-brand setups, custom reporting needs, or more sensitive finance workflows belong on the tailored path.",
   },
 ];
 
 const accessQuestions = [
   {
-    label: "Your role",
-    detail: "Founder, growth lead, ops lead, finance reviewer, or another core decision-maker.",
+    label: "Apps or brands in scope",
+    detail: "How many apps, brands, or workspaces you expect to manage from the start.",
   },
   {
-    label: "Your app type",
-    detail: "What kind of iOS app you run and how subscription growth matters to the business.",
+    label: "Creator program scale",
+    detail: "A rough sense of creator volume, review complexity, and payout cadence.",
   },
   {
-    label: "How you promote today",
-    detail: "Whether you already work with creators, rely on paid influencer deals, or want a better model.",
+    label: "Rollout help needed",
+    detail: "Where you want support with setup, onboarding, or implementation planning.",
   },
   {
-    label: "Your creator strategy",
-    detail: "How you want to work with creators, codes, links, and performance-based rewards.",
+    label: "Reporting or payout needs",
+    detail: "Whether you need more tailored exports, reporting, or finance workflow support.",
   },
   {
-    label: "Approximate scale",
-    detail: "A simple sense of how many creators, campaigns, or app lanes you expect to manage first.",
-  },
-  {
-    label: "Where you want help",
-    detail: "Setup, tracking, creator onboarding, payouts, or understanding whether the model fits at all.",
+    label: "Timeline",
+    detail: "When you want to launch and whether you are replacing an existing manual process.",
   },
 ];
 
 const requestFaq = [
   {
-    question: "See if AppAffiliate fits your growth model",
+    question: "Who should use this page?",
     answer:
-      "AppAffiliate is for iOS teams that want to grow through creators without risky upfront influencer fees and without losing payout trust later.",
+      "Teams that need higher limits, tailored onboarding, multi-brand scope, or more rollout help than the self-serve plans cover.",
   },
   {
-    question: "Tell us how you promote your app today and how you want to work with creators",
+    question: "When should we just start a trial instead?",
     answer:
-      "That context helps determine whether the current product and rollout path match your stage and the way you want to run creator growth.",
+      "If one of the self-serve plans fits your app and creator count, start the 14-day trial and move into the workflow directly.",
   },
   {
     question: "What happens after request access?",
     answer:
-      "The next step is a guided rollout conversation, not an automated self-serve signup. That keeps the access path aligned with the real product today.",
+      "We review your use case and reply with the next step for onboarding, pricing, or implementation support.",
   },
 ];
 
 const heroProofItems = [
   {
-    title: "Fit first",
-    description: "Start with whether the model matches how your team wants to grow through creators.",
+    title: "Tailored path",
+    description: "Use this route when the self-serve plans do not match your scope or rollout needs.",
     icon: <CheckCircle2 size={16} strokeWidth={1.5} />,
   },
   {
-    title: "Guided from day one",
-    description: "Access starts with a rollout conversation, not a generic self-serve signup.",
+    title: "Rollout support",
+    description: "Bring questions about onboarding, finance workflow, or larger creator program complexity.",
     icon: <Waypoints size={16} strokeWidth={1.5} />,
   },
   {
@@ -116,17 +112,17 @@ export default function RequestAccessPage() {
     >
       <main>
         <MarketingHero
-          eyebrow="Request access"
-          title="See if AppAffiliate fits your growth model"
-          description="Tell us how you promote your app today and how you want to work with creators. AppAffiliate is built for iOS teams that want to pay for results, not hype."
+          eyebrow="TAILORED ROLLOUTS"
+          title="Talk to us about a more tailored AppAffiliate setup"
+          description="Self-serve covers most teams. Use this path if you need higher limits, multi-brand scope, or rollout help beyond the standard plans."
           wrapVisual={false}
           actions={
             <>
-              <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
-                See how it works
+              <Link href="/pricing" className="aa-button aa-button-primary px-5 py-3">
+                View pricing
               </Link>
               <Link href="/login" className="aa-button aa-button-secondary px-5 py-3">
-                Already invited? Sign in
+                Sign in
               </Link>
             </>
           }
@@ -136,8 +132,8 @@ export default function RequestAccessPage() {
 
         <MarketingSection>
           <MarketingSectionHeading
-            title="A clearer path for founder-fit evaluation."
-            description="Request access should quickly help founders understand whether the product matches how they want to grow through creators."
+            title="A clearer path for tailored evaluation."
+            description="This route should quickly help teams decide whether they need more than the self-serve plans provide."
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
@@ -155,7 +151,7 @@ export default function RequestAccessPage() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <SupportChecklist
               title="What we need to understand first"
-              description="These questions help us understand whether the rollout matches how your team actually works."
+              description="These questions help us decide whether a more tailored rollout makes sense for your team."
               items={accessQuestions}
             />
 
@@ -170,15 +166,15 @@ export default function RequestAccessPage() {
         <MarketingSection>
           <MarketingSectionHeading
             title="Choose the clearest next step."
-            description="If you are still evaluating fit, keep reading. If you already have invited access, go straight to sign-in."
+            description="Use pricing and product if self-serve fits. Use sign-in if your team already has invited access."
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
             <SupportCard
-              title="Review the product"
-              description="See how creator tracking, review, payouts, and creator visibility fit together."
-              href="/product"
-              label="See product"
+              title="View pricing"
+              description="Compare self-serve plans first if you think one of them may already fit your team."
+              href="/pricing"
+              label="View pricing"
             />
             <SupportCard
               title="Learn the workflow"
@@ -199,10 +195,10 @@ export default function RequestAccessPage() {
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
               eyebrow="GET STARTED"
-              title="Keep evaluating, or sign in if you are already invited."
-              description="Use the public site to finish assessing fit. Invited users should go straight to sign-in."
-              primaryHref="/product"
-              primaryLabel="See product"
+              title="Start with pricing, or sign in if you already have access."
+              description="Use the public site to decide whether self-serve fits. Invited users should go straight to sign-in."
+              primaryHref="/pricing"
+              primaryLabel="View pricing"
               secondaryHref="/login"
               secondaryLabel="Sign in"
             />

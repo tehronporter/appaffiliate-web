@@ -101,7 +101,7 @@ const trustFaq = [
   {
     question: "How access works",
     answer:
-      "New teams request access through guided rollout. Already invited team members and creators use sign-in to reach the right surface.",
+      "New teams can start a self-serve trial, while invited team members and creators use sign-in to reach the right surface.",
   },
 ];
 
@@ -118,7 +118,7 @@ const heroProofItems = [
   },
   {
     title: "Know where to go next",
-    description: "Learn the model, request access, or sign in if you're already invited.",
+    description: "Learn the model, start a trial, or sign in if you're already invited.",
     icon: <LogIn size={16} strokeWidth={1.5} />,
   },
 ] as const;
@@ -140,14 +140,15 @@ export default function DocsPage() {
           wrapVisual={false}
           actions={
             <>
-              <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
-                Learn the basics
+              <Link href="/signup" className="aa-button aa-button-primary px-5 py-3">
+                Start free trial
               </Link>
-              <Link href="/request-access" className="aa-button aa-button-secondary px-5 py-3">
-                Request access
+              <Link href="/how-it-works" className="aa-button aa-button-secondary px-5 py-3">
+                See how it works
               </Link>
             </>
           }
+          actionsFooter="Self-serve plans start with a 14-day free trial."
         >
           <MarketingHeroProofStack items={heroProofItems} />
         </MarketingHero>
@@ -190,10 +191,10 @@ export default function DocsPage() {
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
               eyebrow="GET STARTED"
-              title="Learn the basics, then decide what to do next."
-              description="If the model fits your app, request access. If you are already invited, go straight to sign-in."
-              primaryHref="/request-access"
-              primaryLabel="Request access"
+              title="Learn the basics, then start when you are ready."
+              description="If the model fits your app, start a free trial. Already invited team members and creators can go straight to sign-in."
+              primaryHref="/signup"
+              primaryLabel="Start free trial"
               secondaryHref="/login"
               secondaryLabel="Sign in"
             />

@@ -36,7 +36,7 @@ export function PublicShell({
               Sign in
             </Link>
             <Link href="/signup" className="aa-button aa-button-primary w-full sm:w-auto">
-              Sign up
+              Start free trial
             </Link>
           </div>
         </SiteHeaderRow>

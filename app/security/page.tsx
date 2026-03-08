@@ -131,18 +131,19 @@ export default function SecurityPage() {
         <MarketingHero
           eyebrow="SECURITY"
           title="Trust built into every step."
-          description="No separate compliance layer needed. Trust comes from how the workflow is built - not from a policy document."
+          description="Trust comes from how the workflow is built: clear access boundaries, audited decisions, and payout-safe state changes."
           wrapVisual={false}
           actions={
             <>
-              <Link href="/request-access" className="aa-button aa-button-primary px-5 py-3">
-                Request access
+              <Link href="/signup" className="aa-button aa-button-primary px-5 py-3">
+                Start free trial
               </Link>
-              <Link href="/product" className="aa-button aa-button-secondary px-5 py-3">
-                See product
+              <Link href="/how-it-works" className="aa-button aa-button-secondary px-5 py-3">
+                See how it works
               </Link>
             </>
           }
+          actionsFooter="Self-serve plans start with a 14-day free trial."
         >
           <MarketingHeroProofStack items={heroProofItems} />
         </MarketingHero>
@@ -189,12 +190,12 @@ export default function SecurityPage() {
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
               eyebrow="GET STARTED"
-              title="Review the workflow and trust model together."
-              description="Security is easier to evaluate when paired with the product and workflow pages, because review and payout boundaries are part of the operating model."
-              primaryHref="/how-it-works"
-              primaryLabel="See how it works"
-              secondaryHref="/request-access"
-              secondaryLabel="Request access"
+              title="Review the workflow, then start with confidence."
+              description="Trust is easiest to evaluate when paired with the real workflow and pricing, because review and payout boundaries are part of the operating model."
+              primaryHref="/signup"
+              primaryLabel="Start free trial"
+              secondaryHref="/pricing"
+              secondaryLabel="View pricing"
             />
           </div>
         </MarketingSection>

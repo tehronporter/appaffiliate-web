@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 
 function joinClasses(...classes: Array<string | undefined | false>) {
   return classes.filter(Boolean).join(" ");
@@ -32,9 +33,9 @@ export function SupportCard({
   );
 
   const classes = joinClasses(
-    "block rounded-[12px] border border-border bg-white p-5 transition-colors sm:p-6",
+    "block rounded-[18px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] transition-colors sm:p-6",
     href &&
-      "hover:border-border-strong focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)]",
+      "hover:border-[color:color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)]",
     className,
   );
 
@@ -69,8 +70,8 @@ export function FaqGroup({
 }: FaqGroupProps) {
   return (
     <div
-        className={joinClasses(
-        "rounded-[12px] border border-border bg-white p-5 sm:p-6",
+      className={joinClasses(
+        "rounded-[20px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-white p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] sm:p-6",
         className,
       )}
     >
@@ -86,15 +87,21 @@ export function FaqGroup({
 
       <div className="mt-6 space-y-3">
         {items.map((item) => (
-          <div
+          <details
             key={item.question}
-            className="rounded-[12px] border border-border bg-surface px-4 py-4"
+            className="group rounded-[18px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[#fbfcfe] px-4 py-4"
           >
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              {item.question}
-            </p>
-            <p className="mt-2 text-sm leading-7 text-ink-muted">{item.answer}</p>
-          </div>
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left">
+              <span className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                {item.question}
+              </span>
+              <ChevronDown
+                size={18}
+                className="shrink-0 text-ink-subtle transition-transform group-open:rotate-180"
+              />
+            </summary>
+            <p className="mt-3 text-sm leading-7 text-ink-muted">{item.answer}</p>
+          </details>
         ))}
       </div>
     </div>
@@ -119,8 +126,8 @@ export function SupportChecklist({
 }: SupportChecklistProps) {
   return (
     <div
-        className={joinClasses(
-        "rounded-[12px] border border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-white p-5 sm:p-6",
+      className={joinClasses(
+        "rounded-[20px] border border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-white p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] sm:p-6",
         className,
       )}
     >
@@ -131,7 +138,7 @@ export function SupportChecklist({
         {items.map((item, index) => (
           <div
             key={item.label}
-            className="flex flex-col gap-3 rounded-[12px] border border-border bg-surface px-4 py-4 sm:flex-row sm:gap-4"
+            className="flex flex-col gap-3 rounded-[16px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[#fbfcfe] px-4 py-4 sm:flex-row sm:gap-4"
           >
             <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#EBF0FF] text-sm font-semibold text-primary">
               {index + 1}

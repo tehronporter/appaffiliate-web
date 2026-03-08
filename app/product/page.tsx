@@ -154,24 +154,26 @@ export default function ProductPage() {
         <MarketingHero
           eyebrow="WHAT'S INSIDE"
           title="Creator performance, tracked end to end."
-          description="From the first creator code to the last payout - every step has a home in AppAffiliate."
+          description="From the first creator code to the final payout state, every step has a clear home in AppAffiliate."
           wrapVisual={false}
           actions={
             <>
-              <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
-                See how it works
+              <Link href="/signup" className="aa-button aa-button-primary px-5 py-3">
+                Start free trial
               </Link>
-              <Link href="/request-access" className="aa-button aa-button-secondary px-5 py-3">
-                Request access
+              <Link href="/pricing" className="aa-button aa-button-secondary px-5 py-3">
+                View pricing
               </Link>
             </>
           }
+          actionsFooter="Self-serve plans start with a 14-day free trial."
         >
           <MarketingHeroProofStack items={productHeroProof} />
         </MarketingHero>
 
         <MarketingSection>
           <MarketingSectionHeading
+            eyebrow="HOW THE SYSTEM FLOWS"
             title="One connected system from creator invite to payout."
             description="The product works best when the whole loop stays visible: who promoted the app, what converted, what was approved, and what has been paid."
           />
@@ -183,11 +185,12 @@ export default function ProductPage() {
 
         <MarketingSection muted>
           <MarketingSectionHeading
+            eyebrow="WHAT IT COVERS"
             title="Focused product surfaces instead of feature theater."
             description="AppAffiliate gives founders the workflow they actually need to run creator performance without drowning the page in back-office jargon."
           />
 
-          <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {productAreas.map((area) => (
               <MarketingCard
                 key={area.title}
@@ -202,6 +205,7 @@ export default function ProductPage() {
 
         <MarketingSection>
           <MarketingSectionHeading
+            eyebrow="BUILT FOR TRUST"
             title="A product shaped around trust, not dashboard clutter."
             description="The product is designed to help founders grow through creators while keeping review, payouts, and creator visibility trustworthy as the program scales."
           />
@@ -224,12 +228,12 @@ export default function ProductPage() {
           <div className="mx-auto max-w-5xl">
             <MarketingCtaPanel
               eyebrow="GET STARTED"
-              title="See the workflow, then request access."
-              description="If it fits your iOS app team, request access and we'll walk through the rollout together."
-              primaryHref="/request-access"
-              primaryLabel="Request access"
-              secondaryHref="/how-it-works"
-              secondaryLabel="See how it works"
+              title="Start with the product, then scale when the channel works."
+              description="Try AppAffiliate free for 14 days, or review pricing first if you want the plan breakdown."
+              primaryHref="/signup"
+              primaryLabel="Start free trial"
+              secondaryHref="/pricing"
+              secondaryLabel="View pricing"
             />
           </div>
         </MarketingSection>

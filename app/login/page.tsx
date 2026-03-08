@@ -112,7 +112,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 href="/signup"
                 className="inline-flex items-center gap-2 font-semibold text-primary transition hover:opacity-80"
               >
-                Create a new workspace
+                Start free trial
                 <ArrowRight size={16} strokeWidth={1.75} />
               </Link>
               <span className="text-ink-subtle">if you are setting up the first owner account</span>
