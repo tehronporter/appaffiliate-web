@@ -6,7 +6,7 @@ export default async function AppleHealthOverviewPage() {
   const app = await getPrimaryWorkspaceApp();
 
   if (!app) {
-    redirect("/onboarding?step=1");
+    redirect("/setup");
   }
 
   redirect(`/apps/${app.slug}/apple-health`);

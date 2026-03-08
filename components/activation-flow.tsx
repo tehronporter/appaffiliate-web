@@ -818,10 +818,10 @@ export function ActivationFlow({
               badge={<StatusBadge tone="green">{payoutStep.item.stateLabel}</StatusBadge>}
               action={
                 <Link
-                  href="/commissions"
+                  href="/earnings"
                   className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
                 >
-                  Open commissions <ArrowRight size={14} strokeWidth={1.75} />
+                  Open earnings <ArrowRight size={14} strokeWidth={1.75} />
                 </Link>
               }
             />

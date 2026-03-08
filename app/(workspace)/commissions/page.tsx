@@ -67,7 +67,7 @@ function buildHref(params: {
   }
 
   const query = search.toString();
-  return query ? `/commissions?${query}` : "/commissions";
+  return query ? `/earnings?${query}` : "/earnings";
 }
 
 function noticeCopy(notice: string | undefined) {
@@ -127,11 +127,11 @@ export default async function CommissionsPage({
     <PageContainer>
       <PageHeader
         eyebrow="Finance"
-        title="Commissions"
+        title="Earnings"
         description="Review earnings before payout."
         actions={
           <>
-            <ActionLink href="/unattributed">Open queue</ActionLink>
+            <ActionLink href="/review?view=needs-review">Open queue</ActionLink>
             <ActionLink href="/payouts" variant="primary">
               Open payouts
             </ActionLink>
@@ -139,7 +139,7 @@ export default async function CommissionsPage({
         }
       >
         <div className="flex flex-wrap gap-2">
-          <StatusBadge tone={toneForWorkspaceLabel()}>Commission ledger</StatusBadge>
+          <StatusBadge tone={toneForWorkspaceLabel()}>Earnings ledger</StatusBadge>
           {data.stats.pendingReview > 0 ? <StatusBadge tone="amber">Needs review</StatusBadge> : null}
         </div>
       </PageHeader>
@@ -255,7 +255,7 @@ export default async function CommissionsPage({
             <ListTable
               className="w-full"
               eyebrow="Ledger"
-              title="Commissions"
+              title="Earnings"
               description="Select a row to review."
             >
             <div className="hidden grid-cols-[minmax(0,1.4fr)_140px_140px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
@@ -274,7 +274,7 @@ export default async function CommissionsPage({
                     title="Commission items appear here"
                     description="The register fills after tracked results are ready for finance review."
                     action={
-                      <ActionLink href="/events" variant="primary">
+                      <ActionLink href="/review?view=all" variant="primary">
                         Review results
                       </ActionLink>
                     }

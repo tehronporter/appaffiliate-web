@@ -1,4 +1,10 @@
-export type WorkspaceSearchGroup = "Creators" | "Codes" | "Events" | "Payouts";
+export type WorkspaceSearchGroup =
+  | "Setup"
+  | "Apps"
+  | "Creators"
+  | "Codes"
+  | "Review"
+  | "Payouts";
 
 export type WorkspaceSearchItem = {
   id: string;
@@ -11,20 +17,36 @@ export type WorkspaceSearchItem = {
 
 export const workspaceSearchItems: WorkspaceSearchItem[] = [
   {
+    id: "setup-checklist",
+    group: "Setup",
+    title: "Setup checklist",
+    description: "Open the persistent launch checklist for the workspace.",
+    href: "/setup",
+    keywords: ["setup", "checklist", "onboarding", "activation"],
+  },
+  {
+    id: "apps-workspace",
+    group: "Apps",
+    title: "Apps",
+    description: "Review app lanes, health, and readiness.",
+    href: "/apps",
+    keywords: ["apps", "apple", "health", "readiness"],
+  },
+  {
     id: "creators-directory",
     group: "Creators",
     title: "Creator directory",
-    description: "Open partners and review creator records.",
-    href: "/partners",
+    description: "Open creators and review program records.",
+    href: "/creators",
     keywords: ["partners", "creators", "directory", "invite"],
   },
   {
     id: "creators-invite",
     group: "Creators",
-    title: "Invite creator",
-    description: "Start a new creator record from the drawer flow.",
-    href: "/partners?drawer=create",
-    keywords: ["partner", "creator", "invite", "email"],
+    title: "Add creator",
+    description: "Start a new creator record from the create flow.",
+    href: "/creators?drawer=create",
+    keywords: ["partner", "creator", "invite", "email", "add"],
   },
   {
     id: "codes-register",
@@ -43,20 +65,20 @@ export const workspaceSearchItems: WorkspaceSearchItem[] = [
     keywords: ["create", "code", "link", "promo", "tracking"],
   },
   {
-    id: "events-register",
-    group: "Events",
-    title: "Events table",
+    id: "review-results",
+    group: "Review",
+    title: "All results",
     description: "Review tracked results and operational state.",
-    href: "/events",
-    keywords: ["events", "results", "audit", "activity"],
+    href: "/review?view=all",
+    keywords: ["events", "results", "audit", "activity", "review"],
   },
   {
-    id: "events-review-queue",
-    group: "Events",
+    id: "review-queue",
+    group: "Review",
     title: "Review queue",
     description: "Resolve unattributed or blocked result records.",
-    href: "/unattributed",
-    keywords: ["queue", "review", "unattributed", "blocked"],
+    href: "/review?view=needs-review",
+    keywords: ["queue", "review", "unattributed", "blocked", "approval"],
   },
   {
     id: "payouts-workspace",
@@ -67,11 +89,11 @@ export const workspaceSearchItems: WorkspaceSearchItem[] = [
     keywords: ["payouts", "finance", "batches", "ready"],
   },
   {
-    id: "commissions-ledger",
+    id: "earnings-ledger",
     group: "Payouts",
-    title: "Commission ledger",
+    title: "Earnings ledger",
     description: "Approve or reject earnings before payout.",
-    href: "/commissions",
+    href: "/earnings",
     keywords: ["commissions", "earnings", "approve", "reject"],
   },
   {
@@ -83,4 +105,3 @@ export const workspaceSearchItems: WorkspaceSearchItem[] = [
     keywords: ["batches", "exports", "paid", "finance"],
   },
 ];
-

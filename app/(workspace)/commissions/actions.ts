@@ -20,7 +20,7 @@ function buildCommissionsHref(params: {
 
   search.set("notice", params.notice);
 
-  return `/commissions?${search.toString()}`;
+  return `/earnings?${search.toString()}`;
 }
 
 export async function approveCommissionAction(formData: FormData) {
@@ -34,7 +34,7 @@ export async function approveCommissionAction(formData: FormData) {
       note: String(formData.get("note") ?? ""),
     });
 
-    revalidatePath("/commissions");
+    revalidatePath("/earnings");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
@@ -63,7 +63,7 @@ export async function rejectCommissionAction(formData: FormData) {
       note: String(formData.get("note") ?? ""),
     });
 
-    revalidatePath("/commissions");
+    revalidatePath("/earnings");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");

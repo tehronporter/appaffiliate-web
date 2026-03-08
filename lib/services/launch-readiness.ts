@@ -176,7 +176,7 @@ function buildChecklist(params: {
     },
     {
       id: "partner-code-coverage",
-      title: "Partner and code coverage",
+      title: "Creator and code coverage",
       status:
         linkedCodeCount === 0
           ? "blocked"
@@ -191,10 +191,10 @@ function buildChecklist(params: {
             : `${linkedCodeCount} linked codes`,
       detail:
         linkedCodeCount === 0
-          ? "Create at least one partner-linked code before launch so attribution review has clear ownership context."
+          ? "Create at least one creator-linked code before launch so attribution review has clear ownership context."
           : unassignedCodeCount > 0
-            ? `${linkedCodeCount} active codes are already linked to partners. ${unassignedCodeCount} active codes still need assignment.`
-            : "Active promo codes are already linked to partners in the current workspace view.",
+            ? `${linkedCodeCount} active codes are already linked to creators. ${unassignedCodeCount} active codes still need assignment.`
+            : "Active promo codes are already linked to creators in the current workspace view.",
       href: "/codes",
     },
     {
@@ -209,7 +209,7 @@ function buildChecklist(params: {
         params.overview.monitoring.queueVolume > 0
           ? `${params.overview.monitoring.inReviewQueueCount} of those items are already in review.`
           : "No unattributed backlog is visible in the current workspace view.",
-      href: "/unattributed",
+      href: "/review?view=needs-review",
     },
     {
       id: "finance-review",
@@ -281,7 +281,7 @@ export async function getLaunchReadinessData() {
       hasWorkspaceAccess: false,
       organizationName: workspace.organization?.name ?? null,
       workspaceRoleLabel: workspace.role?.name ?? null,
-      appleHealthHref: "/apple-health",
+      appleHealthHref: "/apps",
       overallStatus: "blocked",
       overallLabel: overallLabel("blocked"),
       overallDetail:
@@ -325,7 +325,7 @@ export async function getLaunchReadinessData() {
   const appleHealthHref =
     rules.appleReadiness[0]?.slug
       ? `/apps/${rules.appleReadiness[0].slug}/apple-health`
-      : "/apple-health";
+      : "/apps";
   const checklist = buildChecklist({
     appleHealthHref,
     overview,

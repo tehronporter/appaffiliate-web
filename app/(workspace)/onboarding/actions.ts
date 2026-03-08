@@ -19,7 +19,7 @@ function buildOnboardingHref(params: {
     search.set("error", params.error);
   }
 
-  return `/onboarding?${search.toString()}`;
+  return `/setup?${search.toString()}`;
 }
 
 export async function createActivationAppAction(formData: FormData) {
@@ -45,12 +45,13 @@ export async function createActivationAppAction(formData: FormData) {
       await createApp(input);
     }
 
-    revalidatePath("/onboarding");
+    revalidatePath("/setup");
+    revalidatePath("/apps");
     revalidatePath("/dashboard");
     revalidatePath("/settings");
     revalidatePath("/settings/organization");
     revalidatePath("/settings/rules");
-    revalidatePath("/apple-health");
+    revalidatePath("/apps");
     redirect(buildOnboardingHref({ step: "2" }));
   } catch {
     redirect(buildOnboardingHref({ step: "1", error: "app" }));
@@ -71,8 +72,8 @@ export async function createActivationPartnerAction(formData: FormData) {
       displayName: String(formData.get("name") ?? ""),
     });
 
-    revalidatePath("/onboarding");
-    revalidatePath("/partners");
+    revalidatePath("/setup");
+    revalidatePath("/creators");
     revalidatePath("/settings/team");
     redirect(buildOnboardingHref({ step: "3" }));
   } catch {
@@ -93,9 +94,9 @@ export async function createActivationCodeAction(formData: FormData) {
       channel: assetKind === "tracking" ? "Tracking link" : "Promo code",
     });
 
-    revalidatePath("/onboarding");
+    revalidatePath("/setup");
     revalidatePath("/codes");
-    revalidatePath("/events");
+    revalidatePath("/review");
     redirect(buildOnboardingHref({ step: "4" }));
   } catch {
     redirect(buildOnboardingHref({ step: "3", error: "code" }));

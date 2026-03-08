@@ -248,7 +248,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
         description="Use codes as the ownership register."
         actions={
           <>
-            <ActionLink href="/unattributed">Review queue</ActionLink>
+            <ActionLink href="/review?view=needs-review">Review queue</ActionLink>
             <ActionLink
               href={buildHref({ status, ownership, drawer: "create" })}
               variant="primary"
@@ -415,8 +415,8 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
                 title="Add your app before you create a code or link"
                 description="Trackable assets appear after an app lane is ready."
                 action={
-                  <ActionLink href="/onboarding" variant="primary">
-                    Activation guide
+                  <ActionLink href="/setup" variant="primary">
+                    Open setup
                   </ActionLink>
                 }
               />

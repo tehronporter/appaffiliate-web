@@ -24,7 +24,7 @@ export default async function SettingsAuditPage() {
       actions={
         <>
           <SettingsHubActions />
-          <ActionLink href="/events">Open events</ActionLink>
+          <ActionLink href="/review?view=all">Open review</ActionLink>
         </>
       }
       badges={
@@ -181,7 +181,7 @@ export default async function SettingsAuditPage() {
                         {receipt.processedStatus}
                       </StatusBadge>
                     }
-                    actions={<ActionLink href="/events">Open events</ActionLink>}
+                    actions={<ActionLink href="/review?view=all">Open review</ActionLink>}
                   />
                 ))}
 

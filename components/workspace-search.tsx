@@ -21,9 +21,11 @@ function joinClasses(...classes: Array<string | undefined | false>) {
 }
 
 const groupOrder: WorkspaceSearchGroup[] = [
+  "Setup",
+  "Apps",
   "Creators",
   "Codes",
-  "Events",
+  "Review",
   "Payouts",
 ];
 

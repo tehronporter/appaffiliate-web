@@ -68,7 +68,7 @@ export default async function AppleHealthPage({
         : "No Apple receipt has been stored for this app yet.",
       tone: readiness.latestReceipt ? "green" : "amber",
       statusLabel: readiness.latestReceipt ? "Receiving receipts" : "Awaiting first receipt",
-      actions: <ActionLink href="/events">Open events</ActionLink>,
+      actions: <ActionLink href="/review?view=all">Open review</ActionLink>,
     },
     {
       title: "Normalized event visibility",
@@ -77,7 +77,7 @@ export default async function AppleHealthPage({
         : "No normalized event exists yet. Receipt-only storage is still possible when verification or decode is incomplete.",
       tone: readiness.latestEvent ? "green" : "blue",
       statusLabel: readiness.latestEvent ? "Visible" : "Receipt-only",
-      actions: <ActionLink href="/events">Review event log</ActionLink>,
+      actions: <ActionLink href="/review?view=all">Review result log</ActionLink>,
     },
     {
       title: "Operator follow-up",
@@ -86,16 +86,16 @@ export default async function AppleHealthPage({
         : "No current warning note is attached to the latest receipt or event.",
       tone: readiness.warningNote ? "amber" : "blue",
       statusLabel: readiness.warningNote ? "Attention visible" : "Calm",
-      actions: <ActionLink href="/unattributed">Open queue</ActionLink>,
+      actions: <ActionLink href="/review?view=needs-review">Open queue</ActionLink>,
     },
   ];
 
   const recommendedAction = !readiness.app?.ingest_key
     ? { href: "/settings/organization", label: "Finish app setup" }
     : !readiness.latestReceipt
-      ? { href: "/events", label: "Watch first receipt" }
+      ? { href: "/review?view=all", label: "Watch first result" }
       : readiness.warningNote
-        ? { href: "/events", label: "Review latest event" }
+        ? { href: "/review?view=all", label: "Review latest result" }
         : { href: "/dashboard", label: "Open dashboard" };
 
   const recommendedDetail = !readiness.app?.ingest_key
@@ -114,7 +114,7 @@ export default async function AppleHealthPage({
         description="Check Apple intake and the next follow-up for this app."
         actions={
           <>
-            <ActionLink href="/events">Open events</ActionLink>
+            <ActionLink href="/review?view=all">Open review</ActionLink>
             <ActionLink href={recommendedAction.href} variant="primary">
               {recommendedAction.label}
             </ActionLink>

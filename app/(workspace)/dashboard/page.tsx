@@ -1,84 +1,30 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  Activity,
-  AlertTriangle,
-  Code2,
-  DollarSign,
-  Heart,
-  Rocket,
-  Users,
-  Wallet,
-} from "lucide-react";
-import type { ReactNode } from "react";
+import { AppWindow, Code2, ReceiptText, Users } from "lucide-react";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
+  DetailList,
   EmptyState,
+  InlineActionRow,
   InsetPanel,
+  ListTable,
   PageHeader,
   QuickActionTile,
+  SectionCard,
   StatCard,
   StatusBadge,
-  SurfaceCard,
+  SummaryBar,
 } from "@/components/admin-ui";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { listUnattributedItems } from "@/lib/services/attribution";
+import { listWorkspaceNormalizedEvents } from "@/lib/services/apple-read-model";
+import { listWorkspaceApps } from "@/lib/services/apps";
+import { listWorkspacePromoCodes } from "@/lib/services/codes";
 import { listCommissionItems } from "@/lib/services/finance";
-import {
-  getLaunchReadinessData,
-  type LaunchReadinessCheck,
-} from "@/lib/services/launch-readiness";
-import {
-  toneForActivationState,
-  toneForLaunchStatus,
-  toneForWorkspaceLabel,
-} from "@/lib/status-badges";
-import { buildActivationProgress } from "@/lib/activation-progress";
-import { getCurrentWorkspaceContext } from "@/lib/workspace";
-
-function actionLabelForCheck(check: LaunchReadinessCheck) {
-  if (check.href.startsWith("/apps/")) {
-    return "Open Apple health";
-  }
-
-  if (check.href === "/unattributed") {
-    return "Review queue";
-  }
-
-  if (check.href === "/codes") {
-    return "Review codes";
-  }
-
-  if (check.href === "/payouts") {
-    return "Open payouts";
-  }
-
-  if (check.href === "/settings/exports") {
-    return "Open exports";
-  }
-
-  if (check.href.startsWith("/settings")) {
-    return "Open settings";
-  }
-
-  return "Open";
-}
-
-type DashboardMetricTone = "blue" | "green" | "amber" | "red";
-
-function billingStatusTone(
-  status: Awaited<ReturnType<typeof getLaunchReadinessData>>["billingSummary"]["status"],
-) {
-  if (status === "trial_expired" || status === "missing") {
-    return "amber" as const;
-  }
-
-  if (status === "manual_contact") {
-    return "blue" as const;
-  }
-
-  return "green" as const;
-}
+import { listWorkspacePartners } from "@/lib/services/partners";
+import { getSetupGuideData } from "@/lib/setup-guide";
+import { toneForLaunchStatus, toneForWorkspaceLabel } from "@/lib/status-badges";
 
 function formatRelativeTime(value: string) {
   const date = new Date(value);
@@ -100,30 +46,7 @@ function formatRelativeTime(value: string) {
     return formatter.format(diffHours, "hour");
   }
 
-  const diffDays = Math.round(diffHours / 24);
-  return formatter.format(diffDays, "day");
-}
-
-function DashboardPanel({
-  label,
-  action,
-  children,
-}: {
-  label: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <SurfaceCard density="compact" className="shadow-none">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
-          {label}
-        </p>
-        {action}
-      </div>
-      <div className="mt-3">{children}</div>
-    </SurfaceCard>
-  );
+  return formatter.format(Math.round(diffHours / 24), "day");
 }
 
 export default async function DashboardPage() {
@@ -133,525 +56,325 @@ export default async function DashboardPage() {
     redirect("/login?redirectTo=/dashboard");
   }
 
-  const [workspace, launch, commissions] = await Promise.all([
-    getCurrentWorkspaceContext(),
-    getLaunchReadinessData(),
-    listCommissionItems(),
-  ]);
+  const [setup, appsData, creatorsData, codesData, eventsData, unattributedData, commissions] =
+    await Promise.all([
+      getSetupGuideData(),
+      listWorkspaceApps(),
+      listWorkspacePartners(),
+      listWorkspacePromoCodes(),
+      listWorkspaceNormalizedEvents(),
+      listUnattributedItems(),
+      listCommissionItems(),
+    ]);
 
-  const financeSummary = launch.overview.financeSummary;
-  const monitoring = launch.overview.monitoring;
-  const actionableChecks = launch.checklist.filter(
+  const financeReadyCount = commissions.items.filter(
+    (item) =>
+      item.reviewState === "approved" ||
+      item.reviewState === "payout_ready" ||
+      item.reviewState === "paid",
+  ).length;
+  const openPriorities = setup.launch.checklist.filter(
     (check) => check.status === "blocked" || check.status === "attention",
   );
-  const topPriority = actionableChecks[0] ?? null;
-  const reviewQueuePreview = actionableChecks.slice(0, 2);
-  const readyApps = launch.rules?.appleReadiness.filter((app) => app.ingestReady).length ?? 0;
-  const totalApps = launch.rules?.appleReadiness.length ?? 0;
-  const activeCreators = launch.billingSummary.usage?.activeCreators.used ?? 0;
-  const needsReviewCount =
-    monitoring.queueVolume +
-    (financeSummary.hasFinanceAccess ? financeSummary.pendingReviewCount : 0);
-  const workspaceName =
-    workspace.organization?.name ??
-    launch.organizationName ??
-    "No organization linked";
-  const latestResults = [...commissions.items]
-    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
-    .slice(0, 5);
-  const priorityCards = actionableChecks.slice(0, 2);
-
-  const performanceSnapshot = [
+  const primaryActions = [
     {
-      label: "Tracked results",
-      value: String(monitoring.recentReceiptCount),
-      detail:
-        monitoring.recentReceiptCount > 0
-          ? "Recent receipts flowing."
-          : "No recent results yet.",
-      tone: monitoring.recentReceiptCount > 0 ? ("blue" as const) : ("amber" as const),
-      badge: "Tracked results",
-      icon: Activity,
+      href: "/apps?drawer=create",
+      title: "Add app",
+      description: "Create the next app lane and move it into readiness review.",
+      icon: <AppWindow size={18} strokeWidth={1.8} />,
     },
     {
-      label: "Needs review",
-      value: needsReviewCount > 0 ? String(needsReviewCount) : "Calm",
-      detail: financeSummary.hasFinanceAccess
-        ? `${monitoring.queueVolume} attribution and ${financeSummary.pendingReviewCount} finance items open.`
-        : `${monitoring.queueVolume} attribution items open.`,
-      tone: needsReviewCount > 0 ? ("amber" as const) : ("green" as const),
-      badge: "Needs review",
-      icon: AlertTriangle,
+      href: "/creators?drawer=create",
+      title: "Add creator",
+      description: "Create a creator record and optionally send the invite immediately.",
+      icon: <Users size={18} strokeWidth={1.8} />,
     },
     {
-      label: "Approved earnings",
-      value: financeSummary.hasFinanceAccess
-        ? String(financeSummary.approvedCount)
-        : "Hidden",
-      detail: financeSummary.hasFinanceAccess
-        ? "Cleared for payout."
-        : "Finance-only.",
-      tone:
-        financeSummary.hasFinanceAccess && financeSummary.approvedCount > 0
-          ? ("green" as const)
-          : ("blue" as const),
-      badge: "Approved earnings",
-      icon: DollarSign,
+      href: "/codes?drawer=create",
+      title: "Create code",
+      description: "Add the next creator-linked code so attribution can resolve ownership.",
+      icon: <Code2 size={18} strokeWidth={1.8} />,
     },
     {
-      label: "Payout ready",
-      value: financeSummary.hasFinanceAccess
-        ? String(financeSummary.payoutTrackedCount)
-        : "Hidden",
-      detail: financeSummary.hasFinanceAccess
-        ? `${financeSummary.draftBatchCount} draft and ${financeSummary.exportedBatchCount} exported in motion.`
-        : "Finance-only.",
-      tone:
-        financeSummary.hasFinanceAccess && financeSummary.payoutTrackedCount > 0
-          ? ("green" as const)
-          : ("blue" as const),
-      badge: "Payout ready",
-      icon: Wallet,
-    },
-    {
-      label: "Active creators",
-      value: String(activeCreators),
-      detail:
-        activeCreators > 0
-          ? "Creator records live."
-          : "No active creators yet.",
-      tone: activeCreators > 0 ? ("green" as const) : ("amber" as const),
-      badge: "Active creators",
-      icon: Users,
-    },
-    {
-      label: "Apple health",
-      value: totalApps > 0 ? `${readyApps}/${totalApps} ready` : "No apps yet",
-      detail:
-        totalApps === 0
-          ? "Add the first app lane."
-          : monitoring.failedReceiptCount > 0 || monitoring.pendingReceiptCount > 0
-            ? `${monitoring.failedReceiptCount} failed and ${monitoring.pendingReceiptCount} pending.`
-            : "Apple intake calm.",
-      tone:
-        monitoring.failedReceiptCount > 0
-          ? ("red" as const)
-          : totalApps > 0 && readyApps === totalApps && monitoring.pendingReceiptCount === 0
-            ? ("green" as const)
-            : ("amber" as const),
-      badge: "Apple health",
-      icon: Heart,
+      href: "/review?view=needs-review",
+      title: "Review results",
+      description: "Resolve ownership decisions and inspect tracked results in one place.",
+      icon: <ReceiptText size={18} strokeWidth={1.8} />,
     },
   ];
-
-  const quickActions = [
-    {
-      href: "/onboarding",
-      title: "Activation guide",
-      description: "Continue setup.",
-      badge: undefined,
-      icon: Rocket,
-    },
-    {
-      href: "/codes",
-      title: "Add code",
-      description: "Create or assign the next asset.",
-      badge: undefined,
-      icon: Code2,
-    },
-    {
-      href: "/events",
-      title: "Review activity",
-      description: "Inspect tracked results.",
-      badge: undefined,
-      icon: Activity,
-    },
-    {
-      href: "/payouts",
-      title: "Open payouts",
-      description: "Move approved work forward.",
-      badge: undefined,
-      icon: Wallet,
-    },
-    {
-      href: launch.appleHealthHref,
-      title: "Open Apple health",
-      description: "Check ingest readiness.",
-      badge: undefined,
-      icon: Heart,
-    },
-  ];
-
-  const activationProgress = buildActivationProgress(launch);
-  const showActivationCard = !activationProgress.isComplete;
+  const recentActivity = [
+    ...eventsData.events.slice(0, 3).map((event) => ({
+      id: `event-${event.id}`,
+      title: `${event.eventType.replaceAll("_", " ")} on ${event.appName}`,
+      detail: `${event.state} • ${formatRelativeTime(event.receivedAt ?? event.occurredAt)}`,
+      href: `/review?view=all&event=${event.id}`,
+    })),
+    ...creatorsData.partners.slice(0, 2).map((creator) => ({
+      id: `creator-${creator.id}`,
+      title: `Creator ${creator.name} updated`,
+      detail: `${creator.status} • ${formatRelativeTime(creator.updatedAt)}`,
+      href: `/creators/${creator.slug}`,
+    })),
+  ].slice(0, 5);
 
   return (
     <PageContainer>
       <PageHeader
+        eyebrow="Overview"
         title="Dashboard"
-        description="Review priorities and recent results."
+        description="Lead with setup, active priorities, and the next operator action."
         actions={
-          <ActionLink href="/unattributed" variant="primary">
-            Review queue
-          </ActionLink>
+          <>
+            <ActionLink href={setup.nextIncompleteStep?.href ?? "/review?view=needs-review"}>
+              {setup.nextIncompleteStep ? "Continue setup" : "Open review"}
+            </ActionLink>
+            <ActionLink href="/review?view=needs-review" variant="primary">
+              Review queue
+            </ActionLink>
+          </>
         }
       >
         <div className="flex flex-wrap gap-2">
-          <StatusBadge tone={toneForWorkspaceLabel()}>{workspaceName}</StatusBadge>
-          <StatusBadge tone={billingStatusTone(launch.billingSummary.status)}>
-            {launch.billingSummary.planName ?? "No plan"}
+          <StatusBadge tone={toneForWorkspaceLabel()}>Workspace home</StatusBadge>
+          <StatusBadge tone={toneForLaunchStatus(setup.launch.overallStatus)}>
+            {setup.launch.overallLabel}
           </StatusBadge>
         </div>
       </PageHeader>
 
-      <section>
-        <div className="aa-stat-grid">
-          {performanceSnapshot.map((metric) => {
-            const Icon = metric.icon;
-
-            return (
-              <StatCard
-                key={metric.label}
-                label={metric.label}
-                value={metric.value}
-                detail={metric.detail}
-                tone={metric.tone}
-                size="compact"
-                badge={
-                  <StatusBadge tone={metric.tone} className="min-h-6 px-2 py-0.5 text-[10px]">
-                    {metric.badge}
-                  </StatusBadge>
-                }
-                icon={<Icon size={16} strokeWidth={1.75} />}
-              />
-            );
-          })}
-        </div>
-      </section>
-
-      {topPriority ? (
-        <SurfaceCard density="compact" className="py-2.5 shadow-none">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
-                <AlertTriangle size={16} strokeWidth={1.75} />
-              </span>
-              <p className="shrink-0 text-sm font-semibold text-ink">
-                {actionableChecks.length} active priorit{actionableChecks.length === 1 ? "y" : "ies"}
-              </p>
-              <p
-                className="min-w-0 text-sm text-ink-muted"
-                title={`${topPriority.title} needs attention.`}
-              >
-                {topPriority.title} needs attention.
-              </p>
-            </div>
-            <Link
-              href={topPriority.href}
-              className="shrink-0 text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
-            >
-              Review now
-            </Link>
-          </div>
-        </SurfaceCard>
-      ) : null}
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.65fr)_minmax(320px,0.35fr)]">
-        <div className="space-y-5">
-          <DashboardPanel
-            label="Needs attention"
-            action={
-              priorityCards.length > 0 ? (
-                <Link
-                  href={topPriority?.href ?? "/unattributed"}
-                  className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
-                >
-                  Review now
-                </Link>
-              ) : undefined
-            }
-          >
-            {priorityCards.length > 0 ? (
-              <div className="space-y-2.5">
-                {priorityCards.map((check) => (
-                  <InsetPanel
-                    key={check.id}
-                    tone={check.status === "blocked" ? "amber" : "default"}
-                    className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="flex min-w-0 items-start gap-3">
-                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
-                        <AlertTriangle size={16} strokeWidth={1.75} />
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-[15px] font-semibold text-ink">{check.title}</p>
-                          <StatusBadge tone={toneForLaunchStatus(check.status)}>
-                            {check.label}
-                          </StatusBadge>
-                        </div>
-                        <p className="mt-1 text-sm text-ink-muted" title={check.detail}>
-                          {check.detail}
-                        </p>
-                      </div>
-                    </div>
-                    <ActionLink href={check.href}>{actionLabelForCheck(check)}</ActionLink>
-                  </InsetPanel>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={Rocket}
-                title="Activation is the next useful step"
-                description="New priorities will appear here when setup or review needs attention."
-                action={
-                  <ActionLink href="/onboarding" variant="primary">
-                    Activation guide
-                  </ActionLink>
-                }
-              />
-            )}
-          </DashboardPanel>
-
-          <DashboardPanel
-            label="Latest results"
-            action={
-              <Link
-                href="/settings/audit"
-                className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
-              >
-                Open audit
-              </Link>
-            }
-          >
-            {latestResults.length > 0 ? (
-              <div>
-                <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] gap-3 border-b border-[var(--aa-shell-border)] px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle sm:grid">
-                  <span>Creator</span>
-                  <span>Event</span>
-                  <span className="text-right">Value</span>
-                  <span className="text-right">Time</span>
-                </div>
-                <div className="divide-y divide-[var(--aa-shell-border)]">
-                  {latestResults.map((item) => (
-                    <div
-                      key={item.id}
-                      className="grid gap-3 px-1 py-3 text-sm sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] sm:py-2.5"
-                    >
-                      <div>
-                        <span className="aa-mobile-label sm:hidden">Creator</span>
-                        <p className="truncate text-[15px] font-medium text-ink" title={item.partnerName}>
-                          {item.partnerName}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="aa-mobile-label sm:hidden">Event</span>
-                        <p className="truncate text-ink-muted" title={item.eventType}>
-                          {item.eventType}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="aa-mobile-label sm:hidden">Value</span>
-                        <p className="font-medium text-ink sm:text-right">
-                        {item.commissionAmountLabel}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="aa-mobile-label sm:hidden">Time</span>
-                        <p className="text-ink-muted sm:text-right">
-                        {formatRelativeTime(item.occurredAt)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <EmptyState
-                icon={Activity}
-                title="Your first tracked result will appear here"
-                description="Results show after app, creator, and code setup."
-                action={
-                  <ActionLink href="/onboarding" variant="primary">
-                    Activation guide
-                  </ActionLink>
-                }
-              />
-            )}
-          </DashboardPanel>
-
-          <DashboardPanel
-            label="Review queue"
-            action={
-              <Link
-                href="/unattributed"
-                className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
-              >
-                Open queue
-              </Link>
-            }
-          >
-            {reviewQueuePreview.length > 0 ? (
-              <div className="space-y-2.5">
-                {reviewQueuePreview.map((check) => (
-                  <InsetPanel
-                    key={check.id}
-                    className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <StatusBadge tone={toneForLaunchStatus(check.status)}>
-                          {check.label}
-                        </StatusBadge>
-                        <p className="text-[15px] font-semibold text-ink">{check.title}</p>
-                      </div>
-                      <p className="mt-1 text-sm text-ink-muted" title={check.detail}>
-                        {check.detail}
-                      </p>
-                    </div>
-                    <ActionLink href={check.href}>Review</ActionLink>
-                  </InsetPanel>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={AlertTriangle}
-                title="The next review item will appear here"
-                description="Records that need a decision appear here."
-                action={
-                  <ActionLink href="/events" variant="primary">
-                    Open events
-                  </ActionLink>
-                }
-              />
-            )}
-          </DashboardPanel>
-        </div>
-
-        <div className="space-y-5">
-          <DashboardPanel
-            label="Plan and trial"
-            action={
-              <Link
-                href="/settings"
-                className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
-              >
-                Open settings
-              </Link>
-            }
-          >
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-[15px] font-semibold text-ink">
-                    {launch.billingSummary.planName ?? "Workspace billing"}
-                  </p>
-                {launch.billingSummary.billingIntervalLabel ? (
-                  <StatusBadge tone="blue">
-                    {launch.billingSummary.billingIntervalLabel}
-                  </StatusBadge>
-                ) : null}
-                <StatusBadge tone={billingStatusTone(launch.billingSummary.status)}>
-                  {launch.billingSummary.statusLabel}
+      <SectionCard
+        eyebrow="Setup"
+        title={`Setup progress (${setup.completeCount}/${setup.totalCount})`}
+        description={
+          setup.nextIncompleteStep
+            ? `${setup.nextIncompleteStep.label} is the next best step for this workspace.`
+            : "Core workspace setup is complete. Keep using Apps, Creators, Codes, and Review as the program grows."
+        }
+        actions={
+          <ActionLink href={setup.nextIncompleteStep?.href ?? "/setup"} variant="primary">
+            {setup.nextIncompleteStep ? "Continue setup" : "Open setup"}
+          </ActionLink>
+        }
+      >
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {setup.workspaceSteps.map((step) => (
+            <InsetPanel key={step.id} tone={step.complete ? "green" : "amber"}>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-ink">{step.label}</p>
+                <StatusBadge tone={step.complete ? "green" : "amber"}>
+                  {step.complete ? "Complete" : "Next"}
                 </StatusBadge>
               </div>
-              <p className="text-sm leading-6 text-ink-muted">
-                {launch.billingSummary.detail}
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <InsetPanel>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
-                    Trial end
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-ink">
-                    {launch.billingSummary.trialEndsLabel ?? "Manual contact"}
-                  </p>
-                </InsetPanel>
-                <InsetPanel>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
-                    Usage
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-ink">
-                    {launch.billingSummary.usage?.apps.used ?? 0} apps ·{" "}
-                    {launch.billingSummary.usage?.activeCreators.used ?? 0} active creators
-                  </p>
-                </InsetPanel>
-              </div>
-              <div className="space-y-2">
-                {launch.billingSummary.notes.slice(0, 2).map((note) => (
-                  <p key={note} className="text-sm leading-6 text-ink-muted">
-                    {note}
-                  </p>
-                ))}
-              </div>
-            </div>
-          </DashboardPanel>
-
-          <DashboardPanel label="Utilities">
-            <div className="space-y-2">
-              {quickActions.map((action) => {
-                const Icon = action.icon;
-
-                return (
-                  <QuickActionTile
-                    key={action.title}
-                    href={action.href}
-                    title={action.title}
-                    description={action.description}
-                    badge={action.badge}
-                    icon={<Icon size={16} strokeWidth={1.75} />}
-                  />
-                );
-              })}
-            </div>
-          </DashboardPanel>
-
-          {showActivationCard ? (
-            <DashboardPanel
-              label="Activation"
-              action={
-                <Link
-                  href="/onboarding"
-                  className="text-sm font-semibold text-primary transition hover:text-[color:color-mix(in_srgb,var(--color-primary)_82%,black)]"
-                >
-                  Activation guide
-                </Link>
-              }
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[15px] font-semibold text-ink">Activation is still in progress</p>
-                  <p className="mt-1 text-sm text-ink-muted">
-                    Keep setup moving.
-                  </p>
-                </div>
-                <StatusBadge tone={toneForActivationState("in_progress")}>
-                  {activationProgress.completeCount}/{activationProgress.totalCount}
-                </StatusBadge>
-              </div>
-              <div className="mt-4 flex items-center gap-2">
-                {activationProgress.steps.map((step) => (
-                  <span
-                    key={step.label}
-                    className={`h-1.5 flex-1 rounded-full transition-colors ${
-                      step.complete ? "bg-primary" : "bg-[var(--aa-shell-border)]"
-                    }`}
-                  />
-                ))}
-              </div>
-              <p className="mt-2.5 text-sm text-ink-muted">
-                {activationProgress.completeCount === 0
-                  ? "Start with app connection, then add the first creator."
-                  : activationProgress.completeCount === activationProgress.totalCount - 1
-                    ? "One setup step remains."
-                    : `${activationProgress.completeCount} of ${activationProgress.totalCount} steps are already in place.`}
-              </p>
+              <p className="mt-2 text-sm leading-5 text-ink-muted">{step.detail}</p>
               <div className="mt-3">
-                <ActionLink href="/onboarding" variant="primary">
-                  Activation guide
-                </ActionLink>
+                <ActionLink href={step.href}>Open</ActionLink>
               </div>
-            </DashboardPanel>
-          ) : null}
+            </InsetPanel>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        eyebrow="Priorities"
+        title="Critical alerts"
+        description="The most urgent issues should sit above generic status cards."
+      >
+        {openPriorities.length === 0 ? (
+          <InsetPanel tone="green">
+            <p className="text-sm font-semibold text-ink">No active priorities</p>
+            <p className="mt-2 text-sm leading-5 text-ink-muted">
+              Setup, review, and payout posture are calm for the current workspace view.
+            </p>
+          </InsetPanel>
+        ) : (
+          <div className="space-y-3">
+            {openPriorities.slice(0, 3).map((priority) => (
+              <InlineActionRow
+                key={priority.id}
+                title={priority.title}
+                description={priority.detail}
+                badge={<StatusBadge tone={priority.status === "blocked" ? "red" : "amber"}>{priority.label}</StatusBadge>}
+                actions={<ActionLink href={priority.href}>Open</ActionLink>}
+              />
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <div className="space-y-5">
+          <SectionCard
+            eyebrow="Actions"
+            title="Primary actions"
+            description="Give operators a clear set of top-level jobs instead of forcing them to infer the flow from metrics."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              {primaryActions.map((action) => (
+                <QuickActionTile
+                  key={action.href}
+                  href={action.href}
+                  title={action.title}
+                  description={action.description}
+                  icon={action.icon}
+                />
+              ))}
+            </div>
+          </SectionCard>
+
+          <section className="aa-stat-grid">
+            <StatCard
+              label="Apps"
+              value={String(appsData.apps.length)}
+              detail={`${appsData.apps.filter((app) => app.status === "active").length} active app lanes.`}
+              tone="blue"
+            />
+            <StatCard
+              label="Creators"
+              value={String(creatorsData.partners.length)}
+              detail={`${creatorsData.stats.active} active creator records.`}
+              tone="green"
+            />
+            <StatCard
+              label="Codes"
+              value={String(codesData.codes.length)}
+              detail={`${codesData.codes.filter((code) => code.ownerAssigned).length} linked ownership signals.`}
+              tone={codesData.codes.some((code) => !code.ownerAssigned) ? "amber" : "green"}
+            />
+            <StatCard
+              label="Results"
+              value={String(eventsData.events.length)}
+              detail={`${unattributedData.stats.unresolved} currently need review.`}
+              tone={unattributedData.stats.unresolved > 0 ? "amber" : "blue"}
+            />
+          </section>
+
+          <ListTable
+            eyebrow="Attention"
+            title="Attention queue"
+            description="Group the work that still needs action in one scanning surface."
+          >
+            <InlineActionRow
+              title="Needs review"
+              description={
+                unattributedData.stats.unresolved > 0
+                  ? `${unattributedData.stats.unresolved} result decisions are open.`
+                  : "No result is currently waiting for an owner decision."
+              }
+              badge={
+                <StatusBadge tone={unattributedData.stats.unresolved > 0 ? "amber" : "green"}>
+                  {unattributedData.stats.unresolved > 0 ? "Open" : "Clear"}
+                </StatusBadge>
+              }
+              actions={<ActionLink href="/review?view=needs-review">Review</ActionLink>}
+            />
+            <InlineActionRow
+              title="Codes without owners"
+              description={
+                codesData.codes.some((code) => !code.ownerAssigned)
+                  ? `${codesData.codes.filter((code) => !code.ownerAssigned).length} codes still need a creator owner.`
+                  : "All active codes are linked to creators."
+              }
+              badge={
+                <StatusBadge tone={codesData.codes.some((code) => !code.ownerAssigned) ? "amber" : "green"}>
+                  {codesData.codes.filter((code) => !code.ownerAssigned).length}
+                </StatusBadge>
+              }
+              actions={<ActionLink href="/codes">Open codes</ActionLink>}
+            />
+            <InlineActionRow
+              title="Finance follow-up"
+              description={
+                commissions.hasFinanceAccess
+                  ? `${financeReadyCount} earning rows are approved, payout-ready, or already paid.`
+                  : "Finance details are hidden for this role."
+              }
+              badge={
+                <StatusBadge tone={commissions.hasFinanceAccess ? "blue" : "gray"}>
+                  {commissions.hasFinanceAccess ? "Visible" : "Role-limited"}
+                </StatusBadge>
+              }
+              actions={<ActionLink href="/payouts">Open payouts</ActionLink>}
+            />
+          </ListTable>
+
+          <ListTable
+            eyebrow="Recent activity"
+            title="Latest activity"
+            description="Keep the most recent result and creator changes easy to scan."
+          >
+            {recentActivity.length === 0 ? (
+              <div className="p-4">
+                <EmptyState
+                  title="Recent activity will appear here"
+                  description="As soon as creators, codes, or tracked results change, this panel becomes the fastest way to catch up."
+                />
+              </div>
+            ) : (
+              recentActivity.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className="flex items-center justify-between gap-3 border-b border-[var(--aa-shell-border)] px-4 py-3 last:border-b-0 hover:bg-[var(--aa-shell-panel-muted)]"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-ink">{item.title}</p>
+                    <p className="mt-1 text-sm text-ink-muted">{item.detail}</p>
+                  </div>
+                  <p className="text-sm font-semibold text-primary">Open</p>
+                </Link>
+              ))
+            )}
+          </ListTable>
+        </div>
+
+        <div className="space-y-5">
+          <SectionCard
+            eyebrow="Finance"
+            title="Plan and payout posture"
+            description="Finance remains secondary on the dashboard, but should still be readable."
+          >
+            <DetailList
+              columns={1}
+              items={[
+                {
+                  label: "Plan state",
+                  value: setup.launch.billingSummary.statusLabel,
+                },
+                {
+                  label: "Billing detail",
+                  value: setup.launch.billingSummary.detail,
+                },
+                {
+                  label: "Finance access",
+                  value: commissions.hasFinanceAccess ? "Visible for this role" : "Read-only summary",
+                },
+              ]}
+            />
+          </SectionCard>
+
+          <SectionCard
+            eyebrow="At a glance"
+            title="Program snapshot"
+            description="Read-only summaries for operators who want a quick pulse before drilling in."
+          >
+            <DetailList
+              columns={1}
+              items={[
+                {
+                  label: "Apps with ingest ready",
+                  value: `${setup.appGuides.filter((app) => app.ingestReady).length}/${setup.appGuides.length || 0}`,
+                },
+                {
+                  label: "Creators needing setup",
+                  value: String(creatorsData.partners.filter((creator) => creator.assignedCodes === 0).length),
+                },
+                {
+                  label: "Approved earning rows",
+                  value: commissions.hasFinanceAccess ? String(financeReadyCount) : "Finance-only",
+                },
+              ]}
+            />
+          </SectionCard>
         </div>
       </div>
     </PageContainer>

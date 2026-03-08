@@ -78,7 +78,7 @@ export function SignupForm({
       }
 
       await syncSessionCookie(data.session);
-      router.replace("/onboarding?step=1");
+      router.replace("/setup");
       router.refresh();
     } catch (error) {
       setState("idle");

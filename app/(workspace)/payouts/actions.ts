@@ -54,7 +54,7 @@ export async function createDraftPayoutBatchAction(formData: FormData) {
       note: String(formData.get("note") ?? ""),
     });
 
-    revalidatePath("/commissions");
+    revalidatePath("/earnings");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
@@ -84,7 +84,7 @@ export async function markPayoutBatchExportedAction(formData: FormData) {
       note: String(formData.get("note") ?? ""),
     });
 
-    revalidatePath("/commissions");
+    revalidatePath("/earnings");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
@@ -113,7 +113,7 @@ export async function markPayoutBatchPaidAction(formData: FormData) {
       note: String(formData.get("note") ?? ""),
     });
 
-    revalidatePath("/commissions");
+    revalidatePath("/earnings");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
@@ -142,7 +142,7 @@ export async function cancelPayoutBatchAction(formData: FormData) {
       note: String(formData.get("note") ?? ""),
     });
 
-    revalidatePath("/commissions");
+    revalidatePath("/earnings");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");

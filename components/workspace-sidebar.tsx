@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
-  AlertTriangle,
+  AppWindow,
+  ClipboardCheck,
   Code2,
   DollarSign,
-  Heart,
   LayoutDashboard,
+  ListChecks,
   Layers,
-  Rocket,
   Settings,
   Users,
   Wallet,
@@ -33,12 +32,11 @@ function joinClasses(...classes: Array<string | undefined | false>) {
 
 const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard,
-  Rocket,
+  ListChecks,
+  AppWindow,
   Users,
   Code2,
-  Heart,
-  Activity,
-  AlertTriangle,
+  ClipboardCheck,
   DollarSign,
   Wallet,
   Layers,
@@ -48,15 +46,19 @@ const iconMap: Record<string, LucideIcon> = {
 const navigationGroups = [
   {
     label: "Overview",
-    hrefs: ["/dashboard", "/onboarding"],
+    hrefs: ["/dashboard"],
+  },
+  {
+    label: "Setup & launch",
+    hrefs: ["/setup", "/apps"],
+  },
+  {
+    label: "Program management",
+    hrefs: ["/creators", "/codes"],
   },
   {
     label: "Operations",
-    hrefs: ["/partners", "/codes", "/apple-health", "/events", "/unattributed"],
-  },
-  {
-    label: "Finance",
-    hrefs: ["/commissions", "/payouts", "/payout-batches"],
+    hrefs: ["/review", "/earnings", "/payouts"],
   },
 ] as const;
 
@@ -137,7 +139,7 @@ export function WorkspaceSidebar({
                         <span className={joinClasses("truncate", active && "font-semibold")}>
                           {item.label}
                         </span>
-                        {item.href === "/onboarding" &&
+                        {item.href === "/setup" &&
                         activationReminder &&
                         !activationReminder.isComplete ? (
                           <span

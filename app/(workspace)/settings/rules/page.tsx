@@ -205,7 +205,7 @@ export default async function SettingsRulesPage() {
       actions={
         <>
           <SettingsHubActions />
-          <ActionLink href="/unattributed">Open unattributed</ActionLink>
+          <ActionLink href="/review?view=needs-review">Open review</ActionLink>
         </>
       }
       badges={

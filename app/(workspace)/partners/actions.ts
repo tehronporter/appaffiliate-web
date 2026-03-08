@@ -13,6 +13,7 @@ import {
 function buildPartnersHref(params: {
   partnerId?: string;
   notice: string;
+  slug?: string;
 }) {
   const search = new URLSearchParams();
 
@@ -22,12 +23,21 @@ function buildPartnersHref(params: {
 
   search.set("notice", params.notice);
 
-  return `/partners?${search.toString()}`;
+  if (params.slug) {
+    return `/creators/${params.slug}?${search.toString()}`;
+  }
+
+  return `/creators?${search.toString()}`;
 }
 
 export async function createPartnerAction(formData: FormData) {
   try {
     const contactEmail = String(formData.get("contactEmail") ?? "");
+    const sendInviteValue = formData.get("sendInvite");
+    const shouldSendInvite =
+      sendInviteValue === null
+        ? contactEmail.trim().length > 0
+        : String(sendInviteValue) === "yes";
     const result = await createPartner({
       name: String(formData.get("name") ?? ""),
       contactEmail,
@@ -39,7 +49,7 @@ export async function createPartnerAction(formData: FormData) {
       notes: String(formData.get("notes") ?? ""),
     });
 
-    if (contactEmail.trim()) {
+    if (contactEmail.trim() && shouldSendInvite) {
       await invitePartnerPortalUser({
         partnerId: result.id,
         email: contactEmail,
@@ -47,18 +57,22 @@ export async function createPartnerAction(formData: FormData) {
       });
     }
 
-    revalidatePath("/partners");
+    revalidatePath("/creators");
+    revalidatePath(`/creators/${result.slug}`);
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     revalidatePath("/settings/team");
     redirect(
       buildPartnersHref({
         partnerId: result.id,
-        notice: "partner-created",
+        slug: result.slug,
+        notice: "creator-created",
       }),
     );
   } catch {
     redirect(
       buildPartnersHref({
-        notice: "partner-error",
+        notice: "creator-error",
       }),
     );
   }
@@ -79,18 +93,20 @@ export async function updatePartnerAction(formData: FormData) {
       notes: String(formData.get("notes") ?? ""),
     });
 
-    revalidatePath("/partners");
+    revalidatePath("/creators");
+    revalidatePath(`/creators/${result.slug}`);
     redirect(
       buildPartnersHref({
         partnerId: result.id,
-        notice: "partner-updated",
+        slug: result.slug,
+        notice: "creator-updated",
       }),
     );
   } catch {
     redirect(
       buildPartnersHref({
         partnerId,
-        notice: "partner-error",
+        notice: "creator-error",
       }),
     );
   }
@@ -102,18 +118,19 @@ export async function resendPartnerInviteAction(formData: FormData) {
 
   try {
     await resendWorkspaceInvitation(invitationId);
-    revalidatePath("/partners");
+    revalidatePath("/creators");
+    revalidatePath("/dashboard");
     redirect(
       buildPartnersHref({
         partnerId,
-        notice: "partner-invite-resent",
+        notice: "creator-invite-resent",
       }),
     );
   } catch {
     redirect(
       buildPartnersHref({
         partnerId,
-        notice: "partner-error",
+        notice: "creator-error",
       }),
     );
   }
@@ -125,18 +142,19 @@ export async function revokePartnerInviteAction(formData: FormData) {
 
   try {
     await revokeWorkspaceInvitation(invitationId);
-    revalidatePath("/partners");
+    revalidatePath("/creators");
+    revalidatePath("/dashboard");
     redirect(
       buildPartnersHref({
         partnerId,
-        notice: "partner-invite-revoked",
+        notice: "creator-invite-revoked",
       }),
     );
   } catch {
     redirect(
       buildPartnersHref({
         partnerId,
-        notice: "partner-error",
+        notice: "creator-error",
       }),
     );
   }

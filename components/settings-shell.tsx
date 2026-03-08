@@ -96,8 +96,8 @@ export function SettingsHubActions() {
   return (
     <>
       <ActionLink href="/dashboard">Open dashboard</ActionLink>
-      <ActionLink href="/onboarding" variant="primary">
-        Activation guide
+      <ActionLink href="/setup" variant="primary">
+        Open setup
       </ActionLink>
     </>
   );

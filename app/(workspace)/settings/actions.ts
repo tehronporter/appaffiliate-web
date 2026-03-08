@@ -76,8 +76,8 @@ export async function saveWorkspaceAppAction(formData: FormData) {
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/onboarding");
-    revalidatePath("/apple-health");
+    revalidatePath("/setup");
+    revalidatePath("/apps");
     revalidatePath("/settings");
     revalidatePath("/settings/organization");
     redirect(buildSettingsHref("/settings/organization", "app-saved"));
@@ -174,7 +174,7 @@ export async function createCommissionRuleAction(formData: FormData) {
 
     revalidatePath("/settings");
     revalidatePath("/settings/rules");
-    revalidatePath("/commissions");
+    revalidatePath("/earnings");
     redirect(buildSettingsHref("/settings/rules", "rule-saved"));
   } catch {
     redirect(buildSettingsHref("/settings/rules", "rule-error"));
@@ -213,7 +213,7 @@ export async function updateCommissionRuleAction(formData: FormData) {
 
     revalidatePath("/settings");
     revalidatePath("/settings/rules");
-    revalidatePath("/commissions");
+    revalidatePath("/earnings");
     redirect(buildSettingsHref("/settings/rules", "rule-saved"));
   } catch {
     redirect(buildSettingsHref("/settings/rules", "rule-error"));

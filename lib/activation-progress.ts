@@ -24,6 +24,10 @@ export function buildActivationProgress(
 
   const steps: ActivationProgressStep[] = [
     {
+      label: "Workspace",
+      complete: Boolean(launch.organizationName),
+    },
+    {
       label: "App",
       complete: totalApps > 0 && readyApps > 0,
     },

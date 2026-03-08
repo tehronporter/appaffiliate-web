@@ -263,7 +263,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         description="Move approved earnings into tracked payout work."
         actions={
           <>
-            <ActionLink href="/commissions">Open commissions</ActionLink>
+            <ActionLink href="/earnings">Open earnings</ActionLink>
             <ActionLink href="/payout-batches" variant="primary">
               Open payout batches
             </ActionLink>
@@ -389,8 +389,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       title="Next payout-ready group appears here"
                       description="Approved commission items show up here when they are ready to batch."
                       action={
-                        <ActionLink href="/commissions" variant="primary">
-                          Review commissions
+                        <ActionLink href="/earnings" variant="primary">
+                          Review earnings
                         </ActionLink>
                       }
                     />
@@ -602,8 +602,8 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                         title="Reserved payout items will appear here"
                         description="This panel fills after finance reserves approved earnings into the batch."
                         action={
-                          <ActionLink href="/commissions" variant="primary">
-                            Review commissions
+                          <ActionLink href="/earnings" variant="primary">
+                            Review earnings
                           </ActionLink>
                         }
                       />

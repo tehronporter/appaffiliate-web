@@ -13,6 +13,7 @@ function buildUnattributedHref(params: {
   notice: string;
 }) {
   const search = new URLSearchParams();
+  search.set("view", "needs-review");
 
   if (params.eventId) {
     search.set("item", params.eventId);
@@ -20,7 +21,7 @@ function buildUnattributedHref(params: {
 
   search.set("notice", params.notice);
 
-  return `/unattributed?${search.toString()}`;
+  return `/review?${search.toString()}`;
 }
 
 export async function markUnattributedReviewAction(formData: FormData) {
@@ -32,7 +33,7 @@ export async function markUnattributedReviewAction(formData: FormData) {
       String(formData.get("note") ?? ""),
     );
 
-    revalidatePath("/unattributed");
+    revalidatePath("/review");
     redirect(
       buildUnattributedHref({
         eventId: result.eventId,
@@ -60,7 +61,7 @@ export async function applyManualAttributionAction(formData: FormData) {
       note: String(formData.get("note") ?? ""),
     });
 
-    revalidatePath("/unattributed");
+    revalidatePath("/review");
     revalidatePath("/events");
     redirect(
       buildUnattributedHref({
