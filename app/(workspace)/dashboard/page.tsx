@@ -10,13 +10,15 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
   EmptyState,
+  InsetPanel,
   PageHeader,
+  QuickActionTile,
+  StatCard,
   StatusBadge,
   SurfaceCard,
 } from "@/components/admin-ui";
@@ -64,31 +66,6 @@ function actionLabelForCheck(check: LaunchReadinessCheck) {
 
 type DashboardMetricTone = "blue" | "green" | "amber" | "red";
 
-type DashboardMetricCardProps = {
-  label: string;
-  value: string;
-  detail: string;
-  badge: string;
-  tone: DashboardMetricTone;
-  icon: LucideIcon;
-};
-
-function dashboardMetricCardToneClass(tone: DashboardMetricTone) {
-  if (tone === "red") {
-    return "border-[color:color-mix(in_srgb,var(--color-danger)_18%,var(--aa-shell-border))] bg-[color:color-mix(in_srgb,var(--color-danger-soft)_72%,white)]";
-  }
-
-  if (tone === "amber") {
-    return "border-[color:color-mix(in_srgb,var(--color-warning)_20%,var(--aa-shell-border))] bg-[color:color-mix(in_srgb,var(--color-warning-soft)_72%,white)]";
-  }
-
-  return "border-[var(--aa-shell-border)] bg-white";
-}
-
-function dashboardMetricBadgeTone(tone: DashboardMetricTone) {
-  return tone;
-}
-
 function billingStatusTone(
   status: Awaited<ReturnType<typeof getLaunchReadinessData>>["billingSummary"]["status"],
 ) {
@@ -101,31 +78,6 @@ function billingStatusTone(
   }
 
   return "green" as const;
-}
-
-function DashboardMetricCard({
-  label,
-  value,
-  detail,
-  badge,
-  tone,
-  icon: Icon,
-}: DashboardMetricCardProps) {
-  return (
-    <div
-      className={`rounded-[var(--radius-card)] border px-3.5 py-3 transition-colors hover:border-[var(--aa-shell-border-strong)] ${dashboardMetricCardToneClass(tone)}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <StatusBadge tone={dashboardMetricBadgeTone(tone)} className="min-h-6 px-2 py-0.5 text-[10px]">
-          {badge}
-        </StatusBadge>
-        <Icon size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-ink-subtle" />
-      </div>
-      <p className="mt-2.5 text-[28px] font-semibold tracking-[-0.04em] text-ink">{value}</p>
-      <p className="mt-0.5 truncate text-xs leading-5 text-ink-muted">{detail}</p>
-      <span className="sr-only">{label}</span>
-    </div>
-  );
 }
 
 function formatRelativeTime(value: string) {
@@ -162,7 +114,7 @@ function DashboardPanel({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white p-4 transition-colors hover:border-[var(--aa-shell-border-strong)]">
+    <SurfaceCard density="compact" className="shadow-none">
       <div className="flex items-center justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
           {label}
@@ -170,7 +122,7 @@ function DashboardPanel({
         {action}
       </div>
       <div className="mt-3">{children}</div>
-    </div>
+    </SurfaceCard>
   );
 }
 
@@ -354,22 +306,31 @@ export default async function DashboardPage() {
 
       <section>
         <div className="aa-stat-grid">
-          {performanceSnapshot.map((metric) => (
-            <DashboardMetricCard
-              key={metric.label}
-              label={metric.label}
-              value={metric.value}
-              detail={metric.detail}
-              badge={metric.badge}
-              tone={metric.tone}
-              icon={metric.icon}
-            />
-          ))}
+          {performanceSnapshot.map((metric) => {
+            const Icon = metric.icon;
+
+            return (
+              <StatCard
+                key={metric.label}
+                label={metric.label}
+                value={metric.value}
+                detail={metric.detail}
+                tone={metric.tone}
+                size="compact"
+                badge={
+                  <StatusBadge tone={metric.tone} className="min-h-6 px-2 py-0.5 text-[10px]">
+                    {metric.badge}
+                  </StatusBadge>
+                }
+                icon={<Icon size={16} strokeWidth={1.75} />}
+              />
+            );
+          })}
         </div>
       </section>
 
       {topPriority ? (
-        <SurfaceCard density="compact" className="py-2.5">
+        <SurfaceCard density="compact" className="py-2.5 shadow-none">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
@@ -378,7 +339,12 @@ export default async function DashboardPage() {
               <p className="shrink-0 text-sm font-semibold text-ink">
                 {actionableChecks.length} active priorit{actionableChecks.length === 1 ? "y" : "ies"}
               </p>
-              <p className="min-w-0 truncate text-sm text-ink-muted">{topPriority.title} needs attention.</p>
+              <p
+                className="min-w-0 text-sm text-ink-muted"
+                title={`${topPriority.title} needs attention.`}
+              >
+                {topPriority.title} needs attention.
+              </p>
             </div>
             <Link
               href={topPriority.href}
@@ -408,9 +374,10 @@ export default async function DashboardPage() {
             {priorityCards.length > 0 ? (
               <div className="space-y-2.5">
                 {priorityCards.map((check) => (
-                  <div
+                  <InsetPanel
                     key={check.id}
-                    className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    tone={check.status === "blocked" ? "amber" : "default"}
+                    className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex min-w-0 items-start gap-3">
                       <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
@@ -423,11 +390,13 @@ export default async function DashboardPage() {
                             {check.label}
                           </StatusBadge>
                         </div>
-                        <p className="mt-1 truncate text-sm text-ink-muted">{check.detail}</p>
+                        <p className="mt-1 text-sm text-ink-muted" title={check.detail}>
+                          {check.detail}
+                        </p>
                       </div>
                     </div>
                     <ActionLink href={check.href}>{actionLabelForCheck(check)}</ActionLink>
-                  </div>
+                  </InsetPanel>
                 ))}
               </div>
             ) : (
@@ -471,11 +440,15 @@ export default async function DashboardPage() {
                     >
                       <div>
                         <span className="aa-mobile-label sm:hidden">Creator</span>
-                        <p className="truncate text-[15px] font-medium text-ink">{item.partnerName}</p>
+                        <p className="truncate text-[15px] font-medium text-ink" title={item.partnerName}>
+                          {item.partnerName}
+                        </p>
                       </div>
                       <div>
                         <span className="aa-mobile-label sm:hidden">Event</span>
-                        <p className="truncate text-ink-muted">{item.eventType}</p>
+                        <p className="truncate text-ink-muted" title={item.eventType}>
+                          {item.eventType}
+                        </p>
                       </div>
                       <div>
                         <span className="aa-mobile-label sm:hidden">Value</span>
@@ -521,9 +494,9 @@ export default async function DashboardPage() {
             {reviewQueuePreview.length > 0 ? (
               <div className="space-y-2.5">
                 {reviewQueuePreview.map((check) => (
-                  <div
+                  <InsetPanel
                     key={check.id}
-                    className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
@@ -532,10 +505,12 @@ export default async function DashboardPage() {
                         </StatusBadge>
                         <p className="text-[15px] font-semibold text-ink">{check.title}</p>
                       </div>
-                      <p className="mt-1 truncate text-sm text-ink-muted">{check.detail}</p>
+                      <p className="mt-1 text-sm text-ink-muted" title={check.detail}>
+                        {check.detail}
+                      </p>
                     </div>
                     <ActionLink href={check.href}>Review</ActionLink>
-                  </div>
+                  </InsetPanel>
                 ))}
               </div>
             ) : (
@@ -583,15 +558,15 @@ export default async function DashboardPage() {
                 {launch.billingSummary.detail}
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-surface px-3.5 py-3">
+                <InsetPanel>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
                     Trial end
                   </p>
                   <p className="mt-1 text-sm font-semibold text-ink">
                     {launch.billingSummary.trialEndsLabel ?? "Manual contact"}
                   </p>
-                </div>
-                <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-surface px-3.5 py-3">
+                </InsetPanel>
+                <InsetPanel>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
                     Usage
                   </p>
@@ -599,7 +574,7 @@ export default async function DashboardPage() {
                     {launch.billingSummary.usage?.apps.used ?? 0} apps ·{" "}
                     {launch.billingSummary.usage?.activeCreators.used ?? 0} active creators
                   </p>
-                </div>
+                </InsetPanel>
               </div>
               <div className="space-y-2">
                 {launch.billingSummary.notes.slice(0, 2).map((note) => (
@@ -612,27 +587,19 @@ export default async function DashboardPage() {
           </DashboardPanel>
 
           <DashboardPanel label="Utilities">
-            <div className="space-y-0.5">
+            <div className="space-y-2">
               {quickActions.map((action) => {
                 const Icon = action.icon;
 
                 return (
-                  <Link
+                  <QuickActionTile
                     key={action.title}
                     href={action.href}
-                    className="flex items-start gap-3 rounded-[var(--radius-card)] border border-transparent px-2 py-2.5 transition-colors hover:border-[var(--aa-shell-border)] hover:bg-surface"
-                  >
-                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-subtle">
-                      <Icon size={16} strokeWidth={1.75} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-semibold text-ink">{action.title}</p>
-                        {action.badge}
-                      </div>
-                      <p className="mt-0.5 text-sm text-ink-muted">{action.description}</p>
-                    </div>
-                  </Link>
+                    title={action.title}
+                    description={action.description}
+                    badge={action.badge}
+                    icon={<Icon size={16} strokeWidth={1.75} />}
+                  />
                 );
               })}
             </div>

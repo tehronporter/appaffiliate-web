@@ -159,7 +159,7 @@ export function WorkspaceSearch() {
 
   return (
     <>
-      <label className="relative hidden w-full max-w-[320px] items-center lg:flex">
+      <label className="relative hidden w-full max-w-[var(--aa-shell-search-width)] shrink items-center lg:flex">
         <Search
           size={16}
           strokeWidth={1.75}
@@ -172,7 +172,7 @@ export function WorkspaceSearch() {
           onFocus={openSearch}
           onClick={openSearch}
           placeholder="Search creators, codes, payouts..."
-          className="h-9 w-full rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] pl-10 pr-14 text-sm text-ink outline-none transition placeholder:text-ink-subtle focus:border-primary focus:bg-white"
+          className="h-[var(--aa-shell-control-height)] w-full rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] pl-10 pr-14 text-sm text-ink outline-none transition placeholder:text-ink-subtle focus:border-primary focus:bg-white"
         />
         <span className="pointer-events-none absolute right-3 rounded-full border border-[var(--aa-shell-border)] px-2 py-1 text-[11px] font-semibold text-ink-subtle">
           /
@@ -183,7 +183,7 @@ export function WorkspaceSearch() {
         type="button"
         onClick={openSearch}
         aria-label="Open search"
-        className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--aa-shell-border)] bg-white px-3 text-sm font-medium text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink lg:hidden"
+        className="inline-flex h-[var(--aa-shell-control-height)] shrink-0 items-center gap-2 rounded-full border border-[var(--aa-shell-border)] bg-white px-3 text-sm font-medium text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink lg:hidden"
       >
         <Search size={16} strokeWidth={1.75} />
         <span className="hidden sm:inline">Search</span>
@@ -215,7 +215,7 @@ export function WorkspaceSearch() {
                   }}
                   onKeyDown={handleInputKeyDown}
                   placeholder="Search creators, codes, payouts..."
-                  className="h-12 w-full rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] pl-12 pr-4 text-[15px] text-ink outline-none transition placeholder:text-ink-subtle focus:border-primary focus:bg-white"
+                  className="h-[var(--aa-shell-control-height-lg)] w-full rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] pl-12 pr-4 text-[15px] text-ink outline-none transition placeholder:text-ink-subtle focus:border-primary focus:bg-white"
                 />
               </div>
 

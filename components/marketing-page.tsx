@@ -306,7 +306,7 @@ export function MarketingCard({
       <h3 className="text-[17px] font-semibold tracking-[-0.02em] text-ink">
         {title}
       </h3>
-      <p className="mt-3 text-sm leading-6 text-ink-muted">{description}</p>
+      <p className="aa-clamp-lines-3 mt-3 text-sm leading-6 text-ink-muted">{description}</p>
       {children ? <div className="mt-5">{children}</div> : null}
     </div>
   );
@@ -467,7 +467,7 @@ export function MarketingSteps({ steps }: { steps: readonly MarketingStep[] }) {
         <div className="absolute bottom-0 left-[21px] top-0 w-px bg-[linear-gradient(180deg,rgba(46,83,255,0.04)_0%,rgba(46,83,255,0.28)_12%,rgba(46,83,255,0.18)_88%,rgba(46,83,255,0.04)_100%)] lg:hidden" />
         <div className="absolute left-[8%] right-[8%] top-[22px] hidden h-px bg-[linear-gradient(90deg,rgba(46,83,255,0.08)_0%,rgba(46,83,255,0.24)_16%,rgba(46,83,255,0.24)_84%,rgba(46,83,255,0.08)_100%)] lg:block" />
 
-        <div className="grid gap-4 lg:grid-cols-5 lg:gap-5">
+        <div className="grid gap-4 lg:grid-cols-5 lg:gap-4 xl:gap-5">
           {steps.map((step) => (
             <div key={step.number} className="relative pl-12 lg:pl-0 lg:pt-12">
               <span className="absolute left-0 top-0 inline-flex h-11 w-11 items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))] bg-[linear-gradient(180deg,#f6f9ff_0%,#edf3ff_100%)] text-sm font-semibold tracking-[0.02em] text-primary shadow-[0_10px_24px_rgba(46,83,255,0.08)] lg:left-1/2 lg:-translate-x-1/2">

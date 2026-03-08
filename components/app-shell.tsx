@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type {
   WorkspaceActivationReminder,
@@ -28,6 +28,7 @@ export function AppShell({
   activationReminder,
 }: AppShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const shellRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -38,8 +39,28 @@ export function AppShell({
     };
   }, [mobileNavOpen]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousScrollPadding = root.style.scrollPaddingTop;
+    const shell = shellRef.current;
+
+    if (shell) {
+      const styles = getComputedStyle(shell);
+      root.style.scrollPaddingTop =
+        styles.getPropertyValue("--aa-shell-scroll-padding").trim() ||
+        styles.getPropertyValue("--aa-shell-top-offset").trim();
+    }
+
+    return () => {
+      root.style.scrollPaddingTop = previousScrollPadding;
+    };
+  }, []);
+
   return (
-    <div className="aa-workspace-shell min-h-screen bg-[var(--aa-shell-canvas)] text-ink">
+    <div
+      ref={shellRef}
+      className="aa-workspace-shell min-h-screen bg-[var(--aa-shell-canvas)] text-ink"
+    >
       <WorkspaceTopNav user={user} onOpenSidebar={() => setMobileNavOpen(true)} />
 
       {mobileNavOpen ? (

@@ -54,7 +54,7 @@ const surfaceToneClasses: Record<SurfaceTone, string> = {
 };
 
 const surfaceDensityClasses = {
-  compact: "p-4 sm:p-[1.125rem]",
+  compact: "p-[var(--card-padding)]",
   default: "p-4 sm:p-5",
   hero: "p-5 sm:p-6",
 };
@@ -358,6 +358,8 @@ type StatCardProps = {
   tone?: StatusTone;
   size?: "default" | "compact";
   className?: string;
+  icon?: ReactNode;
+  badge?: ReactNode;
 };
 
 const statCardUrgencyClasses: Record<SemanticStatusTone, string> = {
@@ -375,6 +377,8 @@ export function StatCard({
   tone = "primary",
   size = "default",
   className,
+  icon,
+  badge,
 }: StatCardProps) {
   const resolvedTone = resolveStatusTone(tone);
   const urgencyClass = statCardUrgencyClasses[resolvedTone] ?? "";
@@ -389,11 +393,21 @@ export function StatCard({
 
   return (
     <SurfaceCard density="compact" className={joinClasses("relative overflow-hidden", urgencyClass, className)}>
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
-          {label}
-        </p>
-        <span className={joinClasses("inline-flex h-2.5 w-2.5 rounded-full", accentClass)} />
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+            {label}
+          </p>
+          {badge ? <div className="mt-2">{badge}</div> : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {icon ? (
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--aa-shell-panel-muted)] text-ink-subtle">
+              {icon}
+            </span>
+          ) : null}
+          <span className={joinClasses("inline-flex h-2.5 w-2.5 rounded-full", accentClass)} />
+        </div>
       </div>
       <p
         className={joinClasses(
@@ -405,6 +419,7 @@ export function StatCard({
         {value}
       </p>
       <p
+        title={detail}
         className={joinClasses(
           size === "compact"
             ? "mt-1 text-xs leading-5 text-ink-muted"
@@ -488,6 +503,7 @@ type QuickActionTileProps = {
   description: string;
   badge?: ReactNode;
   className?: string;
+  icon?: ReactNode;
 };
 
 export function QuickActionTile({
@@ -496,6 +512,7 @@ export function QuickActionTile({
   description,
   badge,
   className,
+  icon,
 }: QuickActionTileProps) {
   return (
     <Link
@@ -506,12 +523,19 @@ export function QuickActionTile({
       )}
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</p>
-            {badge}
+        <div className="flex min-w-0 items-start gap-3">
+          {icon ? (
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] text-ink-subtle">
+              {icon}
+            </span>
+          ) : null}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</p>
+              {badge}
+            </div>
+            <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
           </div>
-          <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
         </div>
         <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] text-ink-subtle">
           <ArrowRight size={16} strokeWidth={1.75} />

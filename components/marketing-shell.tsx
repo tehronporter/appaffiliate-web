@@ -106,24 +106,27 @@ export function MarketingShell({
             <BrandLogoLink size="marketing-header" priority />
           </div>
 
-          <nav className="hidden items-center gap-0.5 lg:flex lg:mr-3">
+          <nav className="hidden items-center gap-1 lg:flex lg:mr-3">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={activePath === link.href ? "page" : undefined}
                 className={joinClasses(
-                  "whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors duration-200 hover:bg-white/86",
-                  link.label === "Docs" && "ml-1 text-ink-subtle",
+                  "group relative whitespace-nowrap rounded-full px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-white/86",
                   activePath === link.href
-                    ? link.label === "Docs"
-                      ? "bg-white/80 font-medium text-ink-muted shadow-[0_2px_8px_rgba(17,24,39,0.05)]"
-                      : "bg-white font-medium text-ink shadow-[0_2px_8px_rgba(17,24,39,0.06)]"
-                    : link.label === "Docs"
-                      ? "hover:text-ink-muted"
-                      : "text-ink-muted hover:text-ink",
+                    ? "bg-white text-ink shadow-[0_4px_14px_rgba(17,24,39,0.06)]"
+                    : "text-ink-muted hover:text-ink",
                 )}
               >
-                {link.label}
+                <span>{link.label}</span>
+                <span
+                  aria-hidden="true"
+                  className={joinClasses(
+                    "absolute inset-x-3 bottom-1 h-0.5 rounded-full bg-primary transition-opacity duration-200",
+                    activePath === link.href ? "opacity-100" : "opacity-0 group-hover:opacity-60",
+                  )}
+                />
               </Link>
             ))}
           </nav>
@@ -177,14 +180,12 @@ export function MarketingShell({
                     key={link.href}
                     href={link.href}
                     onClick={() => setDrawerOpen(false)}
+                    aria-current={activePath === link.href ? "page" : undefined}
                     className={joinClasses(
-                      "flex min-h-[48px] items-center rounded-[var(--radius-card)] px-4 text-sm font-medium transition-colors",
-                      link.label === "Docs" && "text-ink-subtle",
+                      "flex min-h-[48px] items-center rounded-[var(--radius-card)] border px-4 text-sm font-medium transition-colors",
                       activePath === link.href
-                        ? "bg-primary-soft text-primary"
-                        : link.label === "Docs"
-                          ? "hover:bg-surface hover:text-ink-muted"
-                          : "text-ink-muted hover:bg-surface hover:text-ink",
+                        ? "border-[color:color-mix(in_srgb,var(--color-primary)_16%,var(--color-border))] bg-primary-soft text-primary"
+                        : "border-transparent text-ink-muted hover:bg-surface hover:text-ink",
                     )}
                   >
                     {link.label}

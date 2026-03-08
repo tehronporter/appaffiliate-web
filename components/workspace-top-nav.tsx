@@ -44,13 +44,13 @@ export function WorkspaceTopNav({
       stickyClassName="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4"
     >
       <SiteHeaderRow maxWidthClassName="max-w-[var(--shell-max-width)]">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 shrink items-center gap-2 sm:gap-3">
           {onOpenSidebar ? (
             <button
               type="button"
               aria-label="Open workspace navigation"
               onClick={onOpenSidebar}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink lg:hidden"
+              className="inline-flex h-[var(--aa-shell-control-height)] w-[var(--aa-shell-control-height)] items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink lg:hidden"
             >
               <Menu size={18} strokeWidth={1.75} />
             </button>
@@ -65,7 +65,7 @@ export function WorkspaceTopNav({
 
           <div className="hidden h-5 w-px bg-[var(--aa-shell-border)] md:block" />
 
-          <div className="min-w-0 hidden sm:block">
+          <div className="min-w-0 hidden xl:block">
             <p className="truncate text-[15px] font-semibold text-ink">
               {routeContext?.item.label ?? "Dashboard"}
             </p>
@@ -79,7 +79,7 @@ export function WorkspaceTopNav({
         <button
           type="button"
           aria-label="Notifications"
-          className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink"
+          className="relative inline-flex h-[var(--aa-shell-control-height)] w-[var(--aa-shell-control-height)] shrink-0 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink"
         >
           <Bell size={17} strokeWidth={1.75} />
           {hasUnreadNotifications ? (

@@ -6,6 +6,7 @@ export const publicFooterDescription =
   "AppAffiliate turns creator promotion into a performance-based growth channel for iOS teams that want trustworthy tracking, fair rewards, and clear payouts.";
 
 export const publicNavLinks: Array<{ href: string; label: string }> = [
+  { href: "/", label: "Home" },
   { href: "/product", label: "Product" },
   { href: "/how-it-works", label: "How it works" },
   { href: "/pricing", label: "Pricing" },

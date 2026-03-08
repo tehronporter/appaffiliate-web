@@ -282,10 +282,10 @@ export default function Home() {
           wrapVisual={false}
           actions={
             <>
-              <Link href="/signup" className="aa-button aa-button-primary px-5 py-3">
+              <Link href="/signup" className="aa-button aa-button-primary">
                 Start free trial
               </Link>
-              <Link href="/how-it-works" className="aa-button aa-button-secondary px-5 py-3">
+              <Link href="/how-it-works" className="aa-button aa-button-secondary">
                 See how it works
               </Link>
             </>
@@ -308,7 +308,7 @@ export default function Home() {
             rows={comparisonRows}
             actions={
               <>
-                <Link href="/how-it-works" className="aa-button aa-button-primary px-5 py-3">
+                <Link href="/how-it-works" className="aa-button aa-button-primary">
                   See how it works
                 </Link>
                 <Link
@@ -341,13 +341,14 @@ export default function Home() {
             description="AppAffiliate connects creator tracking, review, commissions, payouts, and creator visibility without turning the site into a product-tour maze."
           />
 
-          <ScrollReveal className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ScrollReveal className="mt-10 grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4">
             {productSurfaces.map((item) => (
               <MarketingCard
                 key={item.title}
                 title={item.title}
                 description={item.description}
                 icon={item.icon}
+                className="h-full"
               />
             ))}
           </ScrollReveal>
@@ -444,12 +445,12 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <Link href="/pricing" className="aa-button aa-button-primary px-5 py-3">
+              <Link href="/pricing" className="aa-button aa-button-primary">
                 View full pricing
               </Link>
               <Link
                 href={getPlanSelectionHref("growth", "monthly")}
-                className="aa-button aa-button-secondary px-5 py-3"
+                className="aa-button aa-button-secondary"
               >
                 Start free trial
               </Link>
