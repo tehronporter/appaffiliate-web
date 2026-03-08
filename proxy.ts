@@ -26,7 +26,7 @@ function buildRedirect(request: NextRequest, redirectTo: string) {
   return url;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const hasSession = Boolean(request.cookies.get(AUTH_COOKIE_NAME)?.value);
   const isPortalPath = pathname === "/portal" || pathname.startsWith("/portal/");
