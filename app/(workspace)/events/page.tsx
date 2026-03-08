@@ -103,7 +103,7 @@ function nextActionHref(eventState: EventOperationalState, appSlug: string | nul
     return `/apps/${appSlug}/apple-health`;
   }
 
-  return "/settings/rules";
+  return "/apple-health";
 }
 
 function nextActionLabel(eventState: EventOperationalState) {
@@ -150,7 +150,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         description="Inspect tracked results, see why they need attention, and verify safe attribution context."
         actions={
           <>
-            <ActionLink href="/apps/demo-app/apple-health">Open app health</ActionLink>
+            <ActionLink href="/apple-health">Open app health</ActionLink>
             <ActionLink href="/unattributed" variant="primary">
               Open review queue
             </ActionLink>

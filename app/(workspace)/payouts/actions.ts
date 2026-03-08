@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
+  cancelPayoutBatch,
   createDraftPayoutBatch,
   markPayoutBatchExported,
   markPayoutBatchPaid,
@@ -120,6 +121,35 @@ export async function markPayoutBatchPaidAction(formData: FormData) {
       buildPayoutBatchesHref({
         batch: result.batchId,
         notice: "batch-paid",
+      }),
+    );
+  } catch {
+    redirect(
+      buildPayoutBatchesHref({
+        batch: batchId,
+        notice: "batch-error",
+      }),
+    );
+  }
+}
+
+export async function cancelPayoutBatchAction(formData: FormData) {
+  const batchId = String(formData.get("batchId") ?? "");
+
+  try {
+    const result = await cancelPayoutBatch({
+      batchId,
+      note: String(formData.get("note") ?? ""),
+    });
+
+    revalidatePath("/commissions");
+    revalidatePath("/payouts");
+    revalidatePath("/payout-batches");
+    revalidatePath("/settings/exports");
+    redirect(
+      buildPayoutBatchesHref({
+        batch: result.batchId,
+        notice: "batch-cancelled",
       }),
     );
   } catch {

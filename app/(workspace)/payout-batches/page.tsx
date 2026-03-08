@@ -21,6 +21,7 @@ import {
   type StatusTone,
 } from "@/components/admin-ui";
 import {
+  cancelPayoutBatchAction,
   markPayoutBatchExportedAction,
   markPayoutBatchPaidAction,
 } from "@/app/(workspace)/payouts/actions";
@@ -191,6 +192,14 @@ function noticeCopy(notice: string | undefined) {
       tone: "green" as const,
       title: "Batch marked paid",
       detail: "The batch and linked payout items now reflect a completed payment state.",
+    };
+  }
+
+  if (notice === "batch-cancelled") {
+    return {
+      tone: "amber" as const,
+      title: "Batch cancelled",
+      detail: "Reserved earnings were released back into payout-ready state.",
     };
   }
 
@@ -581,6 +590,33 @@ export default async function PayoutBatchesPage({
                     <div className="flex justify-end">
                       <ActionButton type="submit" className="aa-button-success">
                         Mark paid
+                      </ActionButton>
+                    </div>
+                  </form>
+                </SectionCard>
+              ) : null}
+
+              {selectedBatch.status !== "paid" && selectedBatch.status !== "cancelled" ? (
+                <SectionCard
+                  title="Cancel batch"
+                  description="Release reserved earnings if this batch should not continue to export or payment."
+                >
+                  <form action={cancelPayoutBatchAction} className="space-y-4">
+                    <input type="hidden" name="batchId" value={selectedBatch.id} />
+
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-ink">Cancellation note</span>
+                      <textarea
+                        name="note"
+                        rows={3}
+                        defaultValue={selectedBatch.note ?? ""}
+                        className="aa-field"
+                      />
+                    </label>
+
+                    <div className="flex justify-end">
+                      <ActionButton type="submit" variant="secondary">
+                        Cancel batch
                       </ActionButton>
                     </div>
                   </form>

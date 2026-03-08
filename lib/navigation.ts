@@ -44,10 +44,10 @@ export const workspaceNavItems: NavItem[] = [
     location: "sidebar",
   },
   {
-    href: "/apps/demo-app/apple-health",
+    href: "/apple-health",
     label: "Apple Health",
     description: "Apple ingest readiness by app.",
-    activePrefixes: ["/apps/"],
+    activePrefixes: ["/apps/", "/apple-health"],
     icon: "Heart",
     location: "sidebar",
   },

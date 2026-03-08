@@ -1,5 +1,6 @@
 import { ActionLink } from "@/components/app-shell";
 import {
+  ActionButton,
   EmptyState,
   InsetPanel,
   SectionCard,
@@ -9,11 +10,192 @@ import {
   SettingsHubActions,
   SettingsPageFrame,
 } from "@/components/settings-shell";
+import {
+  createCommissionRuleAction,
+  updateCommissionRuleAction,
+} from "@/app/(workspace)/settings/actions";
+import { listWorkspaceApps } from "@/lib/services/apps";
+import { listWorkspacePromoCodes } from "@/lib/services/codes";
+import { listWorkspacePartners } from "@/lib/services/partners";
+import { listEditableCommissionRules } from "@/lib/services/rules";
 import { getRulesSettingsData } from "@/lib/services/settings";
 import { toneForWorkspaceLabel } from "@/lib/status-badges";
 
+function RuleFormFields(props: {
+  apps: Awaited<ReturnType<typeof listWorkspaceApps>>["apps"];
+  partners: Awaited<ReturnType<typeof listWorkspacePartners>>["partners"];
+  codes: Awaited<ReturnType<typeof listWorkspacePromoCodes>>["codes"];
+  defaults?: {
+    name?: string;
+    status?: string;
+    ruleType?: string;
+    basisMode?: string;
+    currency?: string;
+    rate?: string;
+    flatAmount?: string;
+    priority?: string;
+    appId?: string | null;
+    partnerId?: string | null;
+    promoCodeId?: string | null;
+  };
+}) {
+  return (
+    <div className="grid gap-4">
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-ink">Rule name</span>
+        <input
+          name="name"
+          type="text"
+          defaultValue={props.defaults?.name ?? ""}
+          className="aa-field"
+          required
+        />
+      </label>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Rule type</span>
+          <select
+            name="ruleType"
+            defaultValue={props.defaults?.ruleType ?? "revenue_share"}
+            className="aa-field"
+          >
+            <option value="revenue_share">Revenue share</option>
+            <option value="flat_fee">Flat fee</option>
+            <option value="cpa">CPA</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Basis mode</span>
+          <select
+            name="basisMode"
+            defaultValue={props.defaults?.basisMode ?? "gross_revenue"}
+            className="aa-field"
+          >
+            <option value="gross_revenue">Gross revenue</option>
+            <option value="net_revenue">Net revenue</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Currency</span>
+          <input
+            name="currency"
+            type="text"
+            defaultValue={props.defaults?.currency ?? "USD"}
+            className="aa-field"
+            required
+          />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Priority</span>
+          <input
+            name="priority"
+            type="number"
+            defaultValue={props.defaults?.priority ?? "100"}
+            className="aa-field"
+          />
+        </label>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Revenue-share rate</span>
+          <input
+            name="rate"
+            type="text"
+            defaultValue={props.defaults?.rate ?? ""}
+            className="aa-field"
+            placeholder="0.20"
+          />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Flat amount</span>
+          <input
+            name="flatAmount"
+            type="text"
+            defaultValue={props.defaults?.flatAmount ?? ""}
+            className="aa-field"
+            placeholder="25.00"
+          />
+        </label>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Status</span>
+          <select name="status" defaultValue={props.defaults?.status ?? "active"} className="aa-field">
+            <option value="draft">Draft</option>
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">App scope</span>
+          <select name="appId" defaultValue={props.defaults?.appId ?? ""} className="aa-field">
+            <option value="">All apps</option>
+            {props.apps.map((app) => (
+              <option key={app.id} value={app.id}>
+                {app.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Partner scope</span>
+          <select
+            name="partnerId"
+            defaultValue={props.defaults?.partnerId ?? ""}
+            className="aa-field"
+          >
+            <option value="">All partners</option>
+            {props.partners.map((partner) => (
+              <option key={partner.id} value={partner.id}>
+                {partner.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-ink">Code scope</span>
+          <select
+            name="promoCodeId"
+            defaultValue={props.defaults?.promoCodeId ?? ""}
+            className="aa-field"
+          >
+            <option value="">All codes</option>
+            {props.codes.map((code) => (
+              <option key={code.id} value={code.id}>
+                {code.code}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 export default async function SettingsRulesPage() {
-  const data = await getRulesSettingsData();
+  const [data, appsData, partnersData, codesData, editableRules] = await Promise.all([
+    getRulesSettingsData(),
+    listWorkspaceApps(),
+    listWorkspacePartners(),
+    listWorkspacePromoCodes(),
+    listEditableCommissionRules(),
+  ]);
 
   return (
     <SettingsPageFrame
@@ -29,7 +211,7 @@ export default async function SettingsRulesPage() {
       badges={
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone="green">Live rule context</StatusBadge>
-          <StatusBadge tone="amber">Read-only product posture</StatusBadge>
+          <StatusBadge tone="blue">Rule editing enabled</StatusBadge>
           <StatusBadge tone={toneForWorkspaceLabel()}>Apple readiness visible</StatusBadge>
         </div>
       }
@@ -84,8 +266,27 @@ export default async function SettingsRulesPage() {
           />
 
           <SectionCard
-            title="Read-only rule boundary"
-            description="The current product exposes the stored configuration context here without inventing a new rule-builder surface."
+            title="Create commission rule"
+            description="Rules now persist here so setup does not depend on seeded database rows."
+          >
+            <form action={createCommissionRuleAction} className="space-y-4">
+              <RuleFormFields
+                apps={appsData.apps}
+                partners={partnersData.partners}
+                codes={codesData.codes}
+              />
+
+              <div className="flex justify-end">
+                <ActionButton type="submit" variant="primary">
+                  Save rule
+                </ActionButton>
+              </div>
+            </form>
+          </SectionCard>
+
+          <SectionCard
+            title="Rule editing posture"
+            description="Keep rule scope explicit and finance-safe."
             items={data.readOnlyNotes}
           />
 
@@ -102,20 +303,47 @@ export default async function SettingsRulesPage() {
                 />
               ) : null}
 
-              {data.commissionRules.map((rule) => (
+              {editableRules.map((rule) => (
                 <InsetPanel key={rule.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-ink">{rule.name}</p>
-                      <p className="mt-1 text-sm text-ink-muted">{rule.scopeLabel}</p>
+                      <p className="mt-1 text-sm text-ink-muted">
+                        {rule.ruleType.replaceAll("_", " ")} • {rule.basisMode === "net_revenue" ? "Net revenue" : "Gross revenue"}
+                      </p>
                     </div>
-                    <StatusBadge tone={rule.status === "Active" ? "green" : "gray"}>
+                    <StatusBadge tone={rule.status === "active" ? "green" : "gray"}>
                       {rule.status}
                     </StatusBadge>
                   </div>
                   <p className="mt-3 text-sm text-ink-muted">
-                    {rule.payoutLabel} • Updated {new Date(rule.updatedAt).toLocaleDateString("en-US")}
+                    Updated {new Date(rule.updatedAt).toLocaleDateString("en-US")}
                   </p>
+
+                  <form action={updateCommissionRuleAction} className="mt-4 space-y-4">
+                    <input type="hidden" name="ruleId" value={rule.id} />
+                    <RuleFormFields
+                      apps={appsData.apps}
+                      partners={partnersData.partners}
+                      codes={codesData.codes}
+                      defaults={{
+                        name: rule.name,
+                        status: rule.status,
+                        ruleType: rule.ruleType,
+                        basisMode: rule.basisMode,
+                        currency: rule.currency,
+                        rate: rule.rate === null ? "" : String(rule.rate),
+                        flatAmount: rule.flatAmount === null ? "" : String(rule.flatAmount),
+                        priority: String(rule.priority),
+                        appId: rule.appId,
+                        partnerId: rule.partnerId,
+                        promoCodeId: rule.promoCodeId,
+                      }}
+                    />
+                    <div className="flex justify-end">
+                      <ActionButton type="submit">Update rule</ActionButton>
+                    </div>
+                  </form>
                 </InsetPanel>
               ))}
             </div>

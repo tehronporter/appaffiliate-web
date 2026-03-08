@@ -282,7 +282,7 @@ export async function getLaunchReadinessData() {
       hasWorkspaceAccess: false,
       organizationName: workspace.organization?.name ?? null,
       workspaceRoleLabel: workspace.role?.name ?? null,
-      appleHealthHref: "/settings/rules",
+      appleHealthHref: "/apple-health",
       overallStatus: "blocked",
       overallLabel: overallLabel("blocked"),
       overallDetail:
@@ -326,7 +326,7 @@ export async function getLaunchReadinessData() {
   const appleHealthHref =
     rules.appleReadiness[0]?.slug
       ? `/apps/${rules.appleReadiness[0].slug}/apple-health`
-      : "/settings/rules";
+      : "/apple-health";
   const checklist = buildChecklist({
     appleHealthHref,
     overview,

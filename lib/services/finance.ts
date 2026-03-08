@@ -37,6 +37,7 @@ type NormalizedEventRow = {
   received_at: string | null;
   currency: string | null;
   gross_amount: number | string | null;
+  net_amount: number | string | null;
   amount_minor: number | null;
   product_id: string | null;
   environment: string;
@@ -49,6 +50,8 @@ type AppRow = {
   id: string;
   slug: string;
   name: string;
+  apple_fee_mode: "standard_30" | "small_business_15" | "custom";
+  apple_fee_bps: number | null;
 };
 
 type PartnerRow = {
@@ -82,23 +85,35 @@ type CommissionRuleRow = {
   rate: number | string | null;
   flat_amount: number | string | null;
   priority: number;
+  basis_mode: "gross_revenue" | "net_revenue";
   starts_at: string | null;
   ends_at: string | null;
 };
 
 type CommissionLedgerEntryRow = {
   id: string;
+  chain_id: string;
   normalized_event_id: string | null;
   commission_rule_id: string | null;
   partner_id: string | null;
   promo_code_id: string | null;
   entry_type: string;
   status: LedgerStatus;
+  transition_type:
+    | "approved"
+    | "rejected"
+    | "reserved"
+    | "released"
+    | "paid"
+    | "reversed";
   currency: string;
   amount: number | string;
   effective_at: string;
   notes: string | null;
   metadata: Record<string, unknown> | null;
+  related_entry_id: string | null;
+  payout_batch_id: string | null;
+  actor_membership_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -122,6 +137,7 @@ type PayoutBatchItemRow = {
   id: string;
   payout_batch_id: string;
   commission_ledger_entry_id: string;
+  commission_chain_id: string | null;
   partner_id: string | null;
   amount: number | string;
   status: PayoutBatchItemStatus;
@@ -144,6 +160,10 @@ type RuleMatch = {
   basisCurrency: string;
   basisLabel: string;
   ruleSummary: string;
+  basisMode: "gross_revenue" | "net_revenue";
+  basisSource: string;
+  appleFeeMode: AppRow["apple_fee_mode"] | null;
+  appleFeeBps: number | null;
 };
 
 type FinanceReadModel = {
@@ -164,6 +184,7 @@ export type CommissionItemView = {
   id: string;
   eventId: string;
   ledgerEntryId: string | null;
+  ledgerChainId: string | null;
   batchId: string | null;
   batchItemId: string | null;
   partnerId: string | null;
@@ -217,12 +238,14 @@ export type PayoutReadyGroupView = {
   currency: string;
   appNames: string[];
   commissionEntryIds: string[];
+  commissionChainIds: string[];
   latestEffectiveAt: string | null;
 };
 
 export type PayoutBatchItemView = {
   id: string;
   ledgerEntryId: string;
+  chainId: string | null;
   partnerName: string;
   appName: string;
   codeLabel: string | null;
@@ -397,6 +420,22 @@ function normalizeOptionalCurrency(value: string | null | undefined) {
   return normalizeOptionalText(value, 12)?.toUpperCase() ?? null;
 }
 
+function resolveAppleFeeBps(app: AppRow | null) {
+  if (!app) {
+    return null;
+  }
+
+  if (app.apple_fee_mode === "small_business_15") {
+    return 1500;
+  }
+
+  if (app.apple_fee_mode === "custom") {
+    return app.apple_fee_bps ?? null;
+  }
+
+  return 3000;
+}
+
 async function requireFinanceContext() {
   const context = await createServiceContext({
     requireAuth: true,
@@ -464,7 +503,7 @@ async function loadFinanceRows(finance: FinanceContext) {
   ] = await Promise.all([
     finance.supabase
       .from("apps")
-      .select("id, slug, name")
+      .select("id, slug, name, apple_fee_mode, apple_fee_bps")
       .eq("organization_id", finance.organizationId)
       .returns<AppRow[]>(),
     finance.supabase
@@ -480,13 +519,12 @@ async function loadFinanceRows(finance: FinanceContext) {
     finance.supabase
       .from("normalized_events")
       .select(
-        "id, app_id, partner_id, promo_code_id, event_type, event_status, attribution_status, event_at, received_at, currency, gross_amount, amount_minor, product_id, environment, source_type, source_event_key, payload",
+        "id, app_id, partner_id, promo_code_id, event_type, event_status, attribution_status, event_at, received_at, currency, gross_amount, net_amount, amount_minor, product_id, environment, source_type, source_event_key, payload",
       )
       .eq("organization_id", finance.organizationId)
       .eq("attribution_status", "attributed")
       .not("partner_id", "is", null)
       .order("received_at", { ascending: false })
-      .limit(120)
       .returns<NormalizedEventRow[]>(),
     finance.supabase
       .from("attribution_decisions")
@@ -497,7 +535,7 @@ async function loadFinanceRows(finance: FinanceContext) {
     finance.supabase
       .from("commission_rules")
       .select(
-        "id, name, app_id, partner_id, promo_code_id, rule_type, status, currency, rate, flat_amount, priority, starts_at, ends_at",
+        "id, name, app_id, partner_id, promo_code_id, rule_type, status, currency, rate, flat_amount, priority, basis_mode, starts_at, ends_at",
       )
       .eq("organization_id", finance.organizationId)
       .eq("status", "active")
@@ -505,7 +543,7 @@ async function loadFinanceRows(finance: FinanceContext) {
     finance.supabase
       .from("commission_ledger_entries")
       .select(
-        "id, normalized_event_id, commission_rule_id, partner_id, promo_code_id, entry_type, status, currency, amount, effective_at, notes, metadata, created_at, updated_at",
+        "id, chain_id, normalized_event_id, commission_rule_id, partner_id, promo_code_id, entry_type, status, transition_type, currency, amount, effective_at, notes, metadata, related_entry_id, payout_batch_id, actor_membership_id, created_at, updated_at",
       )
       .eq("organization_id", finance.organizationId)
       .returns<CommissionLedgerEntryRow[]>(),
@@ -520,7 +558,7 @@ async function loadFinanceRows(finance: FinanceContext) {
     finance.supabase
       .from("payout_batch_items")
       .select(
-        "id, payout_batch_id, commission_ledger_entry_id, partner_id, amount, status, created_at, updated_at",
+        "id, payout_batch_id, commission_ledger_entry_id, commission_chain_id, partner_id, amount, status, created_at, updated_at",
       )
       .eq("organization_id", finance.organizationId)
       .returns<PayoutBatchItemRow[]>(),
@@ -560,7 +598,7 @@ async function loadFinanceRows(finance: FinanceContext) {
   };
 }
 
-function getEventBasisAmount(event: NormalizedEventRow) {
+function getEventGrossAmount(event: NormalizedEventRow) {
   const grossAmount = toNumber(event.gross_amount);
 
   if (grossAmount !== null) {
@@ -572,6 +610,35 @@ function getEventBasisAmount(event: NormalizedEventRow) {
   }
 
   return null;
+}
+
+function getEventNetAmount(event: NormalizedEventRow, app: AppRow | null) {
+  const netAmount = toNumber(event.net_amount);
+
+  if (netAmount !== null) {
+    return netAmount;
+  }
+
+  const grossAmount = getEventGrossAmount(event);
+  const feeBps = resolveAppleFeeBps(app);
+
+  if (grossAmount === null || feeBps === null) {
+    return null;
+  }
+
+  return Math.round(grossAmount * ((10000 - feeBps) / 10000) * 100) / 100;
+}
+
+function getEventBasisAmount(
+  event: NormalizedEventRow,
+  rule: CommissionRuleRow | null,
+  app: AppRow | null,
+) {
+  if (rule?.basis_mode === "net_revenue") {
+    return getEventNetAmount(event, app);
+  }
+
+  return getEventGrossAmount(event);
 }
 
 function getEventBasisCurrency(event: NormalizedEventRow, fallbackCurrency: string) {
@@ -642,11 +709,28 @@ function findMatchingRule(event: NormalizedEventRow, rules: CommissionRuleRow[])
   return candidates[0] ?? null;
 }
 
-function calculateRuleMatch(event: NormalizedEventRow, rules: CommissionRuleRow[]): RuleMatch {
+function calculateRuleMatch(
+  event: NormalizedEventRow,
+  rules: CommissionRuleRow[],
+  app: AppRow | null,
+): RuleMatch {
   const rule = findMatchingRule(event, rules);
   const fallbackCurrency = rule ? normalizeCurrency(rule.currency) : normalizeCurrency(event.currency);
-  const basisAmount = getEventBasisAmount(event);
+  const basisAmount = getEventBasisAmount(event, rule, app);
   const basisCurrency = getEventBasisCurrency(event, fallbackCurrency);
+  const basisMode = rule?.basis_mode ?? "gross_revenue";
+  const appleFeeMode = app?.apple_fee_mode ?? null;
+  const appleFeeBps = resolveAppleFeeBps(app);
+  const basisSource =
+    basisMode === "net_revenue"
+      ? toNumber(event.net_amount) !== null
+        ? "verified_net"
+        : appleFeeBps !== null
+          ? "derived_net_from_app_fee"
+          : "missing_net_basis"
+      : toNumber(event.gross_amount) !== null || typeof event.amount_minor === "number"
+        ? "verified_gross"
+        : "missing_gross_basis";
 
   if (!rule) {
     return {
@@ -658,8 +742,12 @@ function calculateRuleMatch(event: NormalizedEventRow, rules: CommissionRuleRow[
       basisLabel:
         basisAmount === null
           ? "No event revenue basis is available yet."
-          : `${formatCurrency(basisAmount, basisCurrency)} event basis`,
+          : `${formatCurrency(basisAmount, basisCurrency)} ${basisMode === "net_revenue" ? "net" : "gross"} event basis`,
       ruleSummary: "No active commission rule matched this event. Approval remains manual.",
+      basisMode,
+      basisSource,
+      appleFeeMode,
+      appleFeeBps,
     };
   }
 
@@ -689,7 +777,7 @@ function calculateRuleMatch(event: NormalizedEventRow, rules: CommissionRuleRow[
   const basisLabel =
     basisAmount === null
       ? "Event basis is not available yet."
-      : `${formatCurrency(basisAmount, basisCurrency)} event basis`;
+      : `${formatCurrency(basisAmount, basisCurrency)} ${basisMode === "net_revenue" ? "net" : "gross"} event basis`;
 
   return {
     rule,
@@ -700,19 +788,43 @@ function calculateRuleMatch(event: NormalizedEventRow, rules: CommissionRuleRow[
     basisLabel,
     ruleSummary:
       rule.rule_type === "revenue_share"
-        ? `${rule.name}: ${rateLabel ?? "No rate"} revenue share`
+        ? `${rule.name}: ${rateLabel ?? "No rate"} revenue share on ${basisMode === "net_revenue" ? "net" : "gross"} revenue`
         : rule.rule_type === "hybrid"
-          ? `${rule.name}: hybrid rule`
+          ? `${rule.name}: hybrid rule on ${basisMode === "net_revenue" ? "net" : "gross"} revenue`
           : `${rule.name}: ${formatCurrency(flatAmount, normalizeCurrency(rule.currency))} ${titleCaseLabel(rule.rule_type)}`,
+    basisMode,
+    basisSource,
+    appleFeeMode,
+    appleFeeBps,
   };
 }
 
-function pickLedgerEntryForEvent(eventId: string, ledgerEntries: CommissionLedgerEntryRow[]) {
+function sortLedgerEntriesDescending(
+  left: CommissionLedgerEntryRow,
+  right: CommissionLedgerEntryRow,
+) {
   return (
-    ledgerEntries
-      .filter((entry) => entry.normalized_event_id === eventId && entry.entry_type === "accrual")
-      .sort((left, right) => right.updated_at.localeCompare(left.updated_at))[0] ?? null
+    right.created_at.localeCompare(left.created_at) ||
+    right.updated_at.localeCompare(left.updated_at) ||
+    right.id.localeCompare(left.id)
   );
+}
+
+function getLatestLedgerEntryForEvent(
+  eventId: string,
+  ledgerEntries: CommissionLedgerEntryRow[],
+) {
+  const latestEntriesByChain = new Map<string, CommissionLedgerEntryRow>();
+
+  for (const entry of ledgerEntries
+    .filter((candidate) => candidate.normalized_event_id === eventId)
+    .sort(sortLedgerEntriesDescending)) {
+    if (!latestEntriesByChain.has(entry.chain_id)) {
+      latestEntriesByChain.set(entry.chain_id, entry);
+    }
+  }
+
+  return Array.from(latestEntriesByChain.values()).sort(sortLedgerEntriesDescending)[0] ?? null;
 }
 
 function deriveCommissionState(params: {
@@ -721,14 +833,17 @@ function deriveCommissionState(params: {
   batch: PayoutBatchRow | null;
 }): CommissionReviewState {
   if (
-    params.ledgerEntry?.status === "paid" ||
+    params.ledgerEntry?.transition_type === "paid" ||
     params.batchItem?.status === "paid" ||
     params.batch?.status === "paid"
   ) {
     return "paid";
   }
 
-  if (params.ledgerEntry?.status === "void" || params.ledgerEntry?.status === "reversed") {
+  if (
+    params.ledgerEntry?.transition_type === "rejected" ||
+    params.ledgerEntry?.transition_type === "reversed"
+  ) {
     return "rejected";
   }
 
@@ -741,7 +856,10 @@ function deriveCommissionState(params: {
     return "payout_ready";
   }
 
-  if (params.ledgerEntry?.status === "approved") {
+  if (
+    params.ledgerEntry?.transition_type === "approved" ||
+    params.ledgerEntry?.transition_type === "released"
+  ) {
     return "approved";
   }
 
@@ -828,6 +946,7 @@ function buildCommissionItem(params: {
     id: params.event.id,
     eventId: params.event.id,
     ledgerEntryId: params.ledgerEntry?.id ?? null,
+    ledgerChainId: params.ledgerEntry?.chain_id ?? null,
     batchId: params.batch?.id ?? null,
     batchItemId: params.batchItem?.id ?? null,
     partnerId: params.event.partner_id,
@@ -867,7 +986,12 @@ function buildReadyGroups(items: CommissionItemView[]) {
   const groups = new Map<string, PayoutReadyGroupView>();
 
   for (const item of items) {
-    if (item.reviewState !== "approved" || !item.ledgerEntryId || item.commissionAmount === null) {
+    if (
+      item.reviewState !== "approved" ||
+      !item.ledgerEntryId ||
+      !item.ledgerChainId ||
+      item.commissionAmount === null
+    ) {
       continue;
     }
 
@@ -875,10 +999,13 @@ function buildReadyGroups(items: CommissionItemView[]) {
     const existing = groups.get(groupKey);
 
     if (existing) {
-      existing.entryCount += 1;
+        existing.entryCount += 1;
         existing.totalAmount = Math.round((existing.totalAmount + item.commissionAmount) * 100) / 100;
         existing.totalAmountLabel = formatCurrency(existing.totalAmount, existing.currency);
         existing.commissionEntryIds.push(item.ledgerEntryId);
+      if (!existing.commissionChainIds.includes(item.ledgerChainId)) {
+        existing.commissionChainIds.push(item.ledgerChainId);
+      }
       if (item.appName && !existing.appNames.includes(item.appName)) {
         existing.appNames.push(item.appName);
       }
@@ -898,6 +1025,7 @@ function buildReadyGroups(items: CommissionItemView[]) {
       currency: item.currency,
       appNames: item.appName ? [item.appName] : [],
       commissionEntryIds: [item.ledgerEntryId],
+      commissionChainIds: [item.ledgerChainId],
       latestEffectiveAt: item.occurredAt,
     });
   }
@@ -950,6 +1078,7 @@ function buildBatchViews(params: {
       return {
         id: batchItem.id,
         ledgerEntryId: batchItem.commission_ledger_entry_id,
+        chainId: batchItem.commission_chain_id,
         partnerName: partner?.name ?? "Unknown partner",
         appName: app?.name ?? "Unknown app",
         codeLabel: promoCode?.code ?? null,
@@ -1015,18 +1144,20 @@ async function buildFinanceReadModel() {
   const ledgerByEventId = new Map<string, CommissionLedgerEntryRow>();
 
   for (const event of rows.events) {
-    const ledgerEntry = pickLedgerEntryForEvent(event.id, rows.ledgerEntries);
+    const ledgerEntry = getLatestLedgerEntryForEvent(event.id, rows.ledgerEntries);
 
     if (ledgerEntry) {
       ledgerByEventId.set(event.id, ledgerEntry);
     }
   }
 
-  const batchItemByLedgerId = new Map<string, PayoutBatchItemRow>();
+  const batchItemByChainId = new Map<string, PayoutBatchItemRow>();
 
   for (const batchItem of rows.batchItems) {
-    if (!batchItemByLedgerId.has(batchItem.commission_ledger_entry_id)) {
-      batchItemByLedgerId.set(batchItem.commission_ledger_entry_id, batchItem);
+    const chainId = batchItem.commission_chain_id;
+
+    if (chainId && !batchItemByChainId.has(chainId)) {
+      batchItemByChainId.set(chainId, batchItem);
     }
   }
 
@@ -1039,18 +1170,22 @@ async function buildFinanceReadModel() {
       app: event.app_id ? rows.appsById.get(event.app_id) ?? null : null,
       partner: event.partner_id ? rows.partnersById.get(event.partner_id) ?? null : null,
       promoCode: event.promo_code_id ? rows.promoCodesById.get(event.promo_code_id) ?? null : null,
-      ruleMatch: calculateRuleMatch(event, rows.rules),
+      ruleMatch: calculateRuleMatch(
+        event,
+        rows.rules,
+        event.app_id ? rows.appsById.get(event.app_id) ?? null : null,
+      ),
       ledgerEntry: ledgerByEventId.get(event.id) ?? null,
       latestDecisionLabel: latestDecisionByEvent.get(event.id) || null,
       batchItem:
-        ledgerByEventId.get(event.id)?.id
-          ? batchItemByLedgerId.get(ledgerByEventId.get(event.id)!.id) ?? null
+        ledgerByEventId.get(event.id)?.chain_id
+          ? batchItemByChainId.get(ledgerByEventId.get(event.id)!.chain_id) ?? null
           : null,
       batch:
-        ledgerByEventId.get(event.id)?.id &&
-        batchItemByLedgerId.get(ledgerByEventId.get(event.id)!.id)?.payout_batch_id
+        ledgerByEventId.get(event.id)?.chain_id &&
+        batchItemByChainId.get(ledgerByEventId.get(event.id)!.chain_id)?.payout_batch_id
           ? batchesById.get(
-              batchItemByLedgerId.get(ledgerByEventId.get(event.id)!.id)!.payout_batch_id,
+              batchItemByChainId.get(ledgerByEventId.get(event.id)!.chain_id)!.payout_batch_id,
             ) ?? null
           : null,
     }),
@@ -1094,79 +1229,18 @@ async function getEventForFinanceAction(finance: FinanceContext, eventId: string
     });
   }
 
-  const ledgerEntry = pickLedgerEntryForEvent(event.id, rows.ledgerEntries);
-  const ruleMatch = calculateRuleMatch(event, rows.rules);
+  const ledgerEntry = getLatestLedgerEntryForEvent(event.id, rows.ledgerEntries);
+  const ruleMatch = calculateRuleMatch(
+    event,
+    rows.rules,
+    event.app_id ? rows.appsById.get(event.app_id) ?? null : null,
+  );
 
   return {
     event,
     ledgerEntry,
     ruleMatch,
   };
-}
-
-async function upsertAccrualLedgerEntry(params: {
-  finance: FinanceContext;
-  event: NormalizedEventRow;
-  existingEntry: CommissionLedgerEntryRow | null;
-  matchedRuleId: string | null;
-  amount: number;
-  currency: string;
-  status: LedgerStatus;
-  note: string | null;
-  metadata: Record<string, unknown>;
-}) {
-  const payload = {
-    organization_id: params.finance.organizationId,
-    normalized_event_id: params.event.id,
-    commission_rule_id: params.matchedRuleId,
-    partner_id: params.event.partner_id,
-    promo_code_id: params.event.promo_code_id,
-    entry_type: "accrual",
-    status: params.status,
-    currency: params.currency,
-    amount: params.amount,
-    effective_at: params.event.received_at ?? params.event.event_at,
-    notes: params.note,
-    metadata: params.metadata,
-  };
-
-  if (params.existingEntry) {
-    const { data, error } = await params.finance.supabase
-      .from("commission_ledger_entries")
-      .update(payload)
-      .eq("organization_id", params.finance.organizationId)
-      .eq("id", params.existingEntry.id)
-      .select(
-        "id, normalized_event_id, commission_rule_id, partner_id, promo_code_id, entry_type, status, currency, amount, effective_at, notes, metadata, created_at, updated_at",
-      )
-      .single<CommissionLedgerEntryRow>();
-
-    if (error) {
-      throw new ServiceError("internal_error", "Failed to update the commission ledger entry.", {
-        status: 500,
-        details: { message: error.message },
-      });
-    }
-
-    return data;
-  }
-
-  const { data, error } = await params.finance.supabase
-    .from("commission_ledger_entries")
-    .insert(payload)
-    .select(
-      "id, normalized_event_id, commission_rule_id, partner_id, promo_code_id, entry_type, status, currency, amount, effective_at, notes, metadata, created_at, updated_at",
-    )
-    .single<CommissionLedgerEntryRow>();
-
-  if (error) {
-    throw new ServiceError("internal_error", "Failed to create the commission ledger entry.", {
-      status: 500,
-      details: { message: error.message },
-    });
-  }
-
-  return data;
 }
 
 function buildBatchName(partnerName: string, effectiveDates: string[]) {
@@ -1203,7 +1277,7 @@ export async function approveCommissionItem(input: {
   note?: string | null;
 }) {
   const finance = await requireFinanceContext();
-  const { event, ledgerEntry, ruleMatch } = await getEventForFinanceAction(finance, input.eventId);
+  const { event, ruleMatch } = await getEventForFinanceAction(finance, input.eventId);
   const explicitAmount = parseMoneyInput(input.amount);
   const resolvedAmount = explicitAmount ?? ruleMatch.suggestedAmount;
 
@@ -1220,30 +1294,40 @@ export async function approveCommissionItem(input: {
   const resolvedCurrency =
     normalizeOptionalCurrency(input.currency) ?? ruleMatch.suggestedCurrency;
   const note = normalizeOptionalText(input.note);
-  const savedEntry = await upsertAccrualLedgerEntry({
-    finance,
-    event,
-    existingEntry: ledgerEntry,
-    matchedRuleId: ruleMatch.rule?.id ?? null,
-    amount: resolvedAmount,
-    currency: resolvedCurrency,
-    status: "approved",
-    note,
-    metadata: {
-      review_status: "approved",
-      reviewed_at: new Date().toISOString(),
-      reviewed_by_membership_id: finance.membershipId,
-      basis_amount: ruleMatch.basisAmount,
-      basis_currency: ruleMatch.basisCurrency,
-      rule_id: ruleMatch.rule?.id ?? null,
-      rule_summary: ruleMatch.ruleSummary,
-    },
+  const approvalMetadata = {
+    review_status: "approved",
+    reviewed_at: new Date().toISOString(),
+    reviewed_by_membership_id: finance.membershipId,
+    basis_amount: ruleMatch.basisAmount,
+    basis_currency: ruleMatch.basisCurrency,
+    basis_mode: ruleMatch.basisMode,
+    basis_source: ruleMatch.basisSource,
+    apple_fee_mode: ruleMatch.appleFeeMode,
+    apple_fee_bps: ruleMatch.appleFeeBps,
+    rule_id: ruleMatch.rule?.id ?? null,
+    rule_summary: ruleMatch.ruleSummary,
+  };
+  const { data: savedEntryId, error } = await finance.supabase.rpc("approve_commission_event", {
+    target_organization_id: finance.organizationId,
+    target_event_id: event.id,
+    target_amount: resolvedAmount,
+    target_currency: resolvedCurrency,
+    target_note: note,
+    target_rule_id: ruleMatch.rule?.id ?? null,
+    target_metadata: approvalMetadata,
   });
+
+  if (error || !savedEntryId) {
+    throw new ServiceError("internal_error", "Failed to approve the commission item.", {
+      status: 500,
+      details: { message: error?.message },
+    });
+  }
 
   await writeAuditLog(finance.context, {
     organizationId: finance.organizationId,
     entityType: "commission_ledger_entry",
-    entityId: savedEntry.id,
+    entityId: savedEntryId,
     action: "commission.approved",
     summary: `Approved commission review for event ${event.id}.`,
     metadata: {
@@ -1255,7 +1339,7 @@ export async function approveCommissionItem(input: {
 
   return {
     eventId: event.id,
-    ledgerEntryId: savedEntry.id,
+    ledgerEntryId: savedEntryId,
   };
 }
 
@@ -1264,35 +1348,38 @@ export async function rejectCommissionItem(input: {
   note?: string | null;
 }) {
   const finance = await requireFinanceContext();
-  const { event, ledgerEntry, ruleMatch } = await getEventForFinanceAction(finance, input.eventId);
+  const { event, ruleMatch } = await getEventForFinanceAction(finance, input.eventId);
   const note = normalizeOptionalText(input.note);
-  const fallbackAmount = ledgerEntry ? toNumber(ledgerEntry.amount) ?? 0 : ruleMatch.suggestedAmount ?? 0;
-  const currency = ledgerEntry
-    ? normalizeCurrency(ledgerEntry.currency)
-    : ruleMatch.suggestedCurrency;
-  const savedEntry = await upsertAccrualLedgerEntry({
-    finance,
-    event,
-    existingEntry: ledgerEntry,
-    matchedRuleId: ruleMatch.rule?.id ?? null,
-    amount: fallbackAmount,
-    currency,
-    status: "void",
-    note,
-    metadata: {
+  const { data: savedEntryId, error } = await finance.supabase.rpc("reject_commission_event", {
+    target_organization_id: finance.organizationId,
+    target_event_id: event.id,
+    target_note: note,
+    target_rule_id: ruleMatch.rule?.id ?? null,
+    target_metadata: {
       review_status: "rejected",
       reviewed_at: new Date().toISOString(),
       reviewed_by_membership_id: finance.membershipId,
       rejection_reason: note,
+      basis_mode: ruleMatch.basisMode,
+      basis_source: ruleMatch.basisSource,
+      apple_fee_mode: ruleMatch.appleFeeMode,
+      apple_fee_bps: ruleMatch.appleFeeBps,
       rule_id: ruleMatch.rule?.id ?? null,
       rule_summary: ruleMatch.ruleSummary,
     },
   });
 
+  if (error || !savedEntryId) {
+    throw new ServiceError("internal_error", "Failed to reject the commission item.", {
+      status: 500,
+      details: { message: error?.message },
+    });
+  }
+
   await writeAuditLog(finance.context, {
     organizationId: finance.organizationId,
     entityType: "commission_ledger_entry",
-    entityId: savedEntry.id,
+    entityId: savedEntryId,
     action: "commission.rejected",
     summary: `Rejected commission review for event ${event.id}.`,
     metadata: {
@@ -1302,7 +1389,7 @@ export async function rejectCommissionItem(input: {
 
   return {
     eventId: event.id,
-    ledgerEntryId: savedEntry.id,
+    ledgerEntryId: savedEntryId,
   };
 }
 
@@ -1346,76 +1433,48 @@ export async function createDraftPayoutBatch(input: {
   const effectiveDates = readModel.commissionItems
     .filter(
       (item) =>
-        item.ledgerEntryId && group.commissionEntryIds.includes(item.ledgerEntryId),
+        item.ledgerChainId && group.commissionChainIds.includes(item.ledgerChainId),
     )
     .map((item) => item.receivedAt ?? item.occurredAt);
   const note = normalizeOptionalText(input.note);
-  const { data: batch, error: batchError } = await finance.supabase
-    .from("payout_batches")
-    .insert({
-      organization_id: finance.organizationId,
-      name: buildBatchName(group.partnerName, effectiveDates),
-      status: "draft",
-      currency: group.currency,
-      period_start: effectiveDates.length ? effectiveDates.slice().sort()[0].slice(0, 10) : null,
-      period_end: effectiveDates.length
+  const batchName = buildBatchName(group.partnerName, effectiveDates);
+  const { data: batchId, error: batchError } = await finance.supabase.rpc(
+    "create_payout_batch_from_group",
+    {
+      target_organization_id: finance.organizationId,
+      target_partner_id: group.partnerId,
+      target_currency: group.currency,
+      target_name: batchName,
+      target_period_start: effectiveDates.length ? effectiveDates.slice().sort()[0].slice(0, 10) : null,
+      target_period_end: effectiveDates.length
         ? effectiveDates.slice().sort()[effectiveDates.length - 1].slice(0, 10)
         : null,
-      notes: note,
-    })
-    .select(
-      "id, name, status, currency, period_start, period_end, external_reference, approved_by_membership_id, approved_at, notes, created_at, updated_at",
-    )
-    .single<PayoutBatchRow>();
+      target_note: note,
+      target_chain_ids: group.commissionChainIds,
+    },
+  );
 
-  if (batchError) {
+  if (batchError || !batchId) {
     throw new ServiceError("internal_error", "Failed to create the payout batch.", {
       status: 500,
-      details: { message: batchError.message },
-    });
-  }
-
-  const itemPayload = readModel.commissionItems
-    .filter(
-      (item) =>
-        item.ledgerEntryId &&
-        group.commissionEntryIds.includes(item.ledgerEntryId) &&
-        item.commissionAmount !== null,
-    )
-    .map((item) => ({
-      organization_id: finance.organizationId,
-      payout_batch_id: batch.id,
-      commission_ledger_entry_id: item.ledgerEntryId as string,
-      partner_id: group.partnerId,
-      amount: item.commissionAmount as number,
-      status: "pending" as const,
-    }));
-
-  const { error: itemError } = await finance.supabase
-    .from("payout_batch_items")
-    .insert(itemPayload);
-
-  if (itemError) {
-    throw new ServiceError("internal_error", "Failed to create payout batch items.", {
-      status: 500,
-      details: { message: itemError.message },
+      details: { message: batchError?.message },
     });
   }
 
   await writeAuditLog(finance.context, {
     organizationId: finance.organizationId,
     entityType: "payout_batch",
-    entityId: batch.id,
+    entityId: batchId,
     action: "payout_batch.created",
-    summary: `Created payout batch ${batch.name}.`,
+    summary: `Created payout batch ${batchName}.`,
     metadata: {
-      batchId: batch.id,
-      ledgerEntryCount: itemPayload.length,
+      batchId,
+      chainCount: group.commissionChainIds.length,
     },
   });
 
   return {
-    batchId: batch.id,
+    batchId,
   };
 }
 
@@ -1438,7 +1497,7 @@ async function getBatchForAction(finance: FinanceContext, batchId: string) {
   const { data: batchItems, error: batchItemsError } = await finance.supabase
     .from("payout_batch_items")
     .select(
-      "id, payout_batch_id, commission_ledger_entry_id, partner_id, amount, status, created_at, updated_at",
+      "id, payout_batch_id, commission_ledger_entry_id, commission_chain_id, partner_id, amount, status, created_at, updated_at",
     )
     .eq("organization_id", finance.organizationId)
     .eq("payout_batch_id", batchId)
@@ -1463,61 +1522,40 @@ export async function markPayoutBatchExported(input: {
   note?: string | null;
 }) {
   const finance = await requireFinanceContext();
-  const { batch, batchItems } = await getBatchForAction(finance, input.batchId);
+  const { batch } = await getBatchForAction(finance, input.batchId);
   const note = normalizeOptionalText(input.note);
   const externalReference = normalizeOptionalText(input.externalReference, 120);
-  const { data: updatedBatch, error: batchError } = await finance.supabase
-    .from("payout_batches")
-    .update({
-      status: "exported",
-      external_reference: externalReference,
-      notes: note ?? batch.notes,
-      approved_at: new Date().toISOString(),
-      approved_by_membership_id: finance.membershipId,
-    })
-    .eq("organization_id", finance.organizationId)
-    .eq("id", batch.id)
-    .select(
-      "id, name, status, currency, period_start, period_end, external_reference, approved_by_membership_id, approved_at, notes, created_at, updated_at",
-    )
-    .single<PayoutBatchRow>();
+  const { data: updatedBatchId, error: batchError } = await finance.supabase.rpc(
+    "export_payout_batch",
+    {
+      target_organization_id: finance.organizationId,
+      target_batch_id: batch.id,
+      target_external_reference: externalReference,
+      target_note: note,
+    },
+  );
 
-  if (batchError) {
+  if (batchError || !updatedBatchId) {
     throw new ServiceError("internal_error", "Failed to mark the payout batch as exported.", {
       status: 500,
-      details: { message: batchError.message },
+      details: { message: batchError?.message },
     });
-  }
-
-  if (batchItems.length > 0) {
-    const { error: itemError } = await finance.supabase
-      .from("payout_batch_items")
-      .update({ status: "exported" })
-      .eq("organization_id", finance.organizationId)
-      .eq("payout_batch_id", batch.id);
-
-    if (itemError) {
-      throw new ServiceError("internal_error", "Failed to mark payout batch items as exported.", {
-        status: 500,
-        details: { message: itemError.message },
-      });
-    }
   }
 
   await writeAuditLog(finance.context, {
     organizationId: finance.organizationId,
     entityType: "payout_batch",
-    entityId: updatedBatch.id,
+    entityId: updatedBatchId,
     action: "payout_batch.exported",
-    summary: `Marked payout batch ${updatedBatch.name} as exported.`,
+    summary: `Marked payout batch ${batch.name} as exported.`,
     metadata: {
-      batchId: updatedBatch.id,
+      batchId: updatedBatchId,
       externalReference,
     },
   });
 
   return {
-    batchId: updatedBatch.id,
+    batchId: updatedBatchId,
   };
 }
 
@@ -1526,69 +1564,73 @@ export async function markPayoutBatchPaid(input: {
   note?: string | null;
 }) {
   const finance = await requireFinanceContext();
-  const { batch, batchItems } = await getBatchForAction(finance, input.batchId);
+  const { batch } = await getBatchForAction(finance, input.batchId);
   const note = normalizeOptionalText(input.note);
-  const { data: updatedBatch, error: batchError } = await finance.supabase
-    .from("payout_batches")
-    .update({
-      status: "paid",
-      notes: note ?? batch.notes,
-      approved_at: batch.approved_at ?? new Date().toISOString(),
-      approved_by_membership_id: finance.membershipId,
-    })
-    .eq("organization_id", finance.organizationId)
-    .eq("id", batch.id)
-    .select(
-      "id, name, status, currency, period_start, period_end, external_reference, approved_by_membership_id, approved_at, notes, created_at, updated_at",
-    )
-    .single<PayoutBatchRow>();
+  const { data: updatedBatchId, error: batchError } = await finance.supabase.rpc(
+    "mark_payout_batch_paid",
+    {
+      target_organization_id: finance.organizationId,
+      target_batch_id: batch.id,
+      target_note: note,
+    },
+  );
 
-  if (batchError) {
+  if (batchError || !updatedBatchId) {
     throw new ServiceError("internal_error", "Failed to mark the payout batch as paid.", {
       status: 500,
-      details: { message: batchError.message },
+      details: { message: batchError?.message },
     });
-  }
-
-  if (batchItems.length > 0) {
-    const ledgerEntryIds = batchItems.map((item) => item.commission_ledger_entry_id);
-    const [{ error: itemError }, { error: ledgerError }] = await Promise.all([
-      finance.supabase
-        .from("payout_batch_items")
-        .update({ status: "paid" })
-        .eq("organization_id", finance.organizationId)
-        .eq("payout_batch_id", batch.id),
-      finance.supabase
-        .from("commission_ledger_entries")
-        .update({ status: "paid" })
-        .eq("organization_id", finance.organizationId)
-        .in("id", ledgerEntryIds),
-    ]);
-
-    if (itemError || ledgerError) {
-      throw new ServiceError("internal_error", "Failed to mark payout records as paid.", {
-        status: 500,
-        details: {
-          itemMessage: itemError?.message,
-          ledgerMessage: ledgerError?.message,
-        },
-      });
-    }
   }
 
   await writeAuditLog(finance.context, {
     organizationId: finance.organizationId,
     entityType: "payout_batch",
-    entityId: updatedBatch.id,
+    entityId: updatedBatchId,
     action: "payout_batch.paid",
-    summary: `Marked payout batch ${updatedBatch.name} as paid.`,
+    summary: `Marked payout batch ${batch.name} as paid.`,
     metadata: {
-      batchId: updatedBatch.id,
+      batchId: updatedBatchId,
     },
   });
 
   return {
-    batchId: updatedBatch.id,
+    batchId: updatedBatchId,
+  };
+}
+
+export async function cancelPayoutBatch(input: {
+  batchId: string;
+  note?: string | null;
+}) {
+  const finance = await requireFinanceContext();
+  const { batch } = await getBatchForAction(finance, input.batchId);
+  const note = normalizeOptionalText(input.note);
+  const { data: batchId, error } = await finance.supabase.rpc("cancel_payout_batch", {
+    target_organization_id: finance.organizationId,
+    target_batch_id: batch.id,
+    target_note: note,
+  });
+
+  if (error || !batchId) {
+    throw new ServiceError("internal_error", "Failed to cancel the payout batch.", {
+      status: 500,
+      details: { message: error?.message },
+    });
+  }
+
+  await writeAuditLog(finance.context, {
+    organizationId: finance.organizationId,
+    entityType: "payout_batch",
+    entityId: batchId,
+    action: "payout_batch.cancelled",
+    summary: `Cancelled payout batch ${batch.name}.`,
+    metadata: {
+      batchId,
+    },
+  });
+
+  return {
+    batchId,
   };
 }
 

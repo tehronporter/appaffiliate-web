@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createPromoCode } from "@/lib/services/codes";
+import { createApp, updateApp } from "@/lib/services/apps";
+import { invitePartnerPortalUser } from "@/lib/services/invitations";
 import { createPartner } from "@/lib/services/partners";
 
 function buildOnboardingHref(params: {
   step: string;
-  error?: "creator" | "code";
+  error?: "app" | "creator" | "code";
 }) {
   const search = new URLSearchParams();
   search.set("step", params.step);
@@ -20,17 +22,58 @@ function buildOnboardingHref(params: {
   return `/onboarding?${search.toString()}`;
 }
 
+export async function createActivationAppAction(formData: FormData) {
+  try {
+    const appId = String(formData.get("appId") ?? "");
+    const input = {
+      name: String(formData.get("name") ?? ""),
+      bundleId: String(formData.get("bundleId") ?? ""),
+      appStoreId: String(formData.get("appStoreId") ?? ""),
+      appleTeamId: String(formData.get("appleTeamId") ?? ""),
+      timezone: String(formData.get("timezone") ?? "UTC"),
+      appleFeeMode: String(formData.get("appleFeeMode") ?? "standard_30") as
+        | "standard_30"
+        | "small_business_15"
+        | "custom",
+      appleFeeBps: String(formData.get("appleFeeBps") ?? ""),
+      status: "active" as const,
+    };
+
+    if (appId) {
+      await updateApp(appId, input);
+    } else {
+      await createApp(input);
+    }
+
+    revalidatePath("/onboarding");
+    revalidatePath("/dashboard");
+    revalidatePath("/settings");
+    revalidatePath("/settings/organization");
+    revalidatePath("/settings/rules");
+    revalidatePath("/apple-health");
+    redirect(buildOnboardingHref({ step: "2" }));
+  } catch {
+    redirect(buildOnboardingHref({ step: "1", error: "app" }));
+  }
+}
+
 export async function createActivationPartnerAction(formData: FormData) {
   try {
-    await createPartner({
+    const partner = await createPartner({
       name: String(formData.get("name") ?? ""),
       contactEmail: String(formData.get("contactEmail") ?? ""),
       status: "active",
       notes: "",
     });
+    await invitePartnerPortalUser({
+      partnerId: partner.id,
+      email: String(formData.get("contactEmail") ?? ""),
+      displayName: String(formData.get("name") ?? ""),
+    });
 
     revalidatePath("/onboarding");
     revalidatePath("/partners");
+    revalidatePath("/settings/team");
     redirect(buildOnboardingHref({ step: "3" }));
   } catch {
     redirect(buildOnboardingHref({ step: "2", error: "creator" }));

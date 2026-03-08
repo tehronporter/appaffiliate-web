@@ -3,12 +3,12 @@ import "server-only";
 import { createHash } from "crypto";
 
 import { createServiceSupabaseClient } from "@/lib/service-supabase";
+import { verifyAppleSignedNotification } from "@/lib/services/apple-verifier";
 import { ServiceError } from "@/lib/services/errors";
 
 type AppleEnvironment = "sandbox" | "production" | "unknown";
 type AppleVerificationStatus =
   | "pending"
-  | "placeholder_unverified"
   | "verified"
   | "failed";
 type AppleReceiptProcessingStatus =
@@ -33,6 +33,10 @@ type AppleIngestApp = {
   organization_id: string;
   slug: string;
   name: string;
+  bundle_id: string | null;
+  app_store_id: string | null;
+  apple_fee_mode: "standard_30" | "small_business_15" | "custom";
+  apple_fee_bps: number | null;
   ingest_key: string | null;
 };
 
@@ -107,6 +111,8 @@ type DecodedAppleNotification = {
   offerIdentifier: string | null;
   currency: string | null;
   amountMinor: number | null;
+  grossAmount: number | null;
+  netAmount: number | null;
   occurredAt: string | null;
   verificationStatus: AppleVerificationStatus;
   failureReason: string | null;
@@ -137,6 +143,21 @@ type NormalizeAppleReceiptResult = {
   failureReason: string | null;
 };
 
+type RefundMatchRow = {
+  id: string;
+  partner_id: string | null;
+  promo_code_id: string | null;
+  original_transaction_id: string | null;
+};
+
+type RefundLedgerRow = {
+  id: string;
+  chain_id: string;
+  currency: string;
+  amount: number | string;
+  transition_type: string;
+};
+
 type ProcessAppleNotificationReceiptInput = {
   ingestKey: string;
   requestId: string;
@@ -163,7 +184,7 @@ type ProcessAppleNotificationReceiptResult = {
 };
 
 const APP_SELECT =
-  "id, organization_id, slug, name, ingest_key";
+  "id, organization_id, slug, name, bundle_id, app_store_id, apple_fee_mode, apple_fee_bps, ingest_key";
 const RECEIPT_SELECT =
   "id, organization_id, app_id, notification_uuid, notification_type, notification_subtype, environment, signed_payload, original_transaction_id, processed_status, last_error, received_at, request_id, payload_hash, verification_status, dedupe_key";
 const EVENT_SELECT =
@@ -240,11 +261,16 @@ function normalizeIsoTimestamp(value: unknown) {
   return null;
 }
 
-function normalizeAmountMinor(transactionPayload: AppleTransactionPayload | null) {
-  // Apple price units vary across payload shapes. Leave amount_minor empty until
-  // full verified decoding can map the field without guessing.
-  void transactionPayload;
-  return null;
+function resolveAppleFeeBps(app: AppleIngestApp) {
+  if (app.apple_fee_mode === "small_business_15") {
+    return 1500;
+  }
+
+  if (app.apple_fee_mode === "custom") {
+    return app.apple_fee_bps ?? null;
+  }
+
+  return 3000;
 }
 
 function decodeJwtPayload<T>(token: string) {
@@ -267,7 +293,10 @@ function decodeJwtPayload<T>(token: string) {
   return JSON.parse(json) as T;
 }
 
-function inspectAppleSignedPayload(signedPayload: string): DecodedAppleNotification {
+async function inspectAppleSignedPayload(
+  signedPayload: string,
+  app: AppleIngestApp,
+): Promise<DecodedAppleNotification> {
   try {
     const payload = decodeJwtPayload<AppleNotificationPayload>(signedPayload);
     const transactionToken =
@@ -286,6 +315,20 @@ function inspectAppleSignedPayload(signedPayload: string): DecodedAppleNotificat
       }
     }
 
+    const verification = await verifyAppleSignedNotification({
+      signedPayload,
+      bundleId: app.bundle_id,
+      appAppleId: app.app_store_id,
+    });
+    const amountMinor = verification.transaction.amountMinor;
+    const grossAmount =
+      amountMinor === null ? null : Math.round((amountMinor / 100) * 100) / 100;
+    const feeBps = resolveAppleFeeBps(app);
+    const netAmount =
+      grossAmount === null || feeBps === null
+        ? null
+        : Math.round(grossAmount * ((10000 - feeBps) / 10000) * 100) / 100;
+
     return {
       payload,
       transactionPayload,
@@ -298,20 +341,38 @@ function inspectAppleSignedPayload(signedPayload: string): DecodedAppleNotificat
           payload.environment,
       ),
       originalTransactionId:
-        normalizeText(transactionPayload?.originalTransactionId) ?? null,
-      transactionId: normalizeText(transactionPayload?.transactionId) ?? null,
+        verification.transaction.originalTransactionId ??
+        normalizeText(transactionPayload?.originalTransactionId) ??
+        null,
+      transactionId:
+        verification.transaction.transactionId ??
+        normalizeText(transactionPayload?.transactionId) ??
+        null,
       webOrderLineItemId:
-        normalizeText(transactionPayload?.webOrderLineItemId) ?? null,
-      productId: normalizeText(transactionPayload?.productId) ?? null,
-      offerIdentifier: normalizeText(transactionPayload?.offerIdentifier) ?? null,
-      currency: normalizeText(transactionPayload?.currency, 12),
-      amountMinor: normalizeAmountMinor(transactionPayload),
+        verification.transaction.webOrderLineItemId ??
+        normalizeText(transactionPayload?.webOrderLineItemId) ??
+        null,
+      productId:
+        verification.transaction.productId ??
+        normalizeText(transactionPayload?.productId) ??
+        null,
+      offerIdentifier:
+        verification.transaction.offerIdentifier ??
+        normalizeText(transactionPayload?.offerIdentifier) ??
+        null,
+      currency:
+        verification.transaction.currency ??
+        normalizeText(transactionPayload?.currency, 12),
+      amountMinor,
+      grossAmount,
+      netAmount,
       occurredAt:
+        verification.transaction.occurredAt ??
         normalizeIsoTimestamp(
           transactionPayload?.purchaseDate ?? transactionPayload?.signedDate,
         ) ?? normalizeIsoTimestamp(payload.signedDate),
-      verificationStatus: "placeholder_unverified",
-      failureReason: null,
+      verificationStatus: verification.verificationStatus,
+      failureReason: verification.failureReason,
     };
   } catch {
     return {
@@ -328,6 +389,8 @@ function inspectAppleSignedPayload(signedPayload: string): DecodedAppleNotificat
       offerIdentifier: null,
       currency: null,
       amountMinor: null,
+      grossAmount: null,
+      netAmount: null,
       occurredAt: null,
       verificationStatus: "failed",
       failureReason: "unparseable_signed_payload",
@@ -469,6 +532,84 @@ async function updateReceiptProcessingState(params: {
   return data;
 }
 
+async function autoReverseRefundEvent(params: {
+  app: AppleIngestApp;
+  receipt: AppleReceiptRecord;
+  normalizedEvent: NormalizedEventRecord;
+  decoded: DecodedAppleNotification;
+}) {
+  if (
+    !params.decoded.originalTransactionId ||
+    !["refund", "cancellation"].includes(params.normalizedEvent.event_type)
+  ) {
+    return;
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const { data: matchedEvent, error: matchError } = await supabase
+    .from("normalized_events")
+    .select("id, partner_id, promo_code_id, original_transaction_id")
+    .eq("organization_id", params.app.organization_id)
+    .eq("app_id", params.app.id)
+    .eq("original_transaction_id", params.decoded.originalTransactionId)
+    .eq("attribution_status", "attributed")
+    .neq("id", params.normalizedEvent.id)
+    .order("event_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<RefundMatchRow>();
+
+  if (matchError || !matchedEvent?.partner_id) {
+    return;
+  }
+
+  await supabase
+    .from("normalized_events")
+    .update({
+      partner_id: matchedEvent.partner_id,
+      promo_code_id: matchedEvent.promo_code_id,
+      attribution_status: "attributed",
+    })
+    .eq("organization_id", params.app.organization_id)
+    .eq("id", params.normalizedEvent.id);
+
+  const { data: ledgerRows, error: ledgerError } = await supabase
+    .from("commission_ledger_entries")
+    .select("id, chain_id, currency, amount, transition_type")
+    .eq("organization_id", params.app.organization_id)
+    .eq("normalized_event_id", matchedEvent.id)
+    .order("created_at", { ascending: false })
+    .limit(20)
+    .returns<RefundLedgerRow[]>();
+
+  if (ledgerError || !ledgerRows?.length) {
+    return;
+  }
+
+  const latestApprovedOrPaid =
+    ledgerRows.find((row) => row.transition_type === "paid") ??
+    ledgerRows.find((row) => row.transition_type === "reserved") ??
+    ledgerRows.find((row) => row.transition_type === "approved") ??
+    null;
+
+  if (!latestApprovedOrPaid) {
+    return;
+  }
+
+  await supabase.rpc("reverse_commission_for_refund", {
+    target_organization_id: params.app.organization_id,
+    target_chain_id: latestApprovedOrPaid.chain_id,
+    target_event_id: params.normalizedEvent.id,
+    target_amount: typeof latestApprovedOrPaid.amount === "string" ? Number(latestApprovedOrPaid.amount) : latestApprovedOrPaid.amount,
+    target_currency: latestApprovedOrPaid.currency,
+    target_note: `Auto reversal from ${params.normalizedEvent.event_type} receipt ${params.receipt.id}.`,
+    target_metadata: {
+      reversal_source: "apple_notification",
+      receipt_id: params.receipt.id,
+      original_transaction_id: params.decoded.originalTransactionId,
+    },
+  });
+}
+
 export async function resolveAppByIngestKey(ingestKey: string) {
   const normalizedKey = normalizeText(ingestKey, 255);
 
@@ -510,7 +651,7 @@ export async function resolveAppByIngestKey(ingestKey: string) {
 export async function storeAppleReceipt(
   input: StoreAppleReceiptInput,
 ): Promise<StoreAppleReceiptResult> {
-  const decoded = inspectAppleSignedPayload(input.signedPayload);
+  const decoded = await inspectAppleSignedPayload(input.signedPayload, input.app);
   const payloadHash = createPayloadHash(input.signedPayload);
   const dedupeKey = createReceiptDedupeKey(decoded, payloadHash);
   const supabase = createServiceSupabaseClient();
@@ -614,8 +755,8 @@ export async function normalizeAppleReceiptToEvent(
   const reasonCode =
     notificationType === "TEST"
       ? "test_notification"
-      : input.receipt.verification_status === "placeholder_unverified"
-        ? "verification_pending"
+      : input.receipt.verification_status === "failed"
+        ? "verification_failed"
         : null;
   const occurredAt = input.decoded.occurredAt ?? input.receipt.received_at;
   const supabase = createServiceSupabaseClient();
@@ -652,6 +793,8 @@ export async function normalizeAppleReceiptToEvent(
       offer_identifier: input.decoded.offerIdentifier,
       amount_minor: input.decoded.amountMinor,
       currency: input.decoded.currency,
+      gross_amount: input.decoded.grossAmount,
+      net_amount: input.decoded.netAmount,
       event_at: occurredAt,
       received_at: input.receipt.received_at,
       reason_code: reasonCode,
@@ -731,6 +874,15 @@ export async function processAppleNotificationReceipt(
     });
 
     normalizedEventId = normalization.normalizedEvent?.id ?? null;
+
+    if (normalization.normalizedEvent) {
+      await autoReverseRefundEvent({
+        app,
+        receipt,
+        normalizedEvent: normalization.normalizedEvent,
+        decoded: stored.decoded,
+      });
+    }
 
     if (
       normalization.processingStatus !== receipt.processed_status ||

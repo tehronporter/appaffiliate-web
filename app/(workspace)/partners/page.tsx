@@ -18,7 +18,13 @@ import {
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
-import { createPartnerAction, updatePartnerAction } from "@/app/(workspace)/partners/actions";
+import {
+  createPartnerAction,
+  resendPartnerInviteAction,
+  revokePartnerInviteAction,
+  updatePartnerAction,
+} from "@/app/(workspace)/partners/actions";
+import { listWorkspaceInvitations } from "@/lib/services/invitations";
 import {
   listWorkspacePartners,
   type PartnerStatus,
@@ -89,6 +95,22 @@ function noticeCopy(notice: string | undefined) {
       tone: "green" as const,
       title: "Partner updated",
       detail: "The latest partner details were saved successfully.",
+    };
+  }
+
+  if (notice === "partner-invite-resent") {
+    return {
+      tone: "green" as const,
+      title: "Portal invite resent",
+      detail: "The creator portal invite email has been sent again.",
+    };
+  }
+
+  if (notice === "partner-invite-revoked") {
+    return {
+      tone: "amber" as const,
+      title: "Portal invite revoked",
+      detail: "The pending creator portal invite was revoked.",
     };
   }
 
@@ -169,7 +191,10 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
   const status = VALID_STATUSES.has(rawStatus as PartnerStatus)
     ? (rawStatus as PartnerStatus)
     : "all";
-  const data = await listWorkspacePartners();
+  const [data, invitations] = await Promise.all([
+    listWorkspacePartners(),
+    listWorkspaceInvitations().catch(() => []),
+  ]);
   const filteredPartners = data.partners.filter(
     (partner) => status === "all" || partner.status === status,
   );
@@ -178,6 +203,18 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
   const banner = noticeCopy(notice);
   const missingEmailCount = data.partners.filter((partner) => !partner.contactEmail).length;
   const withoutCodesCount = data.partners.filter((partner) => partner.assignedCodes === 0).length;
+  const inviteByEmail = new Map(
+    invitations
+      .filter((invitation) => invitation.inviteType === "partner_portal")
+      .map((invitation) => [invitation.email.toLowerCase(), invitation]),
+  );
+  const pendingInviteCount = data.partners.filter((partner) => {
+    const email = partner.contactEmail?.toLowerCase();
+    return email ? inviteByEmail.get(email)?.status === "pending" : false;
+  }).length;
+  const selectedInvite = selectedPartner?.contactEmail
+    ? inviteByEmail.get(selectedPartner.contactEmail.toLowerCase()) ?? null
+    : null;
 
   return (
     <PageContainer>
@@ -228,6 +265,12 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
             value={String(withoutCodesCount)}
             detail={`${missingEmailCount} missing email`}
             tone="amber"
+          />
+          <MetricChip
+            label="Invites pending"
+            value={String(pendingInviteCount)}
+            detail="Creator portal access still waiting on acceptance"
+            tone={pendingInviteCount > 0 ? "amber" : "green"}
           />
           <MetricChip
             label="Pending"
@@ -390,9 +433,16 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
             "No internal note has been added yet. Keep only the creator context operators actually need."
           }
           status={
-            <StatusBadge tone={statusTone(selectedPartner.status)}>
-              {statusLabel(selectedPartner.status)}
-            </StatusBadge>
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge tone={statusTone(selectedPartner.status)}>
+                {statusLabel(selectedPartner.status)}
+              </StatusBadge>
+              {selectedInvite ? (
+                <StatusBadge tone={selectedInvite.status === "pending" ? "amber" : "green"}>
+                  Portal invite {selectedInvite.statusLabel.toLowerCase()}
+                </StatusBadge>
+              ) : null}
+            </div>
           }
         >
             <SectionCard
@@ -420,6 +470,12 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
                         ? selectedPartner.appNames.join(", ")
                         : "No app coverage yet",
                   },
+                  {
+                    label: "Portal invite",
+                    value: selectedInvite
+                      ? `${selectedInvite.statusLabel} for ${selectedInvite.email}`
+                      : "No portal invite has been sent yet",
+                  },
                 ]}
               />
             </SectionCard>
@@ -428,6 +484,23 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
               title="Update creator record"
               description="Update lifecycle, contact detail, or internal notes without expanding this page into a broader CRM tool."
             >
+              {selectedInvite?.status === "pending" ? (
+                <div className="mb-4 flex flex-wrap justify-end gap-2">
+                  <form action={resendPartnerInviteAction}>
+                    <input type="hidden" name="invitationId" value={selectedInvite.id} />
+                    <input type="hidden" name="partnerId" value={selectedPartner.id} />
+                    <ActionButton type="submit">Resend invite</ActionButton>
+                  </form>
+                  <form action={revokePartnerInviteAction}>
+                    <input type="hidden" name="invitationId" value={selectedInvite.id} />
+                    <input type="hidden" name="partnerId" value={selectedPartner.id} />
+                    <ActionButton type="submit" variant="secondary">
+                      Revoke invite
+                    </ActionButton>
+                  </form>
+                </div>
+              ) : null}
+
               <form action={updatePartnerAction} className="space-y-4">
                 <input type="hidden" name="partnerId" value={selectedPartner.id} />
                 <PartnerFormFields

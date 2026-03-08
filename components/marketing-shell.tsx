@@ -110,59 +110,63 @@ export function MarketingShell({
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(46,83,255,0.12)_0%,transparent_28%),linear-gradient(180deg,#fcfdff_0%,#f4f8fd_44%,#ffffff_100%)] text-ink">
-      {/* ── Unified 64px Header ── */}
-      <header
-        className={joinClasses(
-          "sticky top-0 z-30 border-b transition-colors duration-300",
-          scrolled
-            ? "border-border bg-[rgba(255,255,255,0.72)] backdrop-blur-xl"
-            : "border-transparent bg-transparent",
-        )}
-      >
-        <div className="mx-auto flex h-16 max-w-[var(--marketing-max-width)] items-center justify-between px-5 sm:px-8 lg:px-12">
-          {/* Logo */}
-          <BrandLogoLink size="marketing-header" priority />
+      {/* ── Refined Marketing Header ── */}
+      <div className="sticky top-0 z-30 px-3 pt-3 sm:px-4 sm:pt-4">
+        <header
+          className={joinClasses(
+            "mx-auto max-w-[var(--marketing-max-width)] rounded-[24px] border transition-all duration-300",
+            scrolled
+              ? "border-border bg-[rgba(255,255,255,0.88)] shadow-[0_14px_34px_rgba(17,24,39,0.08)] backdrop-blur-xl"
+              : "border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[rgba(255,255,255,0.78)] shadow-[0_10px_28px_rgba(17,24,39,0.05)] backdrop-blur-lg",
+          )}
+        >
+          <div className="mx-auto flex h-[72px] max-w-[var(--marketing-max-width)] items-center justify-between px-5 sm:h-20 sm:px-8 lg:px-12">
+            {/* Logo */}
+            <div className="min-w-0 flex-1">
+              <BrandLogoLink size="marketing-header" priority />
+            </div>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden items-center gap-1 md:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={joinClasses(
-                  "whitespace-nowrap rounded-full px-3.5 py-2 text-sm transition-colors duration-200 hover:bg-white/80",
-                  link.label === "Docs" && "ml-1 text-ink-subtle",
-                  activePath === link.href
-                    ? link.label === "Docs"
-                      ? "bg-white/80 font-medium text-ink-muted shadow-[0_2px_8px_rgba(17,24,39,0.05)]"
-                      : "bg-white font-medium text-ink shadow-[0_2px_8px_rgba(17,24,39,0.06)]"
-                    : link.label === "Docs"
-                      ? "hover:text-ink-muted"
-                      : "text-ink-muted hover:text-ink",
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+            {/* Desktop Nav Links */}
+            <nav className="hidden items-center gap-0.5 md:flex lg:mr-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={joinClasses(
+                    "whitespace-nowrap rounded-full px-3.5 py-2 text-sm transition-colors duration-200 hover:bg-white/86",
+                    link.label === "Docs" && "ml-1 text-ink-subtle",
+                    activePath === link.href
+                      ? link.label === "Docs"
+                        ? "bg-white/80 font-medium text-ink-muted shadow-[0_2px_8px_rgba(17,24,39,0.05)]"
+                        : "bg-white font-medium text-ink shadow-[0_2px_8px_rgba(17,24,39,0.06)]"
+                      : link.label === "Docs"
+                        ? "hover:text-ink-muted"
+                        : "text-ink-muted hover:text-ink",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
 
-          {/* Desktop CTAs */}
-          <div className="hidden items-center gap-3 md:flex">
-            <ActionButton {...secondaryAction} />
-            <ActionButton {...primaryAction} />
+            {/* Desktop CTAs */}
+            <div className="hidden items-center gap-3 md:flex">
+              <ActionButton {...secondaryAction} />
+              <ActionButton {...primaryAction} />
+            </div>
+
+            {/* Mobile Hamburger */}
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open navigation menu"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink-muted transition hover:bg-white/80 hover:text-ink md:hidden"
+            >
+              <Menu size={24} strokeWidth={1.5} />
+            </button>
           </div>
-
-          {/* Mobile Hamburger */}
-          <button
-            type="button"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open navigation menu"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink-muted transition hover:bg-white/80 hover:text-ink md:hidden"
-          >
-            <Menu size={24} strokeWidth={1.5} />
-          </button>
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* ── Mobile Drawer Overlay ── */}
       {drawerOpen ? (
@@ -250,11 +254,11 @@ export function MarketingShell({
           <div>
             <p className="text-sm font-medium text-ink">Get started</p>
             <div className="mt-4 flex flex-col gap-3">
-              <ActionButton href="/request-access" label="Request access" variant="secondary" />
-              <ActionButton href="/login" label="Sign in" variant="primary" />
+              <ActionButton href="/signup" label="Sign up" variant="primary" />
+              <ActionButton href="/login" label="Sign in" variant="secondary" />
             </div>
             <p className="mt-4 text-sm leading-6 text-ink-subtle">
-              New workspaces start with a guided rollout.
+              New workspaces open directly into activation.
             </p>
           </div>
         </div>

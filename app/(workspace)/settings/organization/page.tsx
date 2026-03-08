@@ -10,7 +10,11 @@ import {
   SettingsHubActions,
   SettingsPageFrame,
 } from "@/components/settings-shell";
-import { updateOrganizationSettingsAction } from "@/app/(workspace)/settings/actions";
+import {
+  saveWorkspaceAppAction,
+  updateOrganizationSettingsAction,
+} from "@/app/(workspace)/settings/actions";
+import { listWorkspaceApps } from "@/lib/services/apps";
 import { getOrganizationSettingsData } from "@/lib/services/settings";
 
 type SettingsOrganizationPageProps = {
@@ -28,6 +32,14 @@ function noticeBadge(notice: string | undefined) {
     return <StatusBadge tone="red">Organization update failed</StatusBadge>;
   }
 
+  if (notice === "app-saved") {
+    return <StatusBadge tone="green">App settings saved</StatusBadge>;
+  }
+
+  if (notice === "app-error") {
+    return <StatusBadge tone="red">App settings failed</StatusBadge>;
+  }
+
   return null;
 }
 
@@ -35,8 +47,12 @@ export default async function SettingsOrganizationPage({
   searchParams,
 }: SettingsOrganizationPageProps) {
   const { notice } = await searchParams;
-  const data = await getOrganizationSettingsData();
+  const [data, appsData] = await Promise.all([
+    getOrganizationSettingsData(),
+    listWorkspaceApps(),
+  ]);
   const noticeChip = noticeBadge(notice);
+  const primaryApp = appsData.apps[0] ?? null;
 
   return (
     <SettingsPageFrame
@@ -129,6 +145,109 @@ export default async function SettingsOrganizationPage({
                   className="disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-muted disabled:text-ink-muted"
                 >
                   Save organization settings
+                </ActionButton>
+              </div>
+            </form>
+          </SectionCard>
+
+          <SectionCard
+            title={primaryApp ? "Primary app settings" : "Add your first app"}
+            description="This is the app record that drives Apple ingest, code assignment, and finance basis defaults."
+          >
+            <form action={saveWorkspaceAppAction} className="space-y-4">
+              <input type="hidden" name="appId" value={primaryApp?.id ?? ""} />
+
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-ink">App name</span>
+                <input
+                  name="name"
+                  type="text"
+                  defaultValue={primaryApp?.name ?? ""}
+                  className="aa-field"
+                  required
+                />
+              </label>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Bundle ID</span>
+                  <input
+                    name="bundleId"
+                    type="text"
+                    defaultValue={primaryApp?.bundleId ?? ""}
+                    className="aa-field"
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">App Store ID</span>
+                  <input
+                    name="appStoreId"
+                    type="text"
+                    defaultValue={primaryApp?.appStoreId ?? ""}
+                    className="aa-field"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Apple team ID</span>
+                  <input
+                    name="appleTeamId"
+                    type="text"
+                    defaultValue={primaryApp?.appleTeamId ?? ""}
+                    className="aa-field"
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Timezone</span>
+                  <input
+                    name="timezone"
+                    type="text"
+                    defaultValue={primaryApp?.timezone ?? "UTC"}
+                    className="aa-field"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_160px]">
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Apple fee mode</span>
+                  <select
+                    name="appleFeeMode"
+                    defaultValue={primaryApp?.appleFeeMode ?? "standard_30"}
+                    className="aa-field"
+                  >
+                    <option value="standard_30">Standard 30%</option>
+                    <option value="small_business_15">Small Business 15%</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Custom fee bps</span>
+                  <input
+                    name="appleFeeBps"
+                    type="number"
+                    min="0"
+                    max="10000"
+                    defaultValue={primaryApp?.appleFeeBps ?? ""}
+                    className="aa-field"
+                  />
+                </label>
+              </div>
+
+              {primaryApp?.ingestKey ? (
+                <InsetPanel tone="blue" className="text-sm text-ink-muted">
+                  Ingest key assigned. Use <span className="font-medium text-ink">Apple Health</span> to verify receipt and event flow.
+                </InsetPanel>
+              ) : null}
+
+              <div className="flex justify-end">
+                <ActionButton type="submit" variant="primary">
+                  {primaryApp ? "Save app settings" : "Create app"}
                 </ActionButton>
               </div>
             </form>

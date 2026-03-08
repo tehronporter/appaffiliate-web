@@ -432,8 +432,8 @@ export async function getAppleHealthReadinessData(appIdentifier: string) {
   );
   const warningNote =
     latestReceipt.last_error ??
-    (latestReceipt.verification_status === "placeholder_unverified"
-      ? "Receipts are being stored, but full Apple signature verification is not active in this MVP yet."
+    (latestReceipt.verification_status === "failed"
+      ? "The latest receipt failed Apple signature verification or payload decoding."
       : null);
 
   if (latestEvent) {

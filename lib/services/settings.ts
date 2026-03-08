@@ -950,7 +950,11 @@ export async function getTeamSettingsData() {
   }
 
   const { memberships, rolesByKey } = await loadVisibleMemberships(settings);
-  const [userDirectory, { count: partnerUserCount, error: partnerUserError }] =
+  const [
+    userDirectory,
+    { count: partnerUserCount, error: partnerUserError },
+    { count: pendingInviteCount, error: inviteCountError },
+  ] =
     await Promise.all([
       loadUserDirectoryEntries(
         memberships.map((membership) => membership.user_id),
@@ -959,13 +963,20 @@ export async function getTeamSettingsData() {
         .from("partner_users")
         .select("id", { count: "exact", head: true })
         .eq("organization_id", settings.organizationId),
+      settings.context.supabase!
+        .from("workspace_invitations")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", settings.organizationId)
+        .eq("invite_type", "internal_team")
+        .eq("status", "pending"),
     ]);
 
-  if (partnerUserError) {
+  if (partnerUserError || inviteCountError) {
     throw new ServiceError("internal_error", "Failed to read partner user count.", {
       status: 500,
       details: {
-        message: partnerUserError.message,
+        message: partnerUserError?.message,
+        inviteMessage: inviteCountError?.message,
       },
     });
   }
@@ -1006,7 +1017,7 @@ export async function getTeamSettingsData() {
     ),
     visibleScopeLabel: describeVisibleScope(settings.roleKey),
     visibleMemberCount: members.length,
-    pendingInviteCount: members.filter((member) => member.status === "invited").length,
+    pendingInviteCount: pendingInviteCount ?? 0,
     partnerUserCount: partnerUserCount ?? 0,
     members,
   } satisfies TeamSettingsData;

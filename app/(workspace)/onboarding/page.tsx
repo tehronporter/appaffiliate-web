@@ -3,15 +3,17 @@ import { redirect } from "next/navigation";
 import { ActivationFlow } from "@/components/activation-flow";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { listWorkspaceNormalizedEvents } from "@/lib/services/apple-read-model";
+import { listWorkspaceApps } from "@/lib/services/apps";
 import { listWorkspacePromoCodes } from "@/lib/services/codes";
 import { listCommissionItems } from "@/lib/services/finance";
+import { listWorkspaceInvitations } from "@/lib/services/invitations";
 import { getLaunchReadinessData } from "@/lib/services/launch-readiness";
 import { listWorkspacePartners } from "@/lib/services/partners";
 
 type OnboardingPageProps = {
   searchParams: Promise<{
     step?: string;
-    error?: "creator" | "code";
+    error?: "app" | "creator" | "code";
   }>;
 };
 
@@ -68,26 +70,34 @@ export default async function OnboardingPage({
     redirect("/login?redirectTo=/onboarding");
   }
 
-  const [{ step, error }, launch, partnersData, codesData, eventsData, commissions] =
+  const [{ step, error }, launch, appsData, partnersData, invites, codesData, eventsData, commissions] =
     await Promise.all([
       searchParams,
       getLaunchReadinessData(),
+      listWorkspaceApps(),
       listWorkspacePartners(),
+      listWorkspaceInvitations(),
       listWorkspacePromoCodes(),
       listWorkspaceNormalizedEvents(),
       listCommissionItems(),
     ]);
 
   const workspaceName = launch.organizationName ?? "Current workspace";
-  const totalApps = launch.rules?.appleReadiness.length ?? 0;
-  const readyApps = launch.rules?.appleReadiness.filter((app) => app.ingestReady).length ?? 0;
-  const firstApp = launch.rules?.appleReadiness[0] ?? null;
-  const firstReadyApp = launch.rules?.appleReadiness.find((app) => app.ingestReady) ?? firstApp;
+  const totalApps = appsData.apps.length;
+  const readyApps = appsData.apps.filter((app) => Boolean(app.ingestKey)).length;
+  const firstApp = appsData.apps[0] ?? null;
+  const firstReadyApp = appsData.apps.find((app) => Boolean(app.ingestKey)) ?? firstApp;
   const receiptIssues =
     launch.overview.monitoring.failedReceiptCount +
     launch.overview.monitoring.pendingReceiptCount;
   const creatorCount = partnersData.partners.length;
   const firstCreator = partnersData.partners[0] ?? null;
+  const firstCreatorInvite =
+    firstCreator
+      ? invites.find(
+          (invite) => invite.partnerId === firstCreator.id && invite.inviteType === "partner_portal",
+        ) ?? null
+      : null;
   const firstCode = codesData.codes[0] ?? null;
   const assignedCodes = codesData.stats.assigned;
   const totalResults =
@@ -136,8 +146,21 @@ export default async function OnboardingPage({
       appStep={{
         satisfied: appSatisfied,
         connected: totalApps > 0,
+        app: firstApp
+          ? {
+              id: firstApp.id,
+              name: firstApp.name,
+              bundleId: firstApp.bundleId,
+              appStoreId: firstApp.appStoreId,
+              appleTeamId: firstApp.appleTeamId,
+              timezone: firstApp.timezone,
+              appleFeeMode: firstApp.appleFeeMode,
+              appleFeeBps: firstApp.appleFeeBps,
+              ingestKey: firstApp.ingestKey,
+            }
+          : null,
         title: appSatisfied
-          ? `${firstReadyApp?.appName ?? "Your app"} is connected`
+          ? `${firstReadyApp?.name ?? "Your app"} is connected`
           : totalApps > 0
             ? `${readyApps}/${totalApps} app lanes are ready`
             : "No app lane is connected yet",
@@ -149,7 +172,7 @@ export default async function OnboardingPage({
             ? "Your app record exists, but it still needs an ingest key or cleaner Apple intake before the first result is trustworthy."
             : "Create the first app record and assign an ingest key so Apple can send results into AppAffiliate.",
         href: launch.appleHealthHref,
-        buttonLabel: totalApps > 0 ? "Finish app connection →" : "Connect your app →",
+        buttonLabel: totalApps > 0 ? "Finish app connection →" : "Create your app →",
         helperText: appSatisfied
           ? "Your first connected app is enough to keep moving."
           : "You can return here as soon as the app lane and ingest path are ready.",
@@ -161,6 +184,9 @@ export default async function OnboardingPage({
               name: firstCreator.name,
               email: firstCreator.contactEmail,
               statusLabel: titleCaseLabel(firstCreator.status, "Creator ready"),
+              inviteStatusLabel: firstCreatorInvite
+                ? titleCaseLabel(firstCreatorInvite.status, "Invite pending")
+                : "Invite pending",
             }
           : null,
       }}
@@ -177,7 +203,7 @@ export default async function OnboardingPage({
           : null,
         defaultAppId: codesData.appOptions[0]?.id ?? firstReadyApp?.id ?? null,
         defaultPartnerId: firstCreator?.id ?? null,
-        appName: codesData.appOptions[0]?.label ?? firstReadyApp?.appName ?? null,
+        appName: codesData.appOptions[0]?.label ?? firstReadyApp?.name ?? null,
         partnerName: firstCreator?.name ?? null,
       }}
       resultStep={{

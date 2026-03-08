@@ -18,18 +18,33 @@ import {
 } from "lucide-react";
 
 import { BrandLogoLink } from "@/components/brand-logo";
-import { createActivationCodeAction, createActivationPartnerAction } from "@/app/(workspace)/onboarding/actions";
+import {
+  createActivationAppAction,
+  createActivationCodeAction,
+  createActivationPartnerAction,
+} from "@/app/(workspace)/onboarding/actions";
 import { StatusBadge } from "@/components/admin-ui";
 
 type FlowStepKey = 1 | 2 | 3 | 4 | 5 | "complete";
 
 type ActivationFlowProps = {
   initialStep: FlowStepKey;
-  error?: "creator" | "code" | null;
+  error?: "app" | "creator" | "code" | null;
   workspaceName: string;
   appStep: {
     satisfied: boolean;
     connected: boolean;
+    app: {
+      id: string;
+      name: string;
+      bundleId: string | null;
+      appStoreId: string | null;
+      appleTeamId: string | null;
+      timezone: string;
+      appleFeeMode: "standard_30" | "small_business_15" | "custom";
+      appleFeeBps: number | null;
+      ingestKey: string | null;
+    } | null;
     title: string;
     detail: string;
     href: string;
@@ -42,6 +57,7 @@ type ActivationFlowProps = {
       name: string;
       email: string | null;
       statusLabel: string;
+      inviteStatusLabel: string;
     } | null;
   };
   codeStep: {
@@ -295,6 +311,17 @@ export function ActivationFlow({
   const router = useRouter();
   const pathname = usePathname();
   const [step, setStep] = useState<FlowStepKey>(initialStep);
+  const [appName, setAppName] = useState(appStep.app?.name ?? "");
+  const [bundleId, setBundleId] = useState(appStep.app?.bundleId ?? "");
+  const [appStoreId, setAppStoreId] = useState(appStep.app?.appStoreId ?? "");
+  const [appleTeamId, setAppleTeamId] = useState(appStep.app?.appleTeamId ?? "");
+  const [timezone, setTimezone] = useState(appStep.app?.timezone ?? "UTC");
+  const [appleFeeMode, setAppleFeeMode] = useState<
+    "standard_30" | "small_business_15" | "custom"
+  >(appStep.app?.appleFeeMode ?? "standard_30");
+  const [appleFeeBps, setAppleFeeBps] = useState(
+    appStep.app?.appleFeeBps?.toString() ?? "",
+  );
   const [creatorName, setCreatorName] = useState("");
   const [creatorEmail, setCreatorEmail] = useState("");
   const [assetKind, setAssetKind] = useState<"promo" | "tracking">("promo");
@@ -304,6 +331,20 @@ export function ActivationFlow({
     setStep(initialStep);
   }, [initialStep]);
 
+  useEffect(() => {
+    setAppName(appStep.app?.name ?? "");
+    setBundleId(appStep.app?.bundleId ?? "");
+    setAppStoreId(appStep.app?.appStoreId ?? "");
+    setAppleTeamId(appStep.app?.appleTeamId ?? "");
+    setTimezone(appStep.app?.timezone ?? "UTC");
+    setAppleFeeMode(appStep.app?.appleFeeMode ?? "standard_30");
+    setAppleFeeBps(appStep.app?.appleFeeBps?.toString() ?? "");
+  }, [appStep.app]);
+
+  const appValid =
+    appName.trim().length > 1 &&
+    timezone.trim().length > 1 &&
+    (appleFeeMode !== "custom" || /^\d+$/.test(appleFeeBps.trim()));
   const creatorValid =
     creatorName.trim().length > 1 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail.trim());
@@ -374,40 +415,157 @@ export function ActivationFlow({
           title="Add your app"
           description="Start with the app lane that will receive creator-driven results."
           footer={
-            <>
-              {appStep.satisfied ? (
+            appStep.satisfied ? (
+              <>
                 <FullWidthButton label="Continue →" onClick={() => syncStep(2)} />
-              ) : (
-                <FullWidthLink href={appStep.href} label={appStep.buttonLabel} />
-              )}
-              <p className="mt-3 text-center text-sm text-ink-muted">{appStep.helperText}</p>
-            </>
+                <p className="mt-3 text-center text-sm text-ink-muted">{appStep.helperText}</p>
+              </>
+            ) : null
           }
         >
-          <StepCard
-            icon={Smartphone}
-            title={appStep.title}
-            detail={appStep.detail}
-            badge={
-              <StatusBadge tone={appStep.satisfied ? "green" : appStep.connected ? "amber" : "blue"}>
-                {appStep.satisfied
-                  ? "Connected"
-                  : appStep.connected
-                    ? "Needs setup"
-                    : "Not connected"}
-              </StatusBadge>
-            }
-            action={
-              !appStep.satisfied ? (
-                <Link
-                  href={appStep.href}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
-                >
-                  Finish app connection <ExternalLink size={14} strokeWidth={1.75} />
-                </Link>
-              ) : null
-            }
-          />
+          <form action={createActivationAppAction} className="space-y-4">
+            <input type="hidden" name="appId" value={appStep.app?.id ?? ""} />
+            <div className="rounded-[20px] border border-[var(--aa-shell-border)] bg-white p-5">
+              <div className="grid gap-4">
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">App name</span>
+                  <input
+                    name="name"
+                    type="text"
+                    value={appName}
+                    onChange={(event) => setAppName(event.target.value)}
+                    className="aa-field h-14 rounded-[16px] px-4 text-base"
+                    placeholder="Acme iOS"
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Bundle ID</span>
+                  <input
+                    name="bundleId"
+                    type="text"
+                    value={bundleId}
+                    onChange={(event) => setBundleId(event.target.value)}
+                    className="aa-field h-14 rounded-[16px] px-4 text-base"
+                    placeholder="com.acme.ios"
+                  />
+                </label>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="grid gap-2">
+                    <span className="text-sm font-medium text-ink">App Store ID</span>
+                    <input
+                      name="appStoreId"
+                      type="text"
+                      value={appStoreId}
+                      onChange={(event) => setAppStoreId(event.target.value)}
+                      className="aa-field h-14 rounded-[16px] px-4 text-base"
+                      placeholder="1234567890"
+                    />
+                  </label>
+
+                  <label className="grid gap-2">
+                    <span className="text-sm font-medium text-ink">Apple Team ID</span>
+                    <input
+                      name="appleTeamId"
+                      type="text"
+                      value={appleTeamId}
+                      onChange={(event) => setAppleTeamId(event.target.value)}
+                      className="aa-field h-14 rounded-[16px] px-4 text-base"
+                      placeholder="ABCD123456"
+                    />
+                  </label>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                  <label className="grid gap-2">
+                    <span className="text-sm font-medium text-ink">Timezone</span>
+                    <input
+                      name="timezone"
+                      type="text"
+                      value={timezone}
+                      onChange={(event) => setTimezone(event.target.value)}
+                      className="aa-field h-14 rounded-[16px] px-4 text-base"
+                      placeholder="UTC"
+                    />
+                  </label>
+
+                  <label className="grid gap-2">
+                    <span className="text-sm font-medium text-ink">Apple fee mode</span>
+                    <select
+                      name="appleFeeMode"
+                      value={appleFeeMode}
+                      onChange={(event) =>
+                        setAppleFeeMode(
+                          event.target.value as "standard_30" | "small_business_15" | "custom",
+                        )
+                      }
+                      className="aa-field h-14 rounded-[16px] px-4 text-base"
+                    >
+                      <option value="standard_30">Standard 30%</option>
+                      <option value="small_business_15">Small Business 15%</option>
+                      <option value="custom">Custom basis points</option>
+                    </select>
+                  </label>
+                </div>
+
+                {appleFeeMode === "custom" ? (
+                  <label className="grid gap-2">
+                    <span className="text-sm font-medium text-ink">Custom Apple fee (bps)</span>
+                    <input
+                      name="appleFeeBps"
+                      type="number"
+                      value={appleFeeBps}
+                      onChange={(event) => setAppleFeeBps(event.target.value)}
+                      className="aa-field h-14 rounded-[16px] px-4 text-base"
+                      placeholder="2500"
+                      min={0}
+                      max={10000}
+                    />
+                  </label>
+                ) : (
+                  <input type="hidden" name="appleFeeBps" value="" />
+                )}
+              </div>
+            </div>
+
+            <StepCard
+              icon={Smartphone}
+              title={appStep.title}
+              detail={appStep.detail}
+              badge={
+                <StatusBadge tone={appStep.satisfied ? "green" : appStep.connected ? "amber" : "blue"}>
+                  {appStep.satisfied
+                    ? "Connected"
+                    : appStep.connected
+                      ? "Needs setup"
+                      : "Not connected"}
+                </StatusBadge>
+              }
+              action={
+                appStep.app?.ingestKey ? (
+                  <Link
+                    href={appStep.href}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
+                  >
+                    Open Apple health <ExternalLink size={14} strokeWidth={1.75} />
+                  </Link>
+                ) : null
+              }
+            />
+
+            <FullWidthButton
+              type="submit"
+              label={appStep.app ? "Save app and continue →" : "Create app and continue →"}
+              disabled={!appValid}
+            />
+            <p className="text-center text-sm text-ink-muted">{appStep.helperText}</p>
+            {error === "app" ? (
+              <p className="text-center text-sm text-danger">
+                The app could not be saved. Check the required fields and try again.
+              </p>
+            ) : null}
+          </form>
         </StepFrame>
       ) : null}
 
@@ -480,10 +638,15 @@ export function ActivationFlow({
               title={creatorStep.firstCreator.name}
               detail={
                 creatorStep.firstCreator.email
-                  ? `${creatorStep.firstCreator.email} is ready to receive a focused creator portal.`
+                  ? `${creatorStep.firstCreator.email} is linked to the focused creator portal invitation flow.`
                   : "This creator is in the workspace and ready for a first tracking asset."
               }
-              badge={<StatusBadge tone="green">{creatorStep.firstCreator.statusLabel}</StatusBadge>}
+              badge={
+                <div className="flex flex-wrap gap-2">
+                  <StatusBadge tone="green">{creatorStep.firstCreator.statusLabel}</StatusBadge>
+                  <StatusBadge tone="blue">{creatorStep.firstCreator.inviteStatusLabel}</StatusBadge>
+                </div>
+              }
             />
           ) : (
             <EmptyPanel

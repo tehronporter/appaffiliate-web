@@ -10,7 +10,13 @@ import {
   SettingsHubActions,
   SettingsPageFrame,
 } from "@/components/settings-shell";
-import { updateTeamMemberRoleAction } from "@/app/(workspace)/settings/actions";
+import {
+  inviteTeamMemberAction,
+  resendTeamInviteAction,
+  revokeTeamInviteAction,
+  updateTeamMemberRoleAction,
+} from "@/app/(workspace)/settings/actions";
+import { listWorkspaceInvitations } from "@/lib/services/invitations";
 import { getTeamSettingsData } from "@/lib/services/settings";
 import { toneForRoleLabel } from "@/lib/status-badges";
 
@@ -29,6 +35,22 @@ function noticeBadge(notice: string | undefined) {
     return <StatusBadge tone="red">Workspace role update failed</StatusBadge>;
   }
 
+  if (notice === "team-invite-sent") {
+    return <StatusBadge tone="green">Invite sent</StatusBadge>;
+  }
+
+  if (notice === "team-invite-resent") {
+    return <StatusBadge tone="green">Invite resent</StatusBadge>;
+  }
+
+  if (notice === "team-invite-revoked") {
+    return <StatusBadge tone="amber">Invite revoked</StatusBadge>;
+  }
+
+  if (notice === "team-invite-error") {
+    return <StatusBadge tone="red">Invite action failed</StatusBadge>;
+  }
+
   return null;
 }
 
@@ -36,8 +58,14 @@ export default async function SettingsTeamPage({
   searchParams,
 }: SettingsTeamPageProps) {
   const { notice } = await searchParams;
-  const data = await getTeamSettingsData();
+  const [data, invitationData] = await Promise.all([
+    getTeamSettingsData(),
+    listWorkspaceInvitations().catch(() => []),
+  ]);
   const noticeChip = noticeBadge(notice);
+  const teamInvites = invitationData.filter(
+    (invitation) => invitation.inviteType === "internal_team",
+  );
 
   return (
     <SettingsPageFrame
@@ -191,19 +219,75 @@ export default async function SettingsTeamPage({
             />
 
             <SectionCard
-              title="Invite flows"
-              description="Be honest about the current boundary instead of showing fake onboarding controls."
+              title="Invite internal users"
+              description="Send team invites directly from the workspace so access setup does not rely on manual admin work."
             >
-              {data.pendingInviteCount === 0 ? (
+              <form action={inviteTeamMemberAction} className="space-y-4">
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Email</span>
+                  <input name="email" type="email" className="aa-field" required />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Role</span>
+                  <select name="roleKey" defaultValue="analyst" className="aa-field">
+                    <option value="admin">Admin</option>
+                    <option value="finance">Finance</option>
+                    <option value="analyst">Analyst</option>
+                  </select>
+                </label>
+
+                <div className="flex justify-end">
+                  <ActionButton type="submit" variant="primary">
+                    Send invite
+                  </ActionButton>
+                </div>
+              </form>
+            </SectionCard>
+
+            <SectionCard
+              title="Pending invites"
+              description="Keep invite state visible after the first send so the team directory stays trustworthy."
+            >
+              {teamInvites.length === 0 ? (
                 <EmptyState
-                  eyebrow="No pending invites"
-                  title="Invite issuance is still not modeled here"
-                  description="This route shows existing membership state only. If invited rows already exist in the workspace model, they will appear in the real count above."
+                  title="Your next internal invite will appear here"
+                  description="Invited teammates accept from email and land directly in the workspace."
                 />
               ) : (
-                <InsetPanel className="text-sm text-ink-muted">
-                  {data.pendingInviteCount} invited membership rows are visible, but invite send and accept flows remain intentionally out of scope.
-                </InsetPanel>
+                <div className="space-y-3">
+                  {teamInvites.map((invitation) => (
+                    <InsetPanel key={invitation.id}>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-ink">{invitation.email}</p>
+                          <p className="mt-1 text-sm text-ink-muted">
+                            {invitation.roleLabel} • {invitation.statusLabel}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <StatusBadge tone={invitation.status === "pending" ? "amber" : "gray"}>
+                            {invitation.statusLabel}
+                          </StatusBadge>
+                          {invitation.status === "pending" ? (
+                            <>
+                              <form action={resendTeamInviteAction}>
+                                <input type="hidden" name="invitationId" value={invitation.id} />
+                                <ActionButton type="submit">Resend</ActionButton>
+                              </form>
+                              <form action={revokeTeamInviteAction}>
+                                <input type="hidden" name="invitationId" value={invitation.id} />
+                                <ActionButton type="submit" variant="secondary">
+                                  Revoke
+                                </ActionButton>
+                              </form>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+                    </InsetPanel>
+                  ))}
+                </div>
               )}
             </SectionCard>
           </div>

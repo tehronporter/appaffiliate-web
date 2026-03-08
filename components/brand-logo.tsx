@@ -36,19 +36,22 @@ const lockupSizes: Partial<
     BrandLogoSize,
     {
       containerClassName: string;
+      iconClassName: string;
       wordmarkClassName: string;
     }
   >
 > = {
   "marketing-header": {
-    containerClassName: "gap-2.5",
+    containerClassName: "h-12 gap-3 sm:h-14 sm:gap-3.5",
+    iconClassName: "h-[34px] w-[34px] sm:h-9 sm:w-9",
     wordmarkClassName:
-      "hidden text-[15px] font-bold tracking-[-0.01em] text-ink sm:inline-flex",
+      "hidden text-[16px] font-bold tracking-[-0.02em] text-ink sm:inline-flex",
   },
   "public-header": {
-    containerClassName: "gap-2.5",
+    containerClassName: "h-12 gap-3 sm:h-14 sm:gap-3.5",
+    iconClassName: "h-[34px] w-[34px] sm:h-9 sm:w-9",
     wordmarkClassName:
-      "hidden text-[15px] font-bold tracking-[-0.01em] text-ink sm:inline-flex",
+      "hidden text-[16px] font-bold tracking-[-0.02em] text-ink sm:inline-flex",
   },
 };
 
@@ -81,8 +84,8 @@ export function BrandLogo({
           width={1024}
           height={1024}
           priority={priority}
-          sizes="28px"
-          className="h-7 w-7 shrink-0"
+          sizes="36px"
+          className={joinClasses("shrink-0", lockupConfig.iconClassName)}
         />
         <span className={lockupConfig.wordmarkClassName}>AppAffiliate</span>
       </span>

@@ -21,6 +21,7 @@ import {
   type StatusTone,
 } from "@/components/admin-ui";
 import {
+  cancelPayoutBatchAction,
   createDraftPayoutBatchAction,
   markPayoutBatchExportedAction,
   markPayoutBatchPaidAction,
@@ -206,6 +207,14 @@ function noticeCopy(notice: string | undefined) {
       tone: "green" as const,
       title: "Batch marked paid",
       detail: "The batch and its linked payout items now reflect payment completion.",
+    };
+  }
+
+  if (notice === "batch-cancelled") {
+    return {
+      tone: "amber" as const,
+      title: "Batch cancelled",
+      detail: "Reserved earnings were released and can be batched again.",
     };
   }
 
@@ -668,6 +677,33 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                         className="aa-button-success"
                       >
                         Mark paid
+                      </ActionButton>
+                    </div>
+                  </form>
+                </SectionCard>
+              ) : null}
+
+              {selectedBatch.status !== "paid" && selectedBatch.status !== "cancelled" ? (
+                <SectionCard
+                  title="Cancel batch"
+                  description="Release reserved earnings back to payout-ready state if this batch should not move forward."
+                >
+                  <form action={cancelPayoutBatchAction} className="space-y-4">
+                    <input type="hidden" name="batchId" value={selectedBatch.id} />
+
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-ink">Cancellation note</span>
+                      <textarea
+                        name="note"
+                        rows={3}
+                        defaultValue={selectedBatch.note ?? ""}
+                        className="aa-field"
+                      />
+                    </label>
+
+                    <div className="flex justify-end">
+                      <ActionButton type="submit" variant="secondary">
+                        Cancel batch
                       </ActionButton>
                     </div>
                   </form>
