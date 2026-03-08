@@ -3,6 +3,7 @@ import "server-only";
 import { createServiceContext } from "@/lib/services/context";
 import { ServiceError } from "@/lib/services/errors";
 import { writeAuditLog } from "@/lib/services/audit";
+import { hasWorkspaceSetupError } from "@/lib/supabase-errors";
 
 type FinanceSupabase = NonNullable<
   Awaited<ReturnType<typeof createServiceContext>>["supabase"]
@@ -574,13 +575,29 @@ async function loadFinanceRows(finance: FinanceContext) {
     ledgerError,
     batchError,
     batchItemError,
-  ].filter(Boolean);
+  ];
 
-  if (errors.length > 0) {
+  if (hasWorkspaceSetupError(errors)) {
+    return {
+      appsById: new Map<string, AppRow>(),
+      partnersById: new Map<string, PartnerRow>(),
+      promoCodesById: new Map<string, PromoCodeRow>(),
+      events: [],
+      decisions: [],
+      rules: [],
+      ledgerEntries: [],
+      batches: [],
+      batchItems: [],
+    };
+  }
+
+  const blockingErrors = errors.filter(Boolean);
+
+  if (blockingErrors.length > 0) {
     throw new ServiceError("internal_error", "Failed to load finance records.", {
       status: 500,
       details: {
-        message: errors[0]?.message,
+        message: blockingErrors[0]?.message,
       },
     });
   }

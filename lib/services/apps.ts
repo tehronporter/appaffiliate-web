@@ -8,6 +8,7 @@ import {
   INTERNAL_WORKSPACE_ROLE_KEYS,
   requireWorkspaceRole,
 } from "@/lib/services/permissions";
+import { isWorkspaceSetupError } from "@/lib/supabase-errors";
 import { writeAuditLog } from "@/lib/services/audit";
 
 export type AppStatus = "draft" | "active" | "paused" | "archived";
@@ -267,6 +268,13 @@ export async function listWorkspaceApps() {
     .returns<AppRow[]>();
 
   if (error) {
+    if (isWorkspaceSetupError(error)) {
+      return {
+        hasWorkspaceAccess: true,
+        apps: [],
+      } satisfies WorkspaceAppsData;
+    }
+
     throw new Error(error.message);
   }
 

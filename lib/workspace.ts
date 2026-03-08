@@ -1,7 +1,8 @@
-import type { PostgrestError, User } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 
 import { getAuthenticatedUser } from "@/lib/auth";
 import { createAuthenticatedServerClient } from "@/lib/authenticated-supabase";
+import { isWorkspaceSetupError } from "@/lib/supabase-errors";
 import {
   PHASE0_ROLE_DEFINITIONS,
   type OrganizationMembershipRecord,
@@ -11,16 +12,6 @@ import {
   type RoleKey,
   type WorkspaceContext,
 } from "@/lib/workspace-types";
-
-const WORKSPACE_SETUP_ERROR_CODES = new Set(["42P01", "PGRST205", "42501"]);
-
-function isWorkspaceSetupError(error: PostgrestError | null) {
-  if (!error?.code) {
-    return false;
-  }
-
-  return WORKSPACE_SETUP_ERROR_CODES.has(error.code);
-}
 
 async function createAuthenticatedWorkspaceClient() {
   return createAuthenticatedServerClient();

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createServiceSupabaseClient } from "@/lib/service-supabase";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { hasWorkspaceSetupError } from "@/lib/supabase-errors";
 import { createServiceContext } from "@/lib/services/context";
 import { ServiceError } from "@/lib/services/errors";
 import { writeAuditLog } from "@/lib/services/audit";
@@ -271,6 +272,10 @@ export async function listWorkspaceInvitations() {
     ]);
 
   if (invitesError || partnerError) {
+    if (hasWorkspaceSetupError([invitesError, partnerError])) {
+      return [];
+    }
+
     throw new ServiceError("internal_error", "Failed to load workspace invitations.", {
       status: 500,
       details: {

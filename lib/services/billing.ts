@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { PostgrestError } from "@supabase/supabase-js";
+
 import { createServiceContext } from "@/lib/services/context";
 import { ServiceError } from "@/lib/services/errors";
 import {
@@ -12,6 +14,7 @@ import {
   type PlanKey,
   type WorkspaceBillingStatus,
 } from "@/lib/pricing-catalog";
+import { isWorkspaceSetupError } from "@/lib/supabase-errors";
 
 type WorkspaceBillingStateRow = {
   organization_id: string;
@@ -106,6 +109,51 @@ function normalizeSummaryStatus(
   return daysRemaining !== null && daysRemaining < 0 ? "trial_expired" : "trialing";
 }
 
+function buildMissingBillingSummary(params: {
+  hasWorkspaceAccess: boolean;
+  organizationId: string | null;
+  appCount: number | null;
+  activeCreatorCount: number | null;
+  detail: string;
+  notes?: string[];
+}): WorkspaceBillingSummary {
+  return {
+    hasWorkspaceAccess: params.hasWorkspaceAccess,
+    organizationId: params.organizationId,
+    planKey: null,
+    planName: null,
+    billingInterval: null,
+    billingIntervalLabel: null,
+    status: "missing",
+    statusLabel: "Billing profile missing",
+    detail: params.detail,
+    trialStartedAt: null,
+    trialEndsAt: null,
+    trialEndsLabel: null,
+    trialDaysRemaining: null,
+    usage:
+      params.appCount === null || params.activeCreatorCount === null
+        ? null
+        : {
+            apps: {
+              used: params.appCount,
+              limit: null,
+              summary: formatUsageSummary("app", params.appCount, null),
+            },
+            activeCreators: {
+              used: params.activeCreatorCount,
+              limit: null,
+              summary: formatUsageSummary("active creator", params.activeCreatorCount, null),
+            },
+          },
+    notes: params.notes ?? [],
+  };
+}
+
+function isSetupError(error: PostgrestError | null) {
+  return isWorkspaceSetupError(error);
+}
+
 export async function getWorkspaceBillingSummary(): Promise<WorkspaceBillingSummary> {
   const context = await createServiceContext();
 
@@ -153,6 +201,25 @@ export async function getWorkspaceBillingSummary(): Promise<WorkspaceBillingSumm
       .eq("status", "active"),
   ]);
 
+  if (
+    isSetupError(billingError) ||
+    isSetupError(appCountError) ||
+    isSetupError(activeCreatorCountError)
+  ) {
+    return buildMissingBillingSummary({
+      hasWorkspaceAccess: true,
+      organizationId,
+      appCount: appCount ?? null,
+      activeCreatorCount: activeCreatorCount ?? null,
+      detail:
+        "Workspace billing setup is not available in this environment yet. Apply the latest Supabase migrations before using billing state for launch checks.",
+      notes: [
+        "The billing schema is missing or not readable for this deployment.",
+        "Workspace access remains available while the rollout catches up.",
+      ],
+    });
+  }
+
   if (billingError || appCountError || activeCreatorCountError) {
     throw new ServiceError("internal_error", "Failed to load workspace billing state.", {
       status: 500,
@@ -170,38 +237,18 @@ export async function getWorkspaceBillingSummary(): Promise<WorkspaceBillingSumm
     !isBillingInterval(billingRow.billing_interval) ||
     !isWorkspaceBillingStatus(billingRow.status)
   ) {
-    return {
+    return buildMissingBillingSummary({
       hasWorkspaceAccess: true,
       organizationId,
-      planKey: null,
-      planName: null,
-      billingInterval: null,
-      billingIntervalLabel: null,
-      status: "missing",
-      statusLabel: "Billing profile missing",
+      appCount: appCount ?? 0,
+      activeCreatorCount: activeCreatorCount ?? 0,
       detail:
         "This workspace does not have a persisted pricing profile yet. Add one before using billing state for launch checks.",
-      trialStartedAt: null,
-      trialEndsAt: null,
-      trialEndsLabel: null,
-      trialDaysRemaining: null,
-      usage: {
-        apps: {
-          used: appCount ?? 0,
-          limit: null,
-          summary: formatUsageSummary("app", appCount ?? 0, null),
-        },
-        activeCreators: {
-          used: activeCreatorCount ?? 0,
-          limit: null,
-          summary: formatUsageSummary("active creator", activeCreatorCount ?? 0, null),
-        },
-      },
       notes: [
         "Workspace billing state is missing.",
         "No in-product payment collection exists yet.",
       ],
-    };
+    });
   }
 
   const plan = getPricingPlan(billingRow.plan_key);

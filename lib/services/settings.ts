@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createServiceSupabaseClient } from "@/lib/service-supabase";
+import { hasWorkspaceSetupError, isWorkspaceSetupError } from "@/lib/supabase-errors";
 import { writeAuditLog } from "@/lib/services/audit";
 import { createServiceContext } from "@/lib/services/context";
 import { ServiceError } from "@/lib/services/errors";
@@ -617,6 +618,20 @@ async function loadOperationalMonitoring(
   ]);
 
   if (queueError || receiptError || appError || jobError) {
+    if (hasWorkspaceSetupError([queueError, receiptError, appError, jobError])) {
+      return {
+        recentReceiptCount: 0,
+        failedReceiptCount: 0,
+        pendingReceiptCount: 0,
+        queueVolume: 0,
+        inReviewQueueCount: 0,
+        failedJobCount: 0,
+        recentReceipts: [],
+        recentJobs: [],
+        financeSummary,
+      };
+    }
+
     throw new ServiceError("internal_error", "Failed to load operational monitoring data.", {
       status: 500,
       details: {
@@ -720,6 +735,26 @@ async function loadRulesData(settings: SettingsContext) {
     queueError ||
     receiptError
   ) {
+    if (
+      hasWorkspaceSetupError([
+        ruleError,
+        appError,
+        partnerError,
+        promoCodeError,
+        queueError,
+        receiptError,
+      ])
+    ) {
+      return {
+        rules: [],
+        apps: [],
+        partners: [],
+        promoCodes: [],
+        queue: [],
+        receipts: [],
+      };
+    }
+
     throw new ServiceError("internal_error", "Failed to load rule settings.", {
       status: 500,
       details: {
@@ -786,7 +821,7 @@ export async function getSettingsOverviewData() {
     } satisfies SettingsOverviewData;
   }
 
-  const [{ memberships }, { rules }, { data: auditRows, error: auditError }, monitoring] =
+  const [{ memberships }, { rules }, auditResult, monitoring] =
     await Promise.all([
       loadVisibleMemberships(settings),
       loadRulesData(settings),
@@ -799,11 +834,15 @@ export async function getSettingsOverviewData() {
       loadOperationalMonitoring(settings),
     ]);
 
-  if (auditError) {
+  const auditRows = isWorkspaceSetupError(auditResult.error)
+    ? []
+    : (auditResult.data ?? []);
+
+  if (auditResult.error && !isWorkspaceSetupError(auditResult.error)) {
     throw new ServiceError("internal_error", "Failed to read recent audit activity.", {
       status: 500,
       details: {
-        message: auditError.message,
+        message: auditResult.error.message,
       },
     });
   }
@@ -972,6 +1011,48 @@ export async function getTeamSettingsData() {
     ]);
 
   if (partnerUserError || inviteCountError) {
+    if (hasWorkspaceSetupError([partnerUserError, inviteCountError])) {
+      return {
+        hasWorkspaceAccess: true,
+        canManageRoles: hasWorkspaceRole(
+          settings.context,
+          ORGANIZATION_ADMIN_ROLE_KEYS,
+        ),
+        visibleScopeLabel: describeVisibleScope(settings.roleKey),
+        visibleMemberCount: memberships.length,
+        pendingInviteCount: 0,
+        partnerUserCount: 0,
+        members: memberships.map((membership) => {
+          const role = rolesByKey.get(membership.role_key);
+          const roleOptions = buildRoleOptions({
+            actorRoleKey: settings.roleKey,
+            member: membership,
+            currentUserId: settings.context.user?.id ?? null,
+            rolesByKey,
+          });
+          const user = userDirectory.get(membership.user_id) ?? null;
+
+          return {
+            membershipId: membership.id,
+            userId: membership.user_id,
+            displayName:
+              user?.displayName ??
+              (membership.user_id === settings.context.user?.id
+                ? "You"
+                : `User ${membership.user_id.slice(0, 8)}`),
+            email: user?.email ?? null,
+            roleKey: membership.role_key,
+            roleName: role?.name ?? titleCaseLabel(membership.role_key),
+            roleDescription: role?.description ?? "No role description was found.",
+            status: membership.status,
+            isCurrentUser: membership.user_id === settings.context.user?.id,
+            canChangeRole: roleOptions.length > 0,
+            roleOptions,
+          } satisfies TeamMemberView;
+        }),
+      } satisfies TeamSettingsData;
+    }
+
     throw new ServiceError("internal_error", "Failed to read partner user count.", {
       status: 500,
       details: {
