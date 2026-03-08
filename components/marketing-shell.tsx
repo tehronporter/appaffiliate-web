@@ -37,10 +37,12 @@ function ActionButton({
   label,
   variant = "secondary",
   className,
-}: MarketingAction & { className?: string }) {
+  onClick,
+}: MarketingAction & { className?: string; onClick?: () => void }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={joinClasses(
         "aa-button",
         variant === "primary" ? "aa-button-primary" : "aa-button-secondary",
@@ -71,19 +73,6 @@ export function MarketingShell({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  // Close drawer on route change
-  useEffect(() => {
-    if (!drawerOpen) {
-      return;
-    }
-
-    const frameId = window.requestAnimationFrame(() => {
-      setDrawerOpen(false);
-    });
-
-    return () => window.cancelAnimationFrame(frameId);
-  }, [drawerOpen, pathname]);
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -148,7 +137,9 @@ export function MarketingShell({
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation menu"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-muted transition hover:bg-white/80 hover:text-ink lg:hidden"
+            aria-expanded={drawerOpen}
+            aria-controls="marketing-mobile-drawer"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink-muted transition hover:bg-white/80 hover:text-ink lg:hidden"
           >
             <Menu size={22} strokeWidth={1.5} />
           </button>
@@ -157,15 +148,18 @@ export function MarketingShell({
 
       {/* ── Mobile Drawer Overlay ── */}
       {drawerOpen ? (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             onClick={() => setDrawerOpen(false)}
           />
           {/* Drawer */}
-          <nav className="absolute right-0 top-0 flex h-full w-[280px] max-w-[85vw] flex-col bg-white shadow-2xl">
-            <div className="flex h-16 items-center justify-between border-b border-border px-5">
+          <nav
+            id="marketing-mobile-drawer"
+            className="absolute right-0 top-0 flex h-full w-[min(22rem,calc(100vw-1rem))] max-w-full flex-col border-l border-border bg-white shadow-[0_24px_48px_rgba(17,24,39,0.16)] sm:w-[20rem]"
+          >
+            <div className="flex min-h-16 items-center justify-between border-b border-border px-4 sm:px-5">
               <span className="text-sm font-semibold text-ink">Menu</span>
               <button
                 type="button"
@@ -176,7 +170,7 @@ export function MarketingShell({
                 <X size={24} strokeWidth={1.5} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-4">
               <div className="space-y-1">
                 {navLinks.map((link) => (
                   <Link
@@ -184,7 +178,7 @@ export function MarketingShell({
                     href={link.href}
                     onClick={() => setDrawerOpen(false)}
                     className={joinClasses(
-                      "flex min-h-[44px] items-center rounded-[var(--radius-card)] px-4 text-sm font-medium transition-colors",
+                      "flex min-h-[48px] items-center rounded-[var(--radius-card)] px-4 text-sm font-medium transition-colors",
                       link.label === "Docs" && "text-ink-subtle",
                       activePath === link.href
                         ? "bg-primary-soft text-primary"
@@ -198,9 +192,17 @@ export function MarketingShell({
                 ))}
               </div>
             </div>
-            <div className="border-t border-border px-4 py-4 space-y-3">
-              <ActionButton {...secondaryAction} className="w-full" />
-              <ActionButton {...primaryAction} className="w-full" />
+            <div className="space-y-3 border-t border-border px-3 py-4 sm:px-4">
+              <ActionButton
+                {...secondaryAction}
+                className="w-full"
+                onClick={() => setDrawerOpen(false)}
+              />
+              <ActionButton
+                {...primaryAction}
+                className="w-full"
+                onClick={() => setDrawerOpen(false)}
+              />
             </div>
           </nav>
         </div>
