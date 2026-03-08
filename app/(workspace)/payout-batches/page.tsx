@@ -16,7 +16,6 @@ import {
   StatCard,
   StatusBadge,
   StatusTimeline,
-  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -239,7 +238,7 @@ export default async function PayoutBatchesPage({
       <PageHeader
         eyebrow="Finance"
         title="Payout batches"
-        description="Track draft, exported, and paid batches without losing the audit trail."
+        description="Track draft, exported, and paid batches."
         actions={
           <>
             <ActionLink href="/payouts">Open payouts</ActionLink>
@@ -252,7 +251,6 @@ export default async function PayoutBatchesPage({
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone={toneForWorkspaceLabel()}>Audit-safe register</StatusBadge>
           <StatusBadge tone="amber">Handoff stays explicit</StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>Payment confirmation is final</StatusBadge>
         </div>
       </PageHeader>
 
@@ -295,23 +293,6 @@ export default async function PayoutBatchesPage({
         />
       </div>
 
-      <SummaryBar
-        items={[
-          {
-            label: "Register proof",
-            value: "Every row is a real payout batch with current state, amount, and item-level scope",
-          },
-          {
-            label: "Handoff boundary",
-            value: "Export records finance handoff and payment remains a separate final confirmation",
-          },
-          {
-            label: "Audit posture",
-            value: "Notes, references, state progression, and included items stay visible for later review",
-          },
-        ]}
-      />
-
       {!data.hasFinanceAccess ? (
         <SectionCard
           title="Finance access required"
@@ -333,7 +314,7 @@ export default async function PayoutBatchesPage({
         <>
           <FilterBar
             title="Batch filters"
-            description="Filter the register by payout state without opening a permanent side panel."
+            description={`${draftLikeBatches.length} batches are still in motion and ${exportedBatches.length} are waiting on payment confirmation.`}
           >
             <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
               All batches

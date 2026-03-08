@@ -5,13 +5,13 @@ import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
   DetailList,
   EmptyState,
+  InsetPanel,
   InlineActionRow,
   ListTable,
   MetricChip,
   PageHeader,
   SectionCard,
   StatusBadge,
-  SummaryBar,
 } from "@/components/admin-ui";
 import {
   formatOperationalTimestamp,
@@ -54,17 +54,17 @@ export default async function AppleHealthPage({
     {
       title: "Public ingestion endpoint",
       description: readiness.app?.ingest_key
-        ? "This app has an ingest key, so Apple can target the public notification route for durable receipt intake."
-        : "Assign an ingest key to this app before Apple can target the public notification route.",
+        ? "Apple can target the public notification route for durable receipt intake."
+        : "Assign an ingest key before Apple can target the public notification route.",
       tone: readiness.app?.ingest_key ? "green" : "amber",
       statusLabel: readiness.app?.ingest_key ? "Ready" : "Needs ingest key",
-      actions: <ActionLink href="/settings">Open settings</ActionLink>,
+      actions: <ActionLink href="/settings/organization">Open app settings</ActionLink>,
     },
     {
       title: "Receipt durability",
       description: readiness.latestReceipt
         ? `Latest receipt stored at ${formatOperationalTimestamp(readiness.latestReceipt.received_at)} with ${receiptVerificationStatus} verification state.`
-        : "No Apple receipt has been stored yet for this app.",
+        : "No Apple receipt has been stored for this app yet.",
       tone: readiness.latestReceipt ? "green" : "amber",
       statusLabel: readiness.latestReceipt ? "Receiving receipts" : "Awaiting first receipt",
       actions: <ActionLink href="/events">Open events</ActionLink>,
@@ -73,7 +73,7 @@ export default async function AppleHealthPage({
       title: "Normalized event visibility",
       description: readiness.latestEvent
         ? `Latest normalized event is ${readiness.latestEvent.eventType} with ${readiness.latestEvent.eventStatus} processing and ${readiness.latestEvent.attributionStatus} attribution.`
-        : "No normalized event exists yet. Receipt-only storage is still possible in the current product when verification or decode is incomplete.",
+        : "No normalized event exists yet. Receipt-only storage is still possible when verification or decode is incomplete.",
       tone: readiness.latestEvent ? "green" : "blue",
       statusLabel: readiness.latestEvent ? "Visible" : "Receipt-only",
       actions: <ActionLink href="/events">Review event log</ActionLink>,
@@ -82,24 +82,40 @@ export default async function AppleHealthPage({
       title: "Operator follow-up",
       description: readiness.warningNote
         ? readiness.warningNote
-        : "No current warning note is attached to the latest receipt or event for this app.",
+        : "No current warning note is attached to the latest receipt or event.",
       tone: readiness.warningNote ? "amber" : "blue",
       statusLabel: readiness.warningNote ? "Attention visible" : "Calm",
       actions: <ActionLink href="/unattributed">Open queue</ActionLink>,
     },
   ];
 
+  const recommendedAction = !readiness.app?.ingest_key
+    ? { href: "/settings/organization", label: "Finish app setup" }
+    : !readiness.latestReceipt
+      ? { href: "/events", label: "Watch first receipt" }
+      : readiness.warningNote
+        ? { href: "/events", label: "Review latest event" }
+        : { href: "/dashboard", label: "Open dashboard" };
+
+  const recommendedDetail = !readiness.app?.ingest_key
+    ? "Finish app setup so Apple can send receipts into a real app lane."
+    : !readiness.latestReceipt
+      ? "Wait for the first receipt, then verify that it lands here with the expected verification state."
+      : readiness.warningNote
+        ? readiness.warningNote
+        : "No immediate Apple intake issue is visible for this app.";
+
   return (
     <PageContainer>
       <PageHeader
         eyebrow="Apple health"
-        title={`${appName} Apple health`}
-        description="Confirm Apple intake, latest signals, and blockers before creator results matter."
+        title={appName}
+        description="Check Apple intake, latest signals, and blockers for this app."
         actions={
           <>
-            <ActionLink href="/onboarding">Open activation guide</ActionLink>
-            <ActionLink href="/dashboard" variant="primary">
-              Open dashboard
+            <ActionLink href="/events">Open events</ActionLink>
+            <ActionLink href={recommendedAction.href} variant="primary">
+              {recommendedAction.label}
             </ActionLink>
           </>
         }
@@ -111,9 +127,7 @@ export default async function AppleHealthPage({
           <StatusBadge tone={readiness.app?.ingest_key ? "green" : "amber"}>
             {readiness.app?.ingest_key ? "Ingest key assigned" : "Ingest key missing"}
           </StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>
-            {environmentLabel === "Unknown" ? "Environment unknown" : environmentLabel}
-          </StatusBadge>
+          <StatusBadge tone={toneForWorkspaceLabel()}>{environmentLabel}</StatusBadge>
         </div>
       </PageHeader>
 
@@ -158,7 +172,7 @@ export default async function AppleHealthPage({
           <MetricChip
             label="Environment"
             value={environmentLabel}
-            detail="Derived from the latest receipt or event context."
+            detail="Derived from the latest receipt or event."
             tone="blue"
           />
         </div>
@@ -167,141 +181,89 @@ export default async function AppleHealthPage({
       {!readiness.app ? (
         <SectionCard
           title="Add this app before you track creator-led results"
-          description="The route path exists, but the current workspace does not have a matching app record to attach receipts and normalized results."
+          description="The current workspace does not have a matching app record for this route yet."
         >
           <EmptyState
             icon={Heart}
             eyebrow="App missing"
-            title="Add this app so Apple health can track real intake"
-            description="Receipt and event signals appear here after the workspace has a matching app record with an ingest path."
+            title="Add this app so Apple health can track intake"
+            description="Receipt and event signals appear here after the workspace has a matching app record."
             action={
-              <ActionLink href="/onboarding" variant="primary">
-                Open activation guide
+              <ActionLink href="/settings/organization" variant="primary">
+                Finish app setup
               </ActionLink>
             }
           />
         </SectionCard>
       ) : (
-        <>
-          <SummaryBar
-            items={[
-              {
-                label: "Readiness",
-                value: readiness.readinessDetail,
-              },
-              {
-                label: "Latest signal",
-                value: readiness.latestReceipt
-                  ? `${formatOperationalTimestamp(readiness.latestReceipt.received_at)} with ${receiptVerificationStatus} verification`
-                  : "No Apple receipt has been stored for this app yet",
-              },
-              {
-                label: "Needs attention",
-                value:
-                  readiness.warningNote ??
-                  "No current warning note is attached to the latest receipt or event",
-              },
-            ]}
-          />
-
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-            <ListTable
-              eyebrow="Activation"
-              title="App readiness steps"
-              description="Keep the path concrete: ingest key, first receipt, first normalized result, and the next follow-up if something is blocked."
-            >
-              {readinessSteps.map((step) => (
-                <InlineActionRow
-                  key={step.title}
-                  title={step.title}
-                  description={step.description}
-                  badge={<StatusBadge tone={step.tone}>{step.statusLabel}</StatusBadge>}
-                  actions={step.actions}
-                />
-              ))}
-            </ListTable>
-
-            <div className="space-y-6">
-              <SectionCard
-                title="Operational snapshot"
-                description="Use this page to answer one question quickly: is this app ready to support the first creator-driven result?"
-              >
-                <DetailList
-                  items={[
-                    {
-                      label: "Linked creators",
-                      value: "Visible through code ownership and portal-linked records",
-                    },
-                    {
-                      label: "Ingestion status",
-                      value: readiness.app?.ingest_key ? "Ready" : "Needs ingest key",
-                    },
-                    {
-                      label: "Recent results",
-                      value: readiness.latestEvent
-                        ? readiness.latestEvent.eventType
-                        : "No normalized result yet",
-                    },
-                    {
-                      label: "Open issues",
-                      value: readiness.warningNote ?? "No open warning note",
-                    },
-                  ]}
-                />
-              </SectionCard>
-
-              <SectionCard
-                title="Latest signal detail"
-                description="Keep the last receipt and last normalized event readable without turning this into a diagnostics wall."
-              >
-                <DetailList
-                  items={[
-                    {
-                      label: "Last receipt",
-                      value: readiness.latestReceipt
-                        ? `${formatOperationalTimestamp(readiness.latestReceipt.received_at)} · ${receiptNotificationType}${receiptNotificationSubtype ? ` / ${receiptNotificationSubtype}` : ""}`
-                        : "No receipt has been stored for this app yet",
-                    },
-                    {
-                      label: "Last normalized result",
-                      value: readiness.latestEvent
-                        ? `${readiness.latestEvent.eventType} at ${formatOperationalTimestamp(readiness.latestEvent.receivedAt ?? readiness.latestEvent.occurredAt)}`
-                        : "No normalized event is available yet for this app",
-                    },
-                    {
-                      label: "Verification posture",
-                      value: readiness.latestReceipt
-                        ? `Latest receipt is marked ${receiptVerificationStatus}`
-                        : "Verification posture becomes meaningful after the first receipt",
-                    },
-                    {
-                      label: "Operator note",
-                      value:
-                        readiness.warningNote ??
-                        "The latest receipt and normalized event do not currently carry a warning note",
-                    },
-                  ]}
-                />
-              </SectionCard>
-            </div>
-          </div>
-
-          <SectionCard
-            title="Current product boundary"
-            description="Keep the scope honest: receipt capture and readiness visibility are real, while deeper Apple validation remains outside the current product."
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <ListTable
+            eyebrow="Checks"
+            title="Apple health checks"
+            description="Keep the path concrete: ingest key, first receipt, first normalized result, and the next follow-up."
           >
-            <EmptyState
-              eyebrow="Still intentionally limited"
-              title="Receipt capture is real; deeper Apple validation is not"
-              description="The public Apple endpoint stores the signed payload server-side, records the current verification posture, and creates normalized events only when the payload can be interpreted safely. Full cryptographic validation and historical reconciliation remain out of scope."
-              action={
-                <ActionLink href="/events" variant="primary">
-                  Review events
+            {readinessSteps.map((step) => (
+              <InlineActionRow
+                key={step.title}
+                title={step.title}
+                description={step.description}
+                badge={<StatusBadge tone={step.tone}>{step.statusLabel}</StatusBadge>}
+                actions={step.actions}
+              />
+            ))}
+          </ListTable>
+
+          <div className="space-y-5">
+            <InsetPanel>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+                Recommended next step
+              </p>
+              <p className="mt-2 text-[15px] font-semibold tracking-[-0.01em] text-ink">
+                {recommendedAction.label}
+              </p>
+              <p className="mt-1.5 text-sm leading-5 text-ink-muted">{recommendedDetail}</p>
+              <div className="mt-3">
+                <ActionLink href={recommendedAction.href} variant="primary">
+                  {recommendedAction.label}
                 </ActionLink>
-              }
-            />
-          </SectionCard>
-        </>
+              </div>
+            </InsetPanel>
+
+            <SectionCard
+              title="Latest signal detail"
+              description="Keep the last receipt and last normalized event readable."
+            >
+              <DetailList
+                items={[
+                  {
+                    label: "Last receipt",
+                    value: readiness.latestReceipt
+                      ? `${formatOperationalTimestamp(readiness.latestReceipt.received_at)} · ${receiptNotificationType}${receiptNotificationSubtype ? ` / ${receiptNotificationSubtype}` : ""}`
+                      : "No receipt has been stored for this app yet",
+                  },
+                  {
+                    label: "Last normalized result",
+                    value: readiness.latestEvent
+                      ? `${readiness.latestEvent.eventType} at ${formatOperationalTimestamp(readiness.latestEvent.receivedAt ?? readiness.latestEvent.occurredAt)}`
+                      : "No normalized event is available yet for this app",
+                  },
+                  {
+                    label: "Verification posture",
+                    value: readiness.latestReceipt
+                      ? `Latest receipt is marked ${receiptVerificationStatus}`
+                      : "Verification posture becomes meaningful after the first receipt",
+                  },
+                  {
+                    label: "Operator note",
+                    value:
+                      readiness.warningNote ??
+                      "The latest receipt and normalized event do not currently carry a warning note",
+                  },
+                ]}
+              />
+            </SectionCard>
+          </div>
+        </div>
       )}
     </PageContainer>
   );

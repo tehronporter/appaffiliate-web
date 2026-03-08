@@ -99,7 +99,7 @@ function DashboardMetricCard({
 }: DashboardMetricCardProps) {
   return (
     <div
-      className={`h-[96px] min-w-[160px] max-w-[160px] rounded-[var(--radius-card)] border p-3 transition-colors hover:border-[var(--aa-shell-border-strong)] ${dashboardMetricCardToneClass(tone)}`}
+      className={`h-[88px] min-w-[156px] max-w-[156px] rounded-[var(--radius-card)] border px-3 py-2.5 transition-colors hover:border-[var(--aa-shell-border-strong)] ${dashboardMetricCardToneClass(tone)}`}
     >
       <div className="flex items-start justify-between gap-3">
         <StatusBadge tone={dashboardMetricBadgeTone(tone)} className="min-h-6 px-2 py-0.5 text-[10px]">
@@ -107,8 +107,8 @@ function DashboardMetricCard({
         </StatusBadge>
         <Icon size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-ink-subtle" />
       </div>
-      <p className="mt-3 text-[28px] font-semibold tracking-[-0.04em] text-ink">{value}</p>
-      <p className="mt-1 truncate text-xs leading-5 text-ink-muted">{detail}</p>
+      <p className="mt-2.5 text-[28px] font-semibold tracking-[-0.04em] text-ink">{value}</p>
+      <p className="mt-0.5 truncate text-xs leading-5 text-ink-muted">{detail}</p>
       <span className="sr-only">{label}</span>
     </div>
   );
@@ -148,14 +148,14 @@ function DashboardPanel({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white p-5 transition-colors hover:border-[var(--aa-shell-border-strong)]">
+    <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white p-4 transition-colors hover:border-[var(--aa-shell-border-strong)]">
       <div className="flex items-center justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
           {label}
         </p>
         {action}
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-3">{children}</div>
     </div>
   );
 }
@@ -179,7 +179,7 @@ export default async function DashboardPage() {
     (check) => check.status === "blocked" || check.status === "attention",
   );
   const topPriority = actionableChecks[0] ?? null;
-  const reviewQueuePreview = actionableChecks.slice(0, 4);
+  const reviewQueuePreview = actionableChecks.slice(0, 2);
   const readyApps = launch.rules?.appleReadiness.filter((app) => app.ingestReady).length ?? 0;
   const totalApps = launch.rules?.appleReadiness.length ?? 0;
   const activeCreators = launch.team?.partnerUserCount ?? 0;
@@ -194,7 +194,7 @@ export default async function DashboardPage() {
   const latestResults = [...commissions.items]
     .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
     .slice(0, 5);
-  const priorityCards = actionableChecks.slice(0, 3);
+  const priorityCards = actionableChecks.slice(0, 2);
 
   const performanceSnapshot = [
     {
@@ -203,7 +203,7 @@ export default async function DashboardPage() {
       detail:
         monitoring.recentReceiptCount > 0
           ? "Recent Apple receipts are flowing."
-          : "No recent tracked results visible.",
+          : "No recent results visible.",
       tone: monitoring.recentReceiptCount > 0 ? ("blue" as const) : ("amber" as const),
       badge: "Tracked results",
       icon: Activity,
@@ -213,7 +213,7 @@ export default async function DashboardPage() {
       value: needsReviewCount > 0 ? String(needsReviewCount) : "Calm",
       detail: financeSummary.hasFinanceAccess
         ? `${monitoring.queueVolume} attribution and ${financeSummary.pendingReviewCount} finance items open.`
-        : `${monitoring.queueVolume} attribution items are open.`,
+        : `${monitoring.queueVolume} attribution items open.`,
       tone: needsReviewCount > 0 ? ("amber" as const) : ("green" as const),
       badge: "Needs review",
       icon: AlertTriangle,
@@ -224,8 +224,8 @@ export default async function DashboardPage() {
         ? String(financeSummary.approvedCount)
         : "Hidden",
       detail: financeSummary.hasFinanceAccess
-        ? "Reviewed commissions cleared for payout prep."
-        : "Visible only to owner, admin, or finance.",
+        ? "Reviewed commissions cleared for payout."
+        : "Visible only to finance-safe roles.",
       tone:
         financeSummary.hasFinanceAccess && financeSummary.approvedCount > 0
           ? ("green" as const)
@@ -264,10 +264,10 @@ export default async function DashboardPage() {
       value: totalApps > 0 ? `${readyApps}/${totalApps} ready` : "No apps yet",
       detail:
         totalApps === 0
-          ? "Add the first app lane and ingest key."
+          ? "Add the first app lane."
           : monitoring.failedReceiptCount > 0 || monitoring.pendingReceiptCount > 0
             ? `${monitoring.failedReceiptCount} failed and ${monitoring.pendingReceiptCount} pending receipts need review.`
-            : "Apple intake looks calm right now.",
+            : "Apple intake looks calm.",
       tone:
         monitoring.failedReceiptCount > 0
           ? ("red" as const)
@@ -322,7 +322,7 @@ export default async function DashboardPage() {
 
   return (
     <PageContainer>
-      <section className="space-y-4">
+      <section className="space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <h1 className="text-[22px] font-bold tracking-[-0.03em] text-ink">Dashboard</h1>
           <ActionLink href="/unattributed" variant="primary">
@@ -355,7 +355,7 @@ export default async function DashboardPage() {
       </section>
 
       {topPriority ? (
-        <SurfaceCard density="compact" className="py-3">
+        <SurfaceCard density="compact" className="py-2.5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
@@ -364,9 +364,7 @@ export default async function DashboardPage() {
               <p className="shrink-0 text-sm font-semibold text-ink">
                 {actionableChecks.length} active priorit{actionableChecks.length === 1 ? "y" : "ies"}
               </p>
-              <p className="min-w-0 truncate text-sm text-ink-muted">
-                {topPriority.title}: {topPriority.detail}
-              </p>
+              <p className="min-w-0 truncate text-sm text-ink-muted">{topPriority.title} needs attention.</p>
             </div>
             <Link
               href={topPriority.href}
@@ -378,8 +376,8 @@ export default async function DashboardPage() {
         </SurfaceCard>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.65fr)_minmax(320px,0.35fr)]">
-        <div className="space-y-6">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.65fr)_minmax(320px,0.35fr)]">
+        <div className="space-y-5">
           <DashboardPanel
             label="Needs attention"
             action={
@@ -394,11 +392,11 @@ export default async function DashboardPage() {
             }
           >
             {priorityCards.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {priorityCards.map((check) => (
                   <div
                     key={check.id}
-                    className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex min-w-0 items-start gap-3">
                       <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
@@ -455,7 +453,7 @@ export default async function DashboardPage() {
                   {latestResults.map((item) => (
                     <div
                       key={item.id}
-                      className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] gap-3 px-1 py-3 text-sm"
+                      className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] gap-3 px-1 py-2.5 text-sm"
                     >
                       <p className="truncate text-[15px] font-medium text-ink">{item.partnerName}</p>
                       <p className="truncate text-ink-muted">{item.eventType}</p>
@@ -495,11 +493,11 @@ export default async function DashboardPage() {
             }
           >
             {reviewQueuePreview.length > 0 ? (
-              <div className="space-y-3">
-                {reviewQueuePreview.slice(0, 2).map((check) => (
+              <div className="space-y-2.5">
+                {reviewQueuePreview.map((check) => (
                   <div
                     key={check.id}
-                    className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
@@ -529,9 +527,9 @@ export default async function DashboardPage() {
           </DashboardPanel>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           <DashboardPanel label="Utilities">
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {quickActions.map((action) => {
                 const Icon = action.icon;
 
@@ -539,17 +537,17 @@ export default async function DashboardPage() {
                   <Link
                     key={action.title}
                     href={action.href}
-                    className="flex items-start gap-3 rounded-[var(--radius-card)] border border-transparent px-2 py-3 transition-colors hover:border-[var(--aa-shell-border)] hover:bg-surface"
+                    className="flex items-start gap-3 rounded-[var(--radius-card)] border border-transparent px-2 py-2.5 transition-colors hover:border-[var(--aa-shell-border)] hover:bg-surface"
                   >
                     <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-subtle">
                       <Icon size={16} strokeWidth={1.75} />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-[15px] font-semibold text-ink">{action.title}</p>
+                        <p className="text-sm font-semibold text-ink">{action.title}</p>
                         {action.badge}
                       </div>
-                      <p className="mt-1 text-sm text-ink-muted">{action.description}</p>
+                      <p className="mt-0.5 text-sm text-ink-muted">{action.description}</p>
                     </div>
                   </Link>
                 );
@@ -573,7 +571,7 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-[15px] font-semibold text-ink">Activation is still in progress</p>
                   <p className="mt-1 text-sm text-ink-muted">
-                    Keep the first creator path moving one step at a time.
+                    Keep the first creator path moving.
                   </p>
                 </div>
                 <StatusBadge tone={toneForActivationState("in_progress")}>
@@ -590,14 +588,14 @@ export default async function DashboardPage() {
                   />
                 ))}
               </div>
-              <p className="mt-3 text-sm text-ink-muted">
+              <p className="mt-2.5 text-sm text-ink-muted">
                 {activationProgress.completeCount === 0
                   ? "Start with app connection, then add the first creator."
                   : activationProgress.completeCount === activationProgress.totalCount - 1
-                    ? "One last setup step remains before activation is calm."
+                    ? "One setup step remains."
                     : `${activationProgress.completeCount} of ${activationProgress.totalCount} steps are already in place.`}
               </p>
-              <div className="mt-4">
+              <div className="mt-3">
                 <ActionLink href="/onboarding" variant="primary">
                   Continue activation →
                 </ActionLink>

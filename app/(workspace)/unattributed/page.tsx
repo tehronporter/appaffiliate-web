@@ -16,7 +16,6 @@ import {
   SectionCard,
   StatusBadge,
   StatusTimeline,
-  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -141,7 +140,7 @@ export default async function UnattributedPage({
       <PageHeader
         eyebrow="Attribution"
         title="Unattributed"
-        description="Review unresolved results, inspect the visible evidence, and approve ownership safely."
+        description="Review unresolved results and approve ownership safely."
         actions={
           <>
             <ActionLink href="/events">Open events</ActionLink>
@@ -154,7 +153,6 @@ export default async function UnattributedPage({
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone="amber">Needs decision stays explicit</StatusBadge>
           <StatusBadge tone={toneForWorkspaceLabel()}>Hold and approve stay separate</StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>Evidence comes before action</StatusBadge>
         </div>
       </PageHeader>
 
@@ -195,26 +193,9 @@ export default async function UnattributedPage({
         </div>
       </section>
 
-      <SummaryBar
-        items={[
-          {
-            label: "Queue pressure",
-            value: `${data.stats.unresolved} records are still open and ${data.stats.inReview} are already held`,
-          },
-          {
-            label: "Decision rule",
-            value: "Hold when the story is incomplete and approve only when creator and code evidence align",
-          },
-          {
-            label: "Trust boundary",
-            value: "Visible evidence comes first so support can explain the decision later",
-          },
-        ]}
-      />
-
       <FilterBar
         title="Review filters"
-        description="Filter by the reason while keeping the register dense and scannable."
+        description={`${data.stats.unresolved} records are open and ${data.stats.inReview} are already held.`}
       >
         <FilterChipLink href={buildHref({ reason: "all" })} active={reason === "all"}>
           All records
@@ -234,7 +215,7 @@ export default async function UnattributedPage({
         className="w-full"
         eyebrow="Manual review"
         title="Unattributed queue table"
-        description="Lead with why the result is unresolved, what evidence is visible, and which action is safest next."
+        description="Lead with why the result is unresolved and the safest next action."
       >
         <div className="hidden grid-cols-[120px_minmax(0,1.35fr)_minmax(0,0.95fr)_130px_150px_110px] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
           <span>State</span>

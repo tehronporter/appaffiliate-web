@@ -159,7 +159,7 @@ export function WorkspaceSearch() {
 
   return (
     <>
-      <label className="relative hidden w-full max-w-[360px] items-center lg:flex">
+      <label className="relative hidden w-full max-w-[320px] items-center lg:flex">
         <Search
           size={16}
           strokeWidth={1.75}
@@ -172,7 +172,7 @@ export function WorkspaceSearch() {
           onFocus={openSearch}
           onClick={openSearch}
           placeholder="Search creators, codes, payouts..."
-          className="h-10 w-full rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] pl-11 pr-16 text-sm text-ink outline-none transition placeholder:text-ink-subtle focus:border-primary focus:bg-white"
+          className="h-9 w-full rounded-full border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] pl-10 pr-14 text-sm text-ink outline-none transition placeholder:text-ink-subtle focus:border-primary focus:bg-white"
         />
         <span className="pointer-events-none absolute right-3 rounded-full border border-[var(--aa-shell-border)] px-2 py-1 text-[11px] font-semibold text-ink-subtle">
           /

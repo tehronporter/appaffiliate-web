@@ -54,7 +54,7 @@ export function PageContainer({ children, className }: PageContainerProps) {
   return (
     <main
       className={joinClasses(
-        "mx-auto max-w-[var(--page-max-width)] space-y-4 px-4 py-4 sm:px-6 lg:px-8 lg:py-6",
+        "mx-auto max-w-[var(--page-max-width)] space-y-3 px-4 py-3 sm:px-6 lg:px-8 lg:py-5",
         className,
       )}
     >

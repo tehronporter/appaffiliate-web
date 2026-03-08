@@ -14,7 +14,6 @@ import {
   PageHeader,
   SectionCard,
   StatusBadge,
-  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -245,7 +244,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
       <PageHeader
         eyebrow="Program"
         title="Codes"
-        description="Use codes as the ownership register for attribution, app mapping, and review."
+        description="Use codes as the ownership register for attribution and app mapping."
         actions={
           <>
             <ActionLink href="/unattributed">Review queue</ActionLink>
@@ -261,7 +260,6 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone={toneForWorkspaceLabel()}>Code ownership register</StatusBadge>
           <StatusBadge tone="amber">Needs review</StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>Linked app and owner visible</StatusBadge>
         </div>
       </PageHeader>
 
@@ -285,31 +283,15 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
         </div>
       </section>
 
-      <SummaryBar
-        items={[
-          {
-            label: "Owner gaps",
-            value:
-              unassignedCount > 0
-                ? `${unassignedCount} codes still need a partner assignment`
-                : "Every visible code already has an owner",
-          },
-          {
-            label: "Linked apps",
-            value: `${appCoverageCount} apps are represented in the visible register`,
-          },
-          {
-            label: "Needs review",
-            value:
-              data.stats.duplicateActive > 0
-                ? `${data.stats.duplicateActive} active code lanes still overlap`
-                : "No duplicate-active code lanes are visible",
-          },
-        ]}
-      />
-
-      <div className="space-y-4">
-        <FilterBar title="Code filters" description="Review status and ownership without leaving the register.">
+      <div className="space-y-3">
+        <FilterBar
+          title="Code filters"
+          description={
+            data.stats.duplicateActive > 0
+              ? `${data.stats.duplicateActive} active code lanes still overlap.`
+              : `${appCoverageCount} apps are represented in the visible register.`
+          }
+        >
           <FilterChipLink href={buildHref({ status: "all", ownership })} active={status === "all"}>
             All states
           </FilterChipLink>
@@ -336,7 +318,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
           </FilterChipLink>
         </FilterBar>
 
-        <ListTable eyebrow="Register" title="Codes table" description="Click a row to inspect ownership, app mapping, and status detail.">
+        <ListTable eyebrow="Register" title="Codes table" description="Click a row to inspect ownership, app mapping, and status.">
           <div className="hidden grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
             <span>Code</span>
             <span>Owner</span>

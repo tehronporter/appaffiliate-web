@@ -59,29 +59,31 @@ export function WorkspaceSidebar({
   activationReminder,
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
+  const compactWorkspaceName =
+    workspaceName.length > 28 ? `${workspaceName.slice(0, 28)}...` : workspaceName;
 
   return (
     <div className="flex h-full flex-col bg-white">
-      <div className="border-b border-[var(--aa-shell-border)] px-4 py-5">
-        <div className="flex items-start justify-between gap-3">
+      <div className="border-b border-[var(--aa-shell-border)] px-4 py-4">
+        <div className="flex items-center justify-between gap-3">
           <BrandLogoLink
             href="/dashboard"
             ariaLabel="Open AppAffiliate dashboard"
-            size="workspace"
+            size="workspace-compact"
             priority
           />
           <button
             type="button"
             aria-label="Workspace switching placeholder"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-subtle"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-subtle"
           >
             <ChevronDown size={16} strokeWidth={1.75} />
           </button>
         </div>
-        <p className="mt-4 text-sm font-medium text-ink-muted">{workspaceName}</p>
+        <p className="mt-2 text-xs font-medium text-ink-subtle">{compactWorkspaceName}</p>
       </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
+      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
         <div className="space-y-1">
           {workspaceSidebarNavItems.map((item) => {
             const active = isNavItemActive(pathname, item);
@@ -98,7 +100,7 @@ export function WorkspaceSidebar({
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={joinClasses(
-                    "flex min-h-[44px] items-center gap-3 rounded-[var(--radius-card)] border-l-2 px-3 py-2.5 text-sm font-medium transition",
+                    "flex min-h-[44px] items-center gap-3 rounded-[var(--radius-card)] border-l-2 px-3 py-2 text-sm font-medium transition",
                     active
                       ? "border-l-primary bg-primary-soft text-ink"
                       : "border-l-transparent text-ink-muted hover:bg-surface hover:text-ink",
@@ -117,7 +119,7 @@ export function WorkspaceSidebar({
                   !activationReminder.isComplete ? (
                     <span
                       className={joinClasses(
-                        "ml-auto inline-flex min-h-6 items-center rounded-full px-2 text-[11px] font-semibold",
+                        "ml-auto inline-flex min-h-5 items-center rounded-full px-2 text-[10px] font-semibold",
                         active
                           ? "bg-white text-primary"
                           : "bg-primary-soft text-primary",
@@ -129,7 +131,7 @@ export function WorkspaceSidebar({
                 </Link>
 
                 {item.dividerAfter ? (
-                  <div className="mx-3 my-3 border-t border-[var(--aa-shell-border)]" />
+                  <div className="mx-3 my-2.5 border-t border-[var(--aa-shell-border)]" />
                 ) : null}
               </div>
             );
@@ -137,8 +139,8 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      <div className="mt-auto border-t border-[var(--aa-shell-border)] px-3 py-4">
-        <div className="flex items-center gap-3 rounded-[var(--radius-card)] px-2 py-2">
+      <div className="mt-auto border-t border-[var(--aa-shell-border)] px-3 py-3">
+        <div className="flex items-center gap-3 rounded-[var(--radius-card)] px-2 py-1.5">
           <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
             {user.initials}
           </span>

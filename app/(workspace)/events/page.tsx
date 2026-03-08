@@ -15,7 +15,6 @@ import {
   SectionCard,
   StatusBadge,
   StatusTimeline,
-  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -147,7 +146,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
       <PageHeader
         eyebrow="Attribution"
         title="Events"
-        description="Inspect tracked results, see why they need attention, and verify safe attribution context."
+        description="Inspect tracked results and see what needs attention."
         actions={
           <>
             <ActionLink href="/apple-health">Open app health</ActionLink>
@@ -160,13 +159,12 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone="amber">Needs review visible</StatusBadge>
           <StatusBadge tone={toneForWorkspaceLabel()}>Reason-first inspection</StatusBadge>
-          <StatusBadge tone="gray">Advanced payloads stay collapsed</StatusBadge>
         </div>
       </PageHeader>
 
       <FilterBar
         title="Review states"
-        description="Move between review lanes without leaving the event register."
+        description={`${eventData.stats.unattributed} results need review and ${eventData.stats.failed} are blocked.`}
       >
         <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
           All records
@@ -220,31 +218,11 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         </div>
       </section>
 
-      <SummaryBar
-        items={[
-          {
-            label: "Attention",
-            value: `${eventData.stats.unattributed} results need review and ${eventData.stats.failed} are blocked`,
-          },
-          {
-            label: "Trust boundary",
-            value: "Safe operational metadata is visible here while raw payloads stay collapsed",
-          },
-          {
-            label: "Next action",
-            value:
-              eventData.stats.unattributed > 0
-                ? "Clear unattributed results first"
-                : "Review blocked app health only when needed",
-          },
-        ]}
-      />
-
       <ListTable
         className="w-full"
         eyebrow="Register"
         title="Events table"
-        description="Click a row to inspect the result, its state, and the next operational action."
+        description="Click a row to inspect the result and next action."
       >
         <div className="hidden grid-cols-[110px_minmax(0,1.45fr)_minmax(0,0.9fr)_120px_150px_110px] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
           <span>State</span>

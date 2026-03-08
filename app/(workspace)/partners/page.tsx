@@ -14,7 +14,6 @@ import {
   PageHeader,
   SectionCard,
   StatusBadge,
-  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -221,7 +220,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
       <PageHeader
         eyebrow="Program"
         title="Partners"
-        description="Manage creator records, setup state, and code coverage in one place."
+        description="Manage creator records and code coverage."
         actions={
           <>
             <ActionLink href="/codes">Review codes</ActionLink>
@@ -234,7 +233,6 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone={toneForWorkspaceLabel()}>Creator directory</StatusBadge>
           <StatusBadge tone="amber">Manual relationship updates</StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>Partner records stay org-scoped</StatusBadge>
         </div>
       </PageHeader>
 
@@ -280,30 +278,15 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
         </div>
       </section>
 
-      <SummaryBar
-        items={[
-          {
-            label: "Relationship state",
-            value: `${data.stats.active} active, ${data.stats.pending} pending, ${data.stats.inactive + data.stats.archived} inactive or archived`,
-          },
-          {
-            label: "Ownership gaps",
-            value:
-              withoutCodesCount > 0
-                ? `${withoutCodesCount} creators still need code coverage`
-                : "Every visible creator has code coverage",
-          },
-          {
-            label: "Linked apps",
-            value: data.partners.some((partner) => partner.appNames.length > 0)
-              ? "App coverage is visible in creator detail"
-              : "No linked app coverage is visible yet",
-          },
-        ]}
-      />
-
-      <div className="space-y-4">
-        <FilterBar title="Creator filters" description="Review lifecycle state without leaving the register.">
+      <div className="space-y-3">
+        <FilterBar
+          title="Creator filters"
+          description={
+            withoutCodesCount > 0
+              ? `${withoutCodesCount} creators still need code coverage.`
+              : "Every visible creator already has code coverage."
+          }
+        >
           <FilterChipLink
             href={buildHref({ status: "all" })}
             active={status === "all"}
@@ -336,7 +319,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
           </FilterChipLink>
         </FilterBar>
 
-        <ListTable className="w-full" eyebrow="Directory" title="Creators table" description="Click a row to inspect creator context or update relationship details.">
+        <ListTable className="w-full" eyebrow="Directory" title="Creators table" description="Click a row to inspect or update the creator record.">
           <div className="hidden grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_90px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Creator</span>
               <span>Contact</span>

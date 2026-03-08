@@ -45,7 +45,7 @@ export function WorkspaceTopNav({
         scrolled && "shadow-[0_4px_16px_rgba(17,24,39,0.05)]",
       )}
     >
-      <div className="mx-auto flex h-full max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-full max-w-[1600px] items-center gap-3 px-4 sm:px-6 lg:px-8">
         <BrandLogoLink
           href="/dashboard"
           ariaLabel="Open AppAffiliate dashboard"
@@ -53,7 +53,7 @@ export function WorkspaceTopNav({
           priority
         />
 
-        <div className="hidden h-6 w-px bg-[var(--aa-shell-border)] md:block" />
+        <div className="hidden h-5 w-px bg-[var(--aa-shell-border)] md:block" />
 
         <div className="min-w-0">
           <p className="truncate text-[16px] font-semibold text-ink">

@@ -54,8 +54,8 @@ const surfaceToneClasses: Record<SurfaceTone, string> = {
 };
 
 const surfaceDensityClasses = {
-  compact: "p-4 sm:p-4",
-  default: "p-4 sm:p-6",
+  compact: "p-3.5 sm:p-4",
+  default: "p-4 sm:p-5",
   hero: "p-6 sm:p-6",
 };
 
@@ -117,7 +117,7 @@ export function SectionHeader({
   return (
     <div
       className={joinClasses(
-        "flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between",
+        "flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between",
         className,
       )}
     >
@@ -127,11 +127,11 @@ export function SectionHeader({
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="mt-2 text-[15px] font-semibold tracking-[-0.01em] text-ink">
+        <h2 className="mt-1.5 text-[15px] font-semibold tracking-[-0.01em] text-ink">
           {title}
         </h2>
         {description ? (
-          <p className="mt-2 max-w-2xl text-sm leading-5 text-ink-muted">
+          <p className="mt-1.5 max-w-2xl text-sm leading-5 text-ink-muted">
             {description}
           </p>
         ) : null}
@@ -161,7 +161,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <SurfaceCard tone={tone} density="compact" className="shadow-none">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
         <div className="min-w-0">
           {eyebrow ? (
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
@@ -174,7 +174,7 @@ export function PageHeader({
           <p className="mt-1 max-w-3xl text-sm leading-5 text-ink-muted">
             {description}
           </p>
-          {children ? <div className="mt-3 flex flex-wrap gap-2">{children}</div> : null}
+          {children ? <div className="mt-2 flex flex-wrap gap-2">{children}</div> : null}
         </div>
 
         {actions ? (
@@ -199,7 +199,7 @@ export function StatusBadge({
   return (
     <span
       className={joinClasses(
-        "inline-flex min-h-6 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-[-0.01em]",
+        "inline-flex min-h-5 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-[-0.01em]",
         badgeToneClasses[resolveStatusTone(tone)],
         className,
       )}
@@ -389,7 +389,7 @@ export function StatCard({
       <p
         className={joinClasses(
           size === "compact"
-            ? "mt-4 text-[28px] font-semibold tracking-[-0.05em] text-ink sm:text-[28px]"
+            ? "mt-3 text-[28px] font-semibold tracking-[-0.05em] text-ink sm:text-[28px]"
             : "mt-4 text-[32px] font-semibold tracking-[-0.05em] text-ink sm:text-[36px]",
         )}
       >
@@ -425,8 +425,8 @@ export function MetricChip({
 }: MetricChipProps) {
   return (
     <div
-      className={joinClasses(
-        "min-w-[140px] rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white px-4 py-3 transition-colors hover:border-[var(--aa-shell-border-strong)]",
+        className={joinClasses(
+        "min-w-[132px] rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white px-3.5 py-2.5 transition-colors hover:border-[var(--aa-shell-border-strong)]",
         className,
       )}
     >
@@ -438,7 +438,7 @@ export function MetricChip({
           {value}
         </StatusBadge>
       </div>
-      {detail ? <p className="mt-2 text-sm leading-5 text-ink-muted">{detail}</p> : null}
+      {detail ? <p className="mt-1.5 text-xs leading-5 text-ink-muted">{detail}</p> : null}
     </div>
   );
 }
@@ -456,13 +456,16 @@ type SummaryBarProps = {
 export function SummaryBar({ items, className }: SummaryBarProps) {
   return (
     <SurfaceCard density="compact" className={joinClasses("shadow-none", className)}>
-      <div className="flex flex-wrap gap-x-6 gap-y-3">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         {items.map((item) => (
-          <div key={`${item.label}:${item.value}`} className="min-w-[180px]">
+          <div
+            key={`${item.label}:${item.value}`}
+            className="flex min-w-[180px] items-baseline gap-2"
+          >
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
               {item.label}
             </p>
-            <p className="mt-1 text-sm font-medium text-ink">{item.value}</p>
+            <p className="text-sm font-medium text-ink">{item.value}</p>
           </div>
         ))}
       </div>
@@ -714,23 +717,23 @@ export function EmptyState({
   return (
     <InsetPanel
       tone={tone}
-      className={joinClasses("flex flex-col items-center px-6 py-8 text-center", className)}
+      className={joinClasses("flex flex-col items-center px-4 py-6 text-center", className)}
     >
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft/60 text-primary/55">
-        <Icon size={24} strokeWidth={1.75} />
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft/60 text-primary/55">
+        <Icon size={20} strokeWidth={1.75} />
       </span>
       {eyebrow ? (
-        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+        <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
           {eyebrow}
         </p>
       ) : null}
-      <h3 className="mt-3 text-[15px] font-semibold tracking-[-0.01em] text-ink">
+      <h3 className="mt-2 text-[15px] font-semibold tracking-[-0.01em] text-ink">
         {title}
       </h3>
-      <p className="mt-2 max-w-xl text-sm leading-5 text-ink-muted">
+      <p className="mt-1.5 max-w-lg text-sm leading-5 text-ink-muted">
         {description}
       </p>
-      {action ? <div className="mt-5 flex flex-wrap justify-center gap-3">{action}</div> : null}
+      {action ? <div className="mt-4 flex flex-wrap justify-center gap-3">{action}</div> : null}
     </InsetPanel>
   );
 }
@@ -755,7 +758,7 @@ export function ListTable({
   tone = "workspace",
 }: ListTableProps) {
   return (
-    <SurfaceCard className={className} tone={tone}>
+    <SurfaceCard className={className} tone={tone} density="compact">
       <SectionHeader
         eyebrow={eyebrow}
         title={title}
@@ -763,7 +766,7 @@ export function ListTable({
         actions={actions}
       />
 
-      <div className="mt-4 overflow-hidden rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)]">
+      <div className="mt-3 overflow-hidden rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)]">
         {children}
       </div>
     </SurfaceCard>
@@ -827,19 +830,20 @@ export function FilterBar({
         "z-10 lg:sticky lg:top-[var(--aa-shell-top-offset)]",
         className,
       )}
+      density="compact"
     >
       {title ? (
-        <div>
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
             {title}
           </p>
           {description ? (
-            <p className="mt-2 text-sm leading-5 text-ink-muted">{description}</p>
+            <p className="text-sm leading-5 text-ink-muted">{description}</p>
           ) : null}
         </div>
       ) : null}
 
-      <div className={title ? "mt-4 flex flex-wrap gap-2" : "flex flex-wrap gap-2"}>
+      <div className={title ? "mt-3 flex flex-wrap gap-2" : "flex flex-wrap gap-2"}>
         {children}
       </div>
     </SurfaceCard>
@@ -949,12 +953,12 @@ export function WorkspaceDrawer({
       />
       <aside
         className={joinClasses(
-          "aa-drawer-panel fixed inset-y-16 right-0 z-40 w-full max-w-[540px] border-l border-[var(--aa-shell-border)] bg-white",
+          "aa-drawer-panel fixed inset-y-16 right-0 z-40 w-full max-w-[520px] border-l border-[var(--aa-shell-border)] bg-white",
           className,
         )}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-start justify-between gap-4 border-b border-[var(--aa-shell-border)] px-5 py-5">
+          <div className="flex items-start justify-between gap-4 border-b border-[var(--aa-shell-border)] px-4 py-4">
             <div className="min-w-0">
               {eyebrow ? (
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
@@ -980,7 +984,7 @@ export function WorkspaceDrawer({
             </Link>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
             <div className="space-y-4">{children}</div>
           </div>
         </div>

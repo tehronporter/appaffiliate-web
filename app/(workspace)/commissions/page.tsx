@@ -15,7 +15,6 @@ import {
   PageHeader,
   SectionCard,
   StatusBadge,
-  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -128,7 +127,7 @@ export default async function CommissionsPage({
       <PageHeader
         eyebrow="Finance"
         title="Commissions"
-        description="Review earnings, confirm why they were earned, and move approved items toward payout."
+        description="Review earnings and move approved items toward payout."
         actions={
           <>
             <ActionLink href="/unattributed">Open queue</ActionLink>
@@ -141,7 +140,6 @@ export default async function CommissionsPage({
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone={toneForWorkspaceLabel()}>Commission ledger</StatusBadge>
           <StatusBadge tone="amber">Manual finance approval</StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>Money state stays explicit</StatusBadge>
         </div>
       </PageHeader>
 
@@ -206,29 +204,13 @@ export default async function CommissionsPage({
         </SectionCard>
       ) : (
         <>
-          <SummaryBar
-            items={[
-              {
-                label: "Current state",
-                value: `${reviewableCount} items are still moving through review or payout preparation`,
-              },
-              {
-                label: "Decision boundary",
-                value: "Approval stays explicit and rejected items remain visible for audit history",
-              },
-              {
-                label: "Next action",
-                value:
-                  data.stats.pendingReview > 0
-                    ? "Clear pending review before batching"
-                    : "Move approved items into payout tracking",
-              },
-            ]}
-          />
-
           <FilterBar
             title="Ledger filters"
-            description="Keep review and payout states readable without leaving the register."
+            description={
+              data.stats.pendingReview > 0
+                ? `${data.stats.pendingReview} items still need review before batching.`
+                : `${reviewableCount} items are moving through review or payout preparation.`
+            }
           >
             <FilterChipLink href={buildHref({ state: "all" })} active={state === "all"}>
               All items
@@ -260,7 +242,7 @@ export default async function CommissionsPage({
             className="w-full"
             eyebrow="Ledger"
             title="Commission table"
-            description="Click a row to inspect the event basis, commission amount, and payout posture."
+            description="Click a row to inspect the basis, amount, and payout posture."
           >
             <div className="hidden grid-cols-[minmax(0,1.4fr)_140px_140px_auto] gap-4 border-b border-border bg-surface-muted px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle md:grid">
               <span>Partner / event</span>

@@ -16,7 +16,6 @@ import {
   StatCard,
   StatusBadge,
   StatusTimeline,
-  SummaryBar,
   WorkspaceDrawer,
   type StatusTone,
 } from "@/components/admin-ui";
@@ -31,7 +30,6 @@ import { listPayoutsData } from "@/lib/services/finance";
 import {
   toneForPayoutBatchItemStatus,
   toneForPayoutBatchStatus,
-  toneForWorkspaceLabel,
 } from "@/lib/status-badges";
 
 type PayoutsPageProps = {
@@ -260,7 +258,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
       <PageHeader
         eyebrow="Finance"
         title="Payouts"
-        description="Keep ready, batched, exported, and paid states explicit."
+        description="Track ready, batched, exported, and paid states."
         actions={
           <>
             <ActionLink href="/commissions">Open commissions</ActionLink>
@@ -273,7 +271,6 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         <div className="flex flex-wrap gap-3">
           <StatusBadge tone="amber">Ready and reserved stay separate</StatusBadge>
           <StatusBadge tone="gray">Export and paid stay separate</StatusBadge>
-          <StatusBadge tone={toneForWorkspaceLabel()}>Finance handoff stays explicit</StatusBadge>
         </div>
       </PageHeader>
 
@@ -316,23 +313,6 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         />
       </div>
 
-      <SummaryBar
-        items={[
-          {
-            label: "Ready now",
-            value: `${data.stats.readyGroups} partner groups contain approved earnings outside payout tracking`,
-          },
-          {
-            label: "Finance boundary",
-            value: "Export stays separate from paid so finance handoff remains explicit",
-          },
-          {
-            label: "Current limit",
-            value: "The read model shows included scope but not exclusion rules yet",
-          },
-        ]}
-      />
-
       {!data.hasFinanceAccess ? (
         <SectionCard
           title="Finance access required"
@@ -354,7 +334,7 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
         <>
           <FilterBar
             title="Payout views"
-            description="Move between ready groups and tracked batches without leaving the register."
+            description={`${data.stats.readyGroups} partner groups are ready and ${draftLikeBatches.length} batches are already in motion.`}
           >
             <FilterChipLink href={buildHref({ view: "all" })} active={view === "all"}>
               All payout work
