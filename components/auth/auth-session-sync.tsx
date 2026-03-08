@@ -19,6 +19,10 @@ export function AuthSessionSync() {
         return;
       }
 
+      if (!session) {
+        return;
+      }
+
       await syncSessionCookie(session);
     }
 
@@ -26,7 +30,16 @@ export function AuthSessionSync() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        void syncSessionCookie(null);
+        return;
+      }
+
+      if (!session) {
+        return;
+      }
+
       void syncSessionCookie(session);
     });
 
