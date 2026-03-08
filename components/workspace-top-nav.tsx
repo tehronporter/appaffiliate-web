@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Ref } from "react";
 import { Bell, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -15,12 +15,14 @@ type WorkspaceTopNavProps = {
   user: WorkspaceShellUser;
   hasUnreadNotifications?: boolean;
   onOpenSidebar?: () => void;
+  headerFrameRef?: Ref<HTMLDivElement>;
 };
 
 export function WorkspaceTopNav({
   user,
   hasUnreadNotifications = false,
   onOpenSidebar,
+  headerFrameRef,
 }: WorkspaceTopNavProps) {
   const pathname = usePathname();
   const routeContext = getRouteContext(pathname);
@@ -39,6 +41,7 @@ export function WorkspaceTopNav({
 
   return (
     <SiteHeaderFrame
+      ref={headerFrameRef}
       scrolled={scrolled}
       maxWidthClassName="max-w-[var(--shell-max-width)]"
       stickyClassName="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4"
@@ -59,7 +62,7 @@ export function WorkspaceTopNav({
           <BrandLogoLink
             href="/dashboard"
             ariaLabel="Open AppAffiliate dashboard"
-            size="workspace-compact"
+            size="workspace-header"
             priority
           />
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import type {
   WorkspaceActivationReminder,
@@ -29,6 +29,7 @@ export function AppShell({
 }: AppShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const headerFrameRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -39,19 +40,45 @@ export function AppShell({
     };
   }, [mobileNavOpen]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
     const previousScrollPadding = root.style.scrollPaddingTop;
     const shell = shellRef.current;
+    const headerFrame = headerFrameRef.current;
 
-    if (shell) {
-      const styles = getComputedStyle(shell);
-      root.style.scrollPaddingTop =
-        styles.getPropertyValue("--aa-shell-scroll-padding").trim() ||
-        styles.getPropertyValue("--aa-shell-top-offset").trim();
+    if (!shell || !headerFrame) {
+      return () => {
+        root.style.scrollPaddingTop = previousScrollPadding;
+      };
     }
 
+    const setMeasuredOffset = () => {
+      const nextHeight = Math.ceil(headerFrame.getBoundingClientRect().height);
+
+      if (!nextHeight) {
+        return;
+      }
+
+      shell.style.setProperty("--aa-shell-top-offset", `${nextHeight}px`);
+      const nextScrollPadding = `calc(${nextHeight}px + 0.75rem)`;
+      shell.style.setProperty("--aa-shell-scroll-padding", nextScrollPadding);
+      root.style.scrollPaddingTop = nextScrollPadding;
+    };
+
+    setMeasuredOffset();
+
+    const observer = new ResizeObserver(() => {
+      setMeasuredOffset();
+    });
+    observer.observe(headerFrame);
+
+    window.addEventListener("resize", setMeasuredOffset, { passive: true });
+
     return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", setMeasuredOffset);
+      shell.style.removeProperty("--aa-shell-top-offset");
+      shell.style.removeProperty("--aa-shell-scroll-padding");
       root.style.scrollPaddingTop = previousScrollPadding;
     };
   }, []);
@@ -61,7 +88,11 @@ export function AppShell({
       ref={shellRef}
       className="aa-workspace-shell min-h-screen bg-[var(--aa-shell-canvas)] text-ink"
     >
-      <WorkspaceTopNav user={user} onOpenSidebar={() => setMobileNavOpen(true)} />
+      <WorkspaceTopNav
+        user={user}
+        onOpenSidebar={() => setMobileNavOpen(true)}
+        headerFrameRef={headerFrameRef}
+      />
 
       {mobileNavOpen ? (
         <div className="fixed inset-0 top-[var(--aa-shell-top-offset)] z-30 lg:hidden">

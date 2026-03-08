@@ -5,6 +5,7 @@ type BrandLogoSize =
   | "marketing-header"
   | "marketing-footer"
   | "public-header"
+  | "workspace-header"
   | "workspace-compact"
   | "workspace"
   | "portal";
@@ -13,6 +14,7 @@ const logoSizeClasses: Record<BrandLogoSize, string> = {
   "marketing-header": "w-[148px] sm:w-[164px]",
   "marketing-footer": "w-[164px] sm:w-[180px]",
   "public-header": "w-[138px] sm:w-[150px]",
+  "workspace-header": "w-[118px] sm:w-[132px]",
   "workspace-compact": "w-[96px]",
   workspace: "w-[126px]",
   portal: "w-[138px] sm:w-[148px]",
@@ -22,6 +24,7 @@ const logoSizes: Record<BrandLogoSize, string> = {
   "marketing-header": "(min-width: 640px) 164px, 148px",
   "marketing-footer": "(min-width: 640px) 180px, 164px",
   "public-header": "(min-width: 640px) 150px, 138px",
+  "workspace-header": "(min-width: 640px) 132px, 118px",
   "workspace-compact": "96px",
   workspace: "126px",
   portal: "(min-width: 640px) 148px, 138px",
@@ -52,6 +55,12 @@ const lockupSizes: Partial<
     iconClassName: "h-[34px] w-[34px] sm:h-9 sm:w-9",
     wordmarkClassName:
       "hidden text-[16px] font-bold tracking-[-0.02em] text-ink sm:inline-flex",
+  },
+  "workspace-header": {
+    containerClassName: "h-10 gap-2.5 sm:h-11 sm:gap-3",
+    iconClassName: "h-[28px] w-[28px] sm:h-[30px] sm:w-[30px]",
+    wordmarkClassName:
+      "inline-flex text-[14px] font-bold tracking-[-0.02em] text-ink sm:text-[15px]",
   },
 };
 
