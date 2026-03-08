@@ -25,6 +25,7 @@ function buildCommissionsHref(params: {
 
 export async function approveCommissionAction(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await approveCommissionItem({
@@ -40,12 +41,10 @@ export async function approveCommissionAction(formData: FormData) {
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
-    redirect(
-      buildCommissionsHref({
-        entry: result.eventId,
-        notice: "commission-approved",
-      }),
-    );
+    redirectTarget = buildCommissionsHref({
+      entry: result.eventId,
+      notice: "commission-approved",
+    });
   } catch {
     redirect(
       buildCommissionsHref({
@@ -54,10 +53,13 @@ export async function approveCommissionAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function rejectCommissionAction(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await rejectCommissionItem({
@@ -71,12 +73,10 @@ export async function rejectCommissionAction(formData: FormData) {
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
-    redirect(
-      buildCommissionsHref({
-        entry: result.eventId,
-        notice: "commission-rejected",
-      }),
-    );
+    redirectTarget = buildCommissionsHref({
+      entry: result.eventId,
+      notice: "commission-rejected",
+    });
   } catch {
     redirect(
       buildCommissionsHref({
@@ -85,4 +85,6 @@ export async function rejectCommissionAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }

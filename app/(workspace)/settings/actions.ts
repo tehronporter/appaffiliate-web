@@ -28,6 +28,8 @@ function buildSettingsHref(pathname: string, notice: string) {
 }
 
 export async function updateOrganizationSettingsAction(formData: FormData) {
+  let redirectTarget: string | null = null;
+
   try {
     await updateOrganizationSettings({
       displayName: String(formData.get("displayName") ?? ""),
@@ -37,14 +39,17 @@ export async function updateOrganizationSettingsAction(formData: FormData) {
     revalidatePath("/settings");
     revalidatePath("/settings/organization");
     revalidatePath("/settings/audit");
-    redirect(buildSettingsHref("/settings/organization", "organization-saved"));
+    redirectTarget = buildSettingsHref("/settings/organization", "organization-saved");
   } catch {
     redirect(buildSettingsHref("/settings/organization", "organization-error"));
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function saveWorkspaceAppAction(formData: FormData) {
   const appId = String(formData.get("appId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     if (appId) {
@@ -91,13 +96,17 @@ export async function saveWorkspaceAppAction(formData: FormData) {
     revalidatePath("/apple-health");
     revalidatePath("/settings");
     revalidatePath("/settings/organization");
-    redirect(buildSettingsHref("/settings/organization", "app-saved"));
+    redirectTarget = buildSettingsHref("/settings/organization", "app-saved");
   } catch {
     redirect(buildSettingsHref("/settings/organization", "app-error"));
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function updateTeamMemberRoleAction(formData: FormData) {
+  let redirectTarget: string | null = null;
+
   try {
     await updateTeamMemberRole({
       membershipId: String(formData.get("membershipId") ?? ""),
@@ -107,13 +116,17 @@ export async function updateTeamMemberRoleAction(formData: FormData) {
     revalidatePath("/settings");
     revalidatePath("/settings/team");
     revalidatePath("/settings/audit");
-    redirect(buildSettingsHref("/settings/team", "team-role-saved"));
+    redirectTarget = buildSettingsHref("/settings/team", "team-role-saved");
   } catch {
     redirect(buildSettingsHref("/settings/team", "team-role-error"));
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function inviteTeamMemberAction(formData: FormData) {
+  let redirectTarget: string | null = null;
+
   try {
     await inviteInternalTeamMember({
       email: String(formData.get("email") ?? ""),
@@ -123,39 +136,49 @@ export async function inviteTeamMemberAction(formData: FormData) {
     revalidatePath("/settings");
     revalidatePath("/settings/team");
     revalidatePath("/settings/audit");
-    redirect(buildSettingsHref("/settings/team", "team-invite-sent"));
+    redirectTarget = buildSettingsHref("/settings/team", "team-invite-sent");
   } catch {
     redirect(buildSettingsHref("/settings/team", "team-invite-error"));
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function resendTeamInviteAction(formData: FormData) {
   const invitationId = String(formData.get("invitationId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     await resendWorkspaceInvitation(invitationId);
     revalidatePath("/settings/team");
     revalidatePath("/settings/audit");
-    redirect(buildSettingsHref("/settings/team", "team-invite-resent"));
+    redirectTarget = buildSettingsHref("/settings/team", "team-invite-resent");
   } catch {
     redirect(buildSettingsHref("/settings/team", "team-invite-error"));
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function revokeTeamInviteAction(formData: FormData) {
   const invitationId = String(formData.get("invitationId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     await revokeWorkspaceInvitation(invitationId);
     revalidatePath("/settings/team");
     revalidatePath("/settings/audit");
-    redirect(buildSettingsHref("/settings/team", "team-invite-revoked"));
+    redirectTarget = buildSettingsHref("/settings/team", "team-invite-revoked");
   } catch {
     redirect(buildSettingsHref("/settings/team", "team-invite-error"));
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function createCommissionRuleAction(formData: FormData) {
+  let redirectTarget: string | null = null;
+
   try {
     await createCommissionRule({
       name: String(formData.get("name") ?? ""),
@@ -186,14 +209,17 @@ export async function createCommissionRuleAction(formData: FormData) {
     revalidatePath("/settings");
     revalidatePath("/settings/rules");
     revalidatePath("/earnings");
-    redirect(buildSettingsHref("/settings/rules", "rule-saved"));
+    redirectTarget = buildSettingsHref("/settings/rules", "rule-saved");
   } catch {
     redirect(buildSettingsHref("/settings/rules", "rule-error"));
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function updateCommissionRuleAction(formData: FormData) {
   const ruleId = String(formData.get("ruleId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     await updateCommissionRule(ruleId, {
@@ -225,8 +251,10 @@ export async function updateCommissionRuleAction(formData: FormData) {
     revalidatePath("/settings");
     revalidatePath("/settings/rules");
     revalidatePath("/earnings");
-    redirect(buildSettingsHref("/settings/rules", "rule-saved"));
+    redirectTarget = buildSettingsHref("/settings/rules", "rule-saved");
   } catch {
     redirect(buildSettingsHref("/settings/rules", "rule-error"));
   }
+
+  redirect(redirectTarget!);
 }

@@ -108,7 +108,8 @@ function loadRootCertificates() {
     .filter(Boolean)
     .flatMap((value) => String(value).split(/[\n,]+/))
     .map((value) => value.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((value) => !value.startsWith("TODO") && !value.startsWith("PLACEHOLDER"));
 
   return configuredValues.map((value) => Buffer.from(value, "base64"));
 }

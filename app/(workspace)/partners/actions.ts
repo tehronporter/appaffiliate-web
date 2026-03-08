@@ -31,6 +31,8 @@ function buildPartnersHref(params: {
 }
 
 export async function createPartnerAction(formData: FormData) {
+  let redirectTarget: string | null = null;
+
   try {
     const contactEmail = String(formData.get("contactEmail") ?? "");
     const sendInviteValue = formData.get("sendInvite");
@@ -68,13 +70,11 @@ export async function createPartnerAction(formData: FormData) {
     revalidatePath("/setup");
     revalidatePath("/dashboard");
     revalidatePath("/settings/team");
-    redirect(
-      buildPartnersHref({
-        partnerId: result.id,
-        slug: result.slug,
-        notice,
-      }),
-    );
+    redirectTarget = buildPartnersHref({
+      partnerId: result.id,
+      slug: result.slug,
+      notice,
+    });
   } catch {
     redirect(
       buildPartnersHref({
@@ -82,10 +82,13 @@ export async function createPartnerAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function updatePartnerAction(formData: FormData) {
   const partnerId = String(formData.get("partnerId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await updatePartner(partnerId, {
@@ -104,13 +107,11 @@ export async function updatePartnerAction(formData: FormData) {
     revalidatePath("/codes");
     revalidatePath("/setup");
     revalidatePath("/dashboard");
-    redirect(
-      buildPartnersHref({
-        partnerId: result.id,
-        slug: result.slug,
-        notice: "creator-updated",
-      }),
-    );
+    redirectTarget = buildPartnersHref({
+      partnerId: result.id,
+      slug: result.slug,
+      notice: "creator-updated",
+    });
   } catch {
     redirect(
       buildPartnersHref({
@@ -119,23 +120,24 @@ export async function updatePartnerAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function resendPartnerInviteAction(formData: FormData) {
   const invitationId = String(formData.get("invitationId") ?? "");
   const partnerId = String(formData.get("partnerId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     await resendWorkspaceInvitation(invitationId);
     revalidatePath("/creators");
     revalidatePath("/setup");
     revalidatePath("/dashboard");
-    redirect(
-      buildPartnersHref({
-        partnerId,
-        notice: "creator-invite-resent",
-      }),
-    );
+    redirectTarget = buildPartnersHref({
+      partnerId,
+      notice: "creator-invite-resent",
+    });
   } catch {
     redirect(
       buildPartnersHref({
@@ -144,23 +146,24 @@ export async function resendPartnerInviteAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function revokePartnerInviteAction(formData: FormData) {
   const invitationId = String(formData.get("invitationId") ?? "");
   const partnerId = String(formData.get("partnerId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     await revokeWorkspaceInvitation(invitationId);
     revalidatePath("/creators");
     revalidatePath("/setup");
     revalidatePath("/dashboard");
-    redirect(
-      buildPartnersHref({
-        partnerId,
-        notice: "creator-invite-revoked",
-      }),
-    );
+    redirectTarget = buildPartnersHref({
+      partnerId,
+      notice: "creator-invite-revoked",
+    });
   } catch {
     redirect(
       buildPartnersHref({
@@ -169,4 +172,6 @@ export async function revokePartnerInviteAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }

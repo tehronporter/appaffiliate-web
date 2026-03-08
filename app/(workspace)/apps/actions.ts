@@ -43,6 +43,8 @@ function revalidateAppSurfaces(slug?: string | null) {
 }
 
 export async function createWorkspaceAppAction(formData: FormData) {
+  let redirectTarget: string | null = null;
+
   try {
     const app = await createApp({
       name: String(formData.get("name") ?? ""),
@@ -63,7 +65,7 @@ export async function createWorkspaceAppAction(formData: FormData) {
     });
 
     revalidateAppSurfaces(app.slug);
-    redirect(`/apps/${app.slug}?notice=app-created`);
+    redirectTarget = `/apps/${app.slug}?notice=app-created`;
   } catch {
     redirect(
       buildAppsHref({
@@ -72,11 +74,14 @@ export async function createWorkspaceAppAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function updateWorkspaceAppAction(formData: FormData) {
   const appId = String(formData.get("appId") ?? "");
   const appSlug = String(formData.get("appSlug") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const app = await updateApp(appId, {
@@ -98,7 +103,7 @@ export async function updateWorkspaceAppAction(formData: FormData) {
     });
 
     revalidateAppSurfaces(app.slug);
-    redirect(`/apps/${app.slug}?notice=app-updated`);
+    redirectTarget = `/apps/${app.slug}?notice=app-updated`;
   } catch {
     revalidateAppSurfaces(appSlug || null);
     if (appSlug) {
@@ -112,4 +117,6 @@ export async function updateWorkspaceAppAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }

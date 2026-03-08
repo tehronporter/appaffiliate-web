@@ -26,6 +26,7 @@ function buildUnattributedHref(params: {
 
 export async function markUnattributedReviewAction(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await markUnattributedItemInReview(
@@ -36,12 +37,10 @@ export async function markUnattributedReviewAction(formData: FormData) {
     revalidatePath("/review");
     revalidatePath("/setup");
     revalidatePath("/dashboard");
-    redirect(
-      buildUnattributedHref({
-        eventId: result.eventId,
-        notice: "queue-reviewed",
-      }),
-    );
+    redirectTarget = buildUnattributedHref({
+      eventId: result.eventId,
+      notice: "queue-reviewed",
+    });
   } catch {
     redirect(
       buildUnattributedHref({
@@ -50,10 +49,13 @@ export async function markUnattributedReviewAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function applyManualAttributionAction(formData: FormData) {
   const eventId = String(formData.get("eventId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await applyManualAttribution({
@@ -68,12 +70,10 @@ export async function applyManualAttributionAction(formData: FormData) {
     revalidatePath("/earnings");
     revalidatePath("/setup");
     revalidatePath("/dashboard");
-    redirect(
-      buildUnattributedHref({
-        eventId: result.eventId,
-        notice: "queue-resolved",
-      }),
-    );
+    redirectTarget = buildUnattributedHref({
+      eventId: result.eventId,
+      notice: "queue-resolved",
+    });
   } catch {
     redirect(
       buildUnattributedHref({
@@ -82,4 +82,6 @@ export async function applyManualAttributionAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }

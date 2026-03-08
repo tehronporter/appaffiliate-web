@@ -47,6 +47,7 @@ function buildPayoutBatchesHref(params: {
 
 export async function createDraftPayoutBatchAction(formData: FormData) {
   const groupId = String(formData.get("groupId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await createDraftPayoutBatch({
@@ -60,13 +61,11 @@ export async function createDraftPayoutBatchAction(formData: FormData) {
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
-    redirect(
-      buildPayoutsHref({
-        view: "batches",
-        batch: result.batchId,
-        notice: "batch-created",
-      }),
-    );
+    redirectTarget = buildPayoutsHref({
+      view: "batches",
+      batch: result.batchId,
+      notice: "batch-created",
+    });
   } catch {
     redirect(
       buildPayoutsHref({
@@ -74,10 +73,13 @@ export async function createDraftPayoutBatchAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function markPayoutBatchExportedAction(formData: FormData) {
   const batchId = String(formData.get("batchId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await markPayoutBatchExported({
@@ -92,12 +94,10 @@ export async function markPayoutBatchExportedAction(formData: FormData) {
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
-    redirect(
-      buildPayoutBatchesHref({
-        batch: result.batchId,
-        notice: "batch-exported",
-      }),
-    );
+    redirectTarget = buildPayoutBatchesHref({
+      batch: result.batchId,
+      notice: "batch-exported",
+    });
   } catch {
     redirect(
       buildPayoutBatchesHref({
@@ -106,10 +106,13 @@ export async function markPayoutBatchExportedAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function markPayoutBatchPaidAction(formData: FormData) {
   const batchId = String(formData.get("batchId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await markPayoutBatchPaid({
@@ -123,12 +126,10 @@ export async function markPayoutBatchPaidAction(formData: FormData) {
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
-    redirect(
-      buildPayoutBatchesHref({
-        batch: result.batchId,
-        notice: "batch-paid",
-      }),
-    );
+    redirectTarget = buildPayoutBatchesHref({
+      batch: result.batchId,
+      notice: "batch-paid",
+    });
   } catch {
     redirect(
       buildPayoutBatchesHref({
@@ -137,10 +138,13 @@ export async function markPayoutBatchPaidAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function cancelPayoutBatchAction(formData: FormData) {
   const batchId = String(formData.get("batchId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await cancelPayoutBatch({
@@ -154,12 +158,10 @@ export async function cancelPayoutBatchAction(formData: FormData) {
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
-    redirect(
-      buildPayoutBatchesHref({
-        batch: result.batchId,
-        notice: "batch-cancelled",
-      }),
-    );
+    redirectTarget = buildPayoutBatchesHref({
+      batch: result.batchId,
+      notice: "batch-cancelled",
+    });
   } catch {
     redirect(
       buildPayoutBatchesHref({
@@ -168,4 +170,6 @@ export async function cancelPayoutBatchAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }

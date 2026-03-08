@@ -21,6 +21,8 @@ function buildCodesHref(params: {
 }
 
 export async function createPromoCodeAction(formData: FormData) {
+  let redirectTarget: string | null = null;
+
   try {
     const result = await createPromoCode({
       appId: String(formData.get("appId") ?? ""),
@@ -45,12 +47,10 @@ export async function createPromoCodeAction(formData: FormData) {
     revalidatePath("/creators");
     revalidatePath("/setup");
     revalidatePath("/dashboard");
-    redirect(
-      buildCodesHref({
-        codeId: result.id,
-        notice: "code-created",
-      }),
-    );
+    redirectTarget = buildCodesHref({
+      codeId: result.id,
+      notice: "code-created",
+    });
   } catch {
     redirect(
       buildCodesHref({
@@ -58,10 +58,13 @@ export async function createPromoCodeAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
 
 export async function updatePromoCodeAction(formData: FormData) {
   const promoCodeId = String(formData.get("promoCodeId") ?? "");
+  let redirectTarget: string | null = null;
 
   try {
     const result = await updatePromoCode(promoCodeId, {
@@ -87,12 +90,10 @@ export async function updatePromoCodeAction(formData: FormData) {
     revalidatePath("/creators");
     revalidatePath("/setup");
     revalidatePath("/dashboard");
-    redirect(
-      buildCodesHref({
-        codeId: result.id,
-        notice: "code-updated",
-      }),
-    );
+    redirectTarget = buildCodesHref({
+      codeId: result.id,
+      notice: "code-updated",
+    });
   } catch {
     redirect(
       buildCodesHref({
@@ -101,4 +102,6 @@ export async function updatePromoCodeAction(formData: FormData) {
       }),
     );
   }
+
+  redirect(redirectTarget!);
 }
