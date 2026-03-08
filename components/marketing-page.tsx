@@ -84,7 +84,7 @@ export function MarketingSection({
       id={id}
       className={joinClasses(muted ? "border-y border-border bg-surface" : "bg-white", className)}
     >
-      <div className="mx-auto max-w-[var(--marketing-max-width)] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-20">
+      <div className="aa-marketing-width aa-section">
         {children}
       </div>
     </section>
@@ -112,8 +112,8 @@ export function MarketingHero({
 }: MarketingHeroProps) {
   return (
     <section className="border-b border-border bg-[radial-gradient(circle_at_top_left,rgba(46,83,255,0.14),transparent_36%),linear-gradient(180deg,#fcfdff_0%,#ffffff_100%)]">
-      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-12 lg:py-16">
-        <div className="max-w-[34rem]">
+      <div className="aa-marketing-width aa-section-hero grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)] lg:items-center xl:gap-14">
+        <div className="max-w-[36rem]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-primary">
             {eyebrow}
           </p>
@@ -138,18 +138,18 @@ export function MarketingHero({
 
         {children ? (
           wrapVisual ? (
-            <div className="w-full max-w-[500px] justify-self-center rounded-[var(--radius-card)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(242,246,253,0.96)_100%)] p-6 shadow-[var(--shadow-strong)] sm:p-7 lg:justify-self-end">
+            <div className="w-full max-w-[520px] justify-self-center rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(242,246,253,0.96)_100%)] p-5 shadow-[var(--shadow-strong)] sm:p-6 lg:justify-self-end">
               {children}
             </div>
           ) : (
-            <div className="w-full max-w-[500px] justify-self-center lg:justify-self-end lg:self-center">
+            <div className="w-full max-w-[520px] justify-self-center lg:justify-self-end lg:self-center">
               {children}
             </div>
           )
         ) : null}
       </div>
 
-      <div className="flex justify-center pb-6">
+      <div className="flex justify-center pb-5">
         <a
           href="#content"
           aria-label="Scroll to content"
@@ -176,7 +176,7 @@ export function MarketingHeroVisual({
   return (
     <div
       className={joinClasses(
-        "relative mx-auto flex w-full max-w-[500px] items-center justify-center rounded-[var(--radius-card)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[radial-gradient(circle_at_top,rgba(46,83,255,0.12),transparent_62%),linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(244,247,255,0.94)_100%)] p-6 shadow-[var(--shadow-strong)] sm:p-8 lg:ml-auto lg:mr-0 lg:p-9",
+        "relative mx-auto flex w-full max-w-[520px] items-center justify-center rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[radial-gradient(circle_at_top,rgba(46,83,255,0.12),transparent_62%),linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(244,247,255,0.94)_100%)] p-5 shadow-[var(--shadow-strong)] sm:p-7 lg:ml-auto lg:mr-0 lg:p-8",
         className,
       )}
     >
@@ -210,14 +210,14 @@ export function MarketingHeroProofStack({
   return (
     <div
       className={joinClasses(
-        "grid gap-2 self-center lg:max-w-[460px] lg:justify-self-end",
+        "grid gap-3 self-center lg:max-w-[460px] lg:justify-self-end",
         className,
       )}
     >
       {items.map((item) => (
         <div
           key={item.title}
-          className="flex min-h-[92px] items-start gap-3 rounded-[12px] border border-border bg-white p-4"
+          className="flex min-h-[92px] items-start gap-3 rounded-[var(--radius-panel)] border border-border bg-white p-4"
         >
           <span
             aria-hidden="true"
@@ -260,7 +260,7 @@ export function MarketingSectionHeading({
           {eyebrow}
         </p>
       ) : null}
-      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-ink sm:text-4xl">
+      <h2 className="mt-4 text-[clamp(2rem,4vw,2.6rem)] font-semibold tracking-[-0.05em] text-ink">
         {title}
       </h2>
       <p className="mt-4 text-base leading-7 text-ink-muted">{description}</p>
@@ -293,13 +293,13 @@ export function MarketingCard({
   return (
     <div
       className={joinClasses(
-        "flex h-full flex-col rounded-[12px] border p-5 transition-colors duration-200 hover:border-border-strong",
+        "flex h-full flex-col rounded-[var(--radius-panel)] border p-5 transition-colors duration-200 hover:border-border-strong sm:p-6",
         toneClass,
         className,
       )}
     >
       {icon ? (
-        <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#EBF0FF] text-primary [&_svg]:h-7 [&_svg]:w-7 [&_svg]:stroke-[1.5]">
+        <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#EBF0FF] text-primary [&_svg]:h-6 [&_svg]:w-6 [&_svg]:stroke-[1.5]">
           {icon}
         </div>
       ) : null}
@@ -369,7 +369,7 @@ export function MarketingComparison({
       </div>
 
       <div className="mt-8 sm:mt-10">
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <div className="overflow-hidden rounded-[var(--radius-card)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.04)]">
             <div className="grid grid-cols-[28%_32%_40%] items-stretch text-xs tracking-[0.08em]">
               <div className="border-b border-border/80 px-5 py-3 text-[11px] font-semibold uppercase text-ink-subtle">
@@ -413,7 +413,7 @@ export function MarketingComparison({
           </div>
         </div>
 
-        <div className="space-y-3 md:hidden">
+        <div className="space-y-3 lg:hidden">
           {rows.map((row) => (
             <div
               key={row.painPoint}
@@ -628,11 +628,11 @@ export function MarketingCtaPanel({
 }: MarketingCtaPanelProps) {
   return (
     <ScrollReveal>
-      <div className="rounded-[var(--radius-card)] border border-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))] bg-[linear-gradient(180deg,#ffffff_0%,#f3f7ff_100%)] px-6 py-10 text-center shadow-[var(--shadow-strong)] sm:px-10">
+      <div className="rounded-[var(--radius-hero)] border border-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))] bg-[linear-gradient(180deg,#ffffff_0%,#f3f7ff_100%)] px-6 py-9 text-center shadow-[var(--shadow-strong)] sm:px-8 sm:py-10 lg:px-10">
         <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
           {eyebrow}
         </p>
-        <h2 className="mt-4 text-4xl font-semibold tracking-[-0.06em] text-ink sm:text-5xl">
+        <h2 className="mt-4 text-[clamp(2rem,4.6vw,3.25rem)] font-semibold tracking-[-0.06em] text-ink">
           {title}
         </h2>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-ink-muted">

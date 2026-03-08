@@ -49,12 +49,14 @@ type WorkspaceSidebarProps = {
   workspaceName: string;
   user: WorkspaceShellUser;
   activationReminder?: WorkspaceActivationReminder | null;
+  onNavigate?: () => void;
 };
 
 export function WorkspaceSidebar({
   workspaceName,
   user,
   activationReminder,
+  onNavigate,
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
   const compactWorkspaceName =
@@ -62,14 +64,14 @@ export function WorkspaceSidebar({
 
   return (
     <div className="flex h-full flex-col bg-white">
-      <div className="border-b border-[var(--aa-shell-border)] px-4 py-3">
+      <div className="border-b border-[var(--aa-shell-border)] px-4 py-3.5">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
           Workspace
         </p>
         <p className="mt-1 truncate text-sm font-semibold text-ink">{compactWorkspaceName}</p>
       </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-2.5">
+      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
         <div className="space-y-1">
           {workspaceSidebarNavItems.map((item) => {
             const active = isNavItemActive(pathname, item);
@@ -84,9 +86,10 @@ export function WorkspaceSidebar({
               <div key={item.href}>
                 <Link
                   href={href}
+                  onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
                   className={joinClasses(
-                    "flex min-h-[40px] items-center gap-3 rounded-[10px] border-l-2 px-3 py-2 text-sm font-medium transition",
+                    "flex min-h-[44px] items-center gap-3 rounded-[10px] border-l-2 px-3 py-2.5 text-sm font-medium transition",
                     active
                       ? "border-l-primary bg-[color:color-mix(in_srgb,var(--color-primary)_7%,white)] text-ink"
                       : "border-l-transparent text-ink-muted hover:bg-surface hover:text-ink",
@@ -125,7 +128,7 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      <div className="mt-auto border-t border-[var(--aa-shell-border)] px-3 py-2.5">
+      <div className="mt-auto border-t border-[var(--aa-shell-border)] px-3 py-3">
         <div className="flex items-center gap-3 rounded-[10px] px-2 py-1">
           <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
             {user.initials}
@@ -137,6 +140,7 @@ export function WorkspaceSidebar({
           {workspaceUtilityNavItems[0] ? (
             <Link
               href={workspaceUtilityNavItems[0].href}
+              onClick={onNavigate}
               aria-label={workspaceUtilityNavItems[0].label}
               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink"
             >

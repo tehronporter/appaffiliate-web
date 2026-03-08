@@ -181,7 +181,7 @@ export function SignupForm({
         </label>
 
         {errorMessage ? (
-          <p className="rounded-[16px] border border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
+          <p className="rounded-[var(--radius-card)] border border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
             {errorMessage}
           </p>
         ) : null}

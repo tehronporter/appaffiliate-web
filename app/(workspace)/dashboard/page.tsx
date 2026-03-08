@@ -113,7 +113,7 @@ function DashboardMetricCard({
 }: DashboardMetricCardProps) {
   return (
     <div
-      className={`h-[88px] min-w-[156px] max-w-[156px] rounded-[var(--radius-card)] border px-3 py-2.5 transition-colors hover:border-[var(--aa-shell-border-strong)] ${dashboardMetricCardToneClass(tone)}`}
+      className={`rounded-[var(--radius-card)] border px-3.5 py-3 transition-colors hover:border-[var(--aa-shell-border-strong)] ${dashboardMetricCardToneClass(tone)}`}
     >
       <div className="flex items-start justify-between gap-3">
         <StatusBadge tone={dashboardMetricBadgeTone(tone)} className="min-h-6 px-2 py-0.5 text-[10px]">
@@ -352,8 +352,8 @@ export default async function DashboardPage() {
         </div>
       </PageHeader>
 
-      <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex min-w-max gap-3">
+      <section>
+        <div className="aa-stat-grid">
           {performanceSnapshot.map((metric) => (
             <DashboardMetricCard
               key={metric.label}
@@ -457,7 +457,7 @@ export default async function DashboardPage() {
           >
             {latestResults.length > 0 ? (
               <div>
-                <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] gap-3 border-b border-[var(--aa-shell-border)] px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+                <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] gap-3 border-b border-[var(--aa-shell-border)] px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle sm:grid">
                   <span>Creator</span>
                   <span>Event</span>
                   <span className="text-right">Value</span>
@@ -467,16 +467,28 @@ export default async function DashboardPage() {
                   {latestResults.map((item) => (
                     <div
                       key={item.id}
-                      className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] gap-3 px-1 py-2.5 text-sm"
+                      className="grid gap-3 px-1 py-3 text-sm sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] sm:py-2.5"
                     >
-                      <p className="truncate text-[15px] font-medium text-ink">{item.partnerName}</p>
-                      <p className="truncate text-ink-muted">{item.eventType}</p>
-                      <p className="text-right font-medium text-ink">
+                      <div>
+                        <span className="aa-mobile-label sm:hidden">Creator</span>
+                        <p className="truncate text-[15px] font-medium text-ink">{item.partnerName}</p>
+                      </div>
+                      <div>
+                        <span className="aa-mobile-label sm:hidden">Event</span>
+                        <p className="truncate text-ink-muted">{item.eventType}</p>
+                      </div>
+                      <div>
+                        <span className="aa-mobile-label sm:hidden">Value</span>
+                        <p className="font-medium text-ink sm:text-right">
                         {item.commissionAmountLabel}
-                      </p>
-                      <p className="text-right text-ink-muted">
+                        </p>
+                      </div>
+                      <div>
+                        <span className="aa-mobile-label sm:hidden">Time</span>
+                        <p className="text-ink-muted sm:text-right">
                         {formatRelativeTime(item.occurredAt)}
-                      </p>
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>

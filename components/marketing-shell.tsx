@@ -117,7 +117,7 @@ export function MarketingShell({
             <BrandLogoLink size="marketing-header" priority />
           </div>
 
-          <nav className="hidden items-center gap-0.5 md:flex lg:mr-3">
+          <nav className="hidden items-center gap-0.5 lg:flex lg:mr-3">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -139,7 +139,7 @@ export function MarketingShell({
             ))}
           </nav>
 
-          <div className="hidden items-center gap-2.5 md:flex">
+          <div className="hidden items-center gap-2.5 lg:flex">
             <ActionButton {...secondaryAction} />
             <ActionButton {...primaryAction} />
           </div>
@@ -148,7 +148,7 @@ export function MarketingShell({
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation menu"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-muted transition hover:bg-white/80 hover:text-ink md:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-muted transition hover:bg-white/80 hover:text-ink lg:hidden"
           >
             <Menu size={22} strokeWidth={1.5} />
           </button>
@@ -157,7 +157,7 @@ export function MarketingShell({
 
       {/* ── Mobile Drawer Overlay ── */}
       {drawerOpen ? (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/30 backdrop-blur-sm"
@@ -210,7 +210,7 @@ export function MarketingShell({
 
       {/* ── Footer ── */}
       <footer className="border-t border-border bg-[linear-gradient(180deg,#ffffff_0%,#f5f5f5_100%)]">
-        <div className="mx-auto grid max-w-[var(--marketing-max-width)] gap-10 px-5 py-12 sm:grid-cols-2 sm:px-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)] lg:px-12">
+        <div className="aa-marketing-width grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)]">
           <div className="max-w-md sm:col-span-2 lg:col-span-1">
             <BrandLogoLink size="marketing-footer" />
             <p className="mt-3 text-lg font-semibold tracking-[-0.03em] text-ink">
@@ -252,9 +252,9 @@ export function MarketingShell({
 
         {/* Legal */}
         <div className="border-t border-border">
-          <div className="mx-auto flex max-w-[var(--marketing-max-width)] flex-col items-center justify-between gap-3 px-5 py-5 text-xs text-ink-subtle sm:flex-row sm:px-8 lg:px-12">
+          <div className="aa-marketing-width flex flex-col items-start justify-between gap-3 py-5 text-xs text-ink-subtle sm:flex-row sm:items-center">
             <p>&copy; 2026 AppAffiliate. All rights reserved.</p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <Link href="/privacy" className="transition hover:text-ink">Privacy Policy</Link>
               <Link href="/terms" className="transition hover:text-ink">Terms of Service</Link>
             </div>

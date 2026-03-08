@@ -266,8 +266,8 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
 
       {banner ? <NoticeBanner title={banner.title} detail={banner.detail} tone={banner.tone} /> : null}
 
-      <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex min-w-max gap-3">
+      <section>
+        <div className="aa-stat-grid">
           <MetricChip label="Active" value={String(data.stats.active)} detail="In register" tone="green" />
           <MetricChip
             label="Assigned"
@@ -369,7 +369,7 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
               <Link
                 key={code.id}
                 href={buildHref({ status, ownership, code: code.id })}
-                className="grid gap-4 px-5 py-3 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] md:items-center"
+                className="grid gap-3 px-4 py-4 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] md:items-center md:gap-4 md:px-5 md:py-3"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -379,9 +379,16 @@ export default async function CodesPage({ searchParams }: CodesPageProps) {
                   <p className="mt-1 text-sm text-ink-muted">{code.channel ?? "No channel note"}</p>
                 </div>
 
-                <div className="text-sm text-ink-muted">{code.partnerName ?? "Unassigned"}</div>
-                <div className="text-sm text-ink-muted">{code.appName}</div>
+                <div>
+                  <span className="aa-mobile-label md:hidden">Owner</span>
+                  <div className="text-sm text-ink-muted">{code.partnerName ?? "Unassigned"}</div>
+                </div>
+                <div>
+                  <span className="aa-mobile-label md:hidden">App</span>
+                  <div className="text-sm text-ink-muted">{code.appName}</div>
+                </div>
                 <div className="flex justify-start md:justify-end">
+                  <span className="aa-mobile-label mr-2 md:hidden">Status</span>
                   <StatusBadge tone={statusTone(code.status)}>{statusLabel(code.status)}</StatusBadge>
                 </div>
               </Link>

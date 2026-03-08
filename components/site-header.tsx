@@ -20,14 +20,14 @@ export function SiteHeaderFrame({
   className,
   scrolled = false,
   maxWidthClassName = "max-w-[var(--marketing-max-width)]",
-  stickyClassName = "sticky top-0 z-30 px-3 pt-3 sm:px-4 sm:pt-4",
+  stickyClassName = "sticky top-0 z-30 px-3 pt-3 sm:px-4 sm:pt-4 lg:px-5",
   surfaceClassName,
 }: SiteHeaderFrameProps) {
   return (
     <div className={joinClasses(stickyClassName, className)}>
       <header
         className={joinClasses(
-          "mx-auto rounded-[22px] border transition-all duration-300",
+          "mx-auto w-full rounded-[22px] border transition-all duration-300",
           maxWidthClassName,
           scrolled
             ? "border-[color:color-mix(in_srgb,var(--color-primary)_9%,var(--color-border))] bg-[rgba(255,255,255,0.9)] shadow-[0_14px_34px_rgba(17,24,39,0.08)] backdrop-blur-xl"
@@ -55,7 +55,7 @@ export function SiteHeaderRow({
   return (
     <div
       className={joinClasses(
-        "mx-auto flex min-h-[64px] items-center gap-3 px-4 sm:px-6 lg:px-8",
+        "mx-auto flex min-h-[66px] items-center gap-3 px-4 sm:min-h-[70px] sm:px-6 lg:px-8",
         maxWidthClassName,
         className,
       )}

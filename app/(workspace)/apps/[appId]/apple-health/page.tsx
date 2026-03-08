@@ -132,8 +132,8 @@ export default async function AppleHealthPage({
       </PageHeader>
 
       <div className="space-y-3">
-        <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          <div className="flex min-w-max gap-3">
+        <section>
+          <div className="aa-stat-grid">
             <MetricChip
               label="App readiness"
               value={readiness.readinessLabel}

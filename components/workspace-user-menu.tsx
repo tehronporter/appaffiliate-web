@@ -56,13 +56,13 @@ export function WorkspaceUserMenu({ user }: WorkspaceUserMenuProps) {
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
           {user.initials}
         </span>
-        <ChevronDown size={16} strokeWidth={1.75} className="text-ink-subtle" />
+        <ChevronDown size={16} strokeWidth={1.75} className="hidden text-ink-subtle sm:block" />
       </button>
 
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[240px] rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white p-2 shadow-[0_16px_40px_rgba(17,24,39,0.08)]"
+          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(15rem,calc(100vw-1rem))] rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white p-2 shadow-[0_16px_40px_rgba(17,24,39,0.08)] sm:w-[240px]"
         >
           <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-surface px-3 py-3">
             <p className="text-sm font-semibold text-ink">{user.name}</p>

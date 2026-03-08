@@ -383,24 +383,35 @@ export default async function PayoutBatchesPage({
                 <Link
                   key={batch.id}
                   href={buildHref({ state, batch: batch.id })}
-                  className={`grid gap-4 px-5 py-3 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.15fr)_150px_120px_120px_auto] md:items-center ${
+                  className={`grid gap-3 px-4 py-4 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.15fr)_150px_120px_120px_auto] md:items-center md:gap-4 md:px-5 md:py-3 ${
                     batch.id === selectedBatch?.id ? "bg-primary-soft/35" : ""
                   }`}
                 >
                   <div>
+                    <span className="aa-mobile-label md:hidden">Batch</span>
                     <h3 className="text-[15px] font-semibold text-ink">{batch.name}</h3>
                     <p className="mt-1 text-sm text-ink-muted">
                       {batch.entryCount} entries • {batch.partnerCount} partners
                     </p>
                   </div>
-                  <div className="text-sm text-ink-muted">{batch.windowLabel}</div>
-                  <div className="text-sm font-semibold text-ink">
-                    {batch.totalAmountLabel}
+                  <div>
+                    <span className="aa-mobile-label md:hidden">Window</span>
+                    <div className="text-sm text-ink-muted">{batch.windowLabel}</div>
                   </div>
-                  <div className="text-sm text-ink-muted">
-                    {batch.externalReference ?? batch.exportStatusLabel}
+                  <div>
+                    <span className="aa-mobile-label md:hidden">Total</span>
+                    <div className="text-sm font-semibold text-ink">
+                      {batch.totalAmountLabel}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="aa-mobile-label md:hidden">Handoff</span>
+                    <div className="text-sm text-ink-muted">
+                      {batch.externalReference ?? batch.exportStatusLabel}
+                    </div>
                   </div>
                   <div className="flex justify-start md:justify-end">
+                    <span className="aa-mobile-label mr-2 md:hidden">Status</span>
                     <StatusBadge tone={batchTone(batch.status)}>
                       {batch.statusLabel}
                     </StatusBadge>

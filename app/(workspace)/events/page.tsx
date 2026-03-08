@@ -163,8 +163,8 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         </div>
       </PageHeader>
 
-      <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex min-w-max gap-3">
+      <section>
+        <div className="aa-stat-grid">
           <MetricChip
             label="Needs review"
             value={String(eventData.stats.unattributed)}
@@ -280,14 +280,16 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             <Link
               key={event.id}
               href={buildHref({ state, event: event.id })}
-              className={`grid gap-4 px-5 py-3 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[110px_minmax(0,1.45fr)_minmax(0,0.9fr)_120px_150px_110px] md:items-center ${
+              className={`grid gap-3 px-4 py-4 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[110px_minmax(0,1.45fr)_minmax(0,0.9fr)_120px_150px_110px] md:items-center md:gap-4 md:px-5 md:py-3 ${
                 event.id === selectedEvent?.id ? "bg-primary-soft/35" : ""
               }`}
             >
               <div className="flex justify-start">
+                <span className="aa-mobile-label mr-2 md:hidden">State</span>
                 <StatusBadge tone={stateTone(event.state)}>{stateLabel(event.state)}</StatusBadge>
               </div>
               <div>
+                <span className="aa-mobile-label md:hidden">Result</span>
                 <h3 className="text-sm font-semibold text-ink">
                   {event.eventType.replaceAll("_", " ")}
                 </h3>
@@ -295,15 +297,27 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                   {event.reasonCode ?? `${event.sourceType} • ${event.environment}`}
                 </p>
               </div>
-              <div className="text-sm text-ink-muted">{event.appName}</div>
-              <div className="text-sm font-semibold text-ink">
-                {formatMoney(event.amountMinor, event.currency)}
+              <div>
+                <span className="aa-mobile-label md:hidden">App</span>
+                <div className="text-sm text-ink-muted">{event.appName}</div>
               </div>
-              <div className="text-sm text-ink-muted">
-                {formatOperationalTimestamp(event.receivedAt ?? event.occurredAt)}
+              <div>
+                <span className="aa-mobile-label md:hidden">Value</span>
+                <div className="text-sm font-semibold text-ink">
+                  {formatMoney(event.amountMinor, event.currency)}
+                </div>
               </div>
-              <div className="text-sm font-semibold text-primary">
-                {nextActionLabel(event.state)}
+              <div>
+                <span className="aa-mobile-label md:hidden">Time</span>
+                <div className="text-sm text-ink-muted">
+                  {formatOperationalTimestamp(event.receivedAt ?? event.occurredAt)}
+                </div>
+              </div>
+              <div>
+                <span className="aa-mobile-label md:hidden">Action</span>
+                <div className="text-sm font-semibold text-primary">
+                  {nextActionLabel(event.state)}
+                </div>
               </div>
             </Link>
           ))}

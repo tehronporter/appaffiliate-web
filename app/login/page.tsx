@@ -28,9 +28,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       title="Sign in to your AppAffiliate account"
       description="Use the email already linked to your workspace or creator invite. AppAffiliate opens the right surface automatically."
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.02fr)_minmax(420px,0.9fr)] lg:items-start lg:gap-10">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(420px,0.9fr)] xl:items-start xl:gap-10">
         <div className="space-y-5">
-          <section className="relative overflow-hidden rounded-[24px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(246,249,255,0.98)_100%)] p-6 shadow-[0_16px_40px_rgba(17,24,39,0.06)] sm:p-8">
+          <section className="relative overflow-hidden rounded-[var(--radius-hero)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(246,249,255,0.98)_100%)] p-6 shadow-[0_16px_40px_rgba(17,24,39,0.06)] sm:p-8">
             <div className="pointer-events-none absolute right-[-68px] top-[-72px] h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(46,83,255,0.14)_0%,rgba(46,83,255,0.04)_52%,transparent_76%)] blur-3xl" />
             <div className="relative">
               <div className="inline-flex items-center gap-2 rounded-full border border-[color:color-mix(in_srgb,var(--color-primary)_12%,white)] bg-[#EBF0FF] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
@@ -44,7 +44,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </p>
 
               <div className="mt-7 space-y-3">
-                <div className="flex items-start gap-4 rounded-[18px] border border-border bg-white/84 px-4 py-4">
+                <div className="flex items-start gap-4 rounded-[var(--radius-panel)] border border-border bg-white/84 px-4 py-4">
                   <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#EBF0FF] text-primary">
                     <Building2 size={22} strokeWidth={1.75} />
                   </span>
@@ -63,7 +63,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 rounded-[18px] border border-border bg-white/84 px-4 py-4">
+                <div className="flex items-start gap-4 rounded-[var(--radius-panel)] border border-border bg-white/84 px-4 py-4">
                   <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#EBF0FF] text-primary">
                     <UserRound size={22} strokeWidth={1.75} />
                   </span>
@@ -85,7 +85,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
           </section>
 
-          <section className="rounded-[20px] border border-border bg-white/88 px-5 py-5 shadow-[0_10px_26px_rgba(17,24,39,0.04)]">
+          <section className="rounded-[var(--radius-panel)] border border-border bg-white/88 px-5 py-5 shadow-[0_10px_26px_rgba(17,24,39,0.04)]">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
               What happens next
             </p>
@@ -97,7 +97,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               ].map((item) => (
                 <div
                   key={item}
-                  className="flex items-start gap-3 rounded-[16px] border border-border bg-surface px-4 py-3"
+                  className="flex items-start gap-3 rounded-[var(--radius-card)] border border-border bg-surface px-4 py-3"
                 >
                   <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-primary">
                     <BadgeCheck size={16} strokeWidth={1.75} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { BrandLogoLink } from "@/components/brand-logo";
@@ -14,11 +14,13 @@ import { getRouteContext } from "@/lib/navigation";
 type WorkspaceTopNavProps = {
   user: WorkspaceShellUser;
   hasUnreadNotifications?: boolean;
+  onOpenSidebar?: () => void;
 };
 
 export function WorkspaceTopNav({
   user,
   hasUnreadNotifications = false,
+  onOpenSidebar,
 }: WorkspaceTopNavProps) {
   const pathname = usePathname();
   const routeContext = getRouteContext(pathname);
@@ -38,23 +40,36 @@ export function WorkspaceTopNav({
   return (
     <SiteHeaderFrame
       scrolled={scrolled}
-      maxWidthClassName="max-w-[1600px]"
+      maxWidthClassName="max-w-[var(--shell-max-width)]"
       stickyClassName="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4"
     >
-      <SiteHeaderRow maxWidthClassName="max-w-[1600px]">
-        <BrandLogoLink
-          href="/dashboard"
-          ariaLabel="Open AppAffiliate dashboard"
-          size="workspace-compact"
-          priority
-        />
+      <SiteHeaderRow maxWidthClassName="max-w-[var(--shell-max-width)]">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          {onOpenSidebar ? (
+            <button
+              type="button"
+              aria-label="Open workspace navigation"
+              onClick={onOpenSidebar}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink lg:hidden"
+            >
+              <Menu size={18} strokeWidth={1.75} />
+            </button>
+          ) : null}
 
-        <div className="hidden h-5 w-px bg-[var(--aa-shell-border)] md:block" />
+          <BrandLogoLink
+            href="/dashboard"
+            ariaLabel="Open AppAffiliate dashboard"
+            size="workspace-compact"
+            priority
+          />
 
-        <div className="min-w-0">
-          <p className="truncate text-[15px] font-semibold text-ink">
-            {routeContext?.item.label ?? "Dashboard"}
-          </p>
+          <div className="hidden h-5 w-px bg-[var(--aa-shell-border)] md:block" />
+
+          <div className="min-w-0 hidden sm:block">
+            <p className="truncate text-[15px] font-semibold text-ink">
+              {routeContext?.item.label ?? "Dashboard"}
+            </p>
+          </div>
         </div>
 
         <div className="flex-1" />
@@ -64,7 +79,7 @@ export function WorkspaceTopNav({
         <button
           type="button"
           aria-label="Notifications"
-          className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink"
+          className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--aa-shell-border)] bg-white text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink"
         >
           <Bell size={17} strokeWidth={1.75} />
           {hasUnreadNotifications ? (

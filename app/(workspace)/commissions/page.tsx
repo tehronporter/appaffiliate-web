@@ -152,8 +152,8 @@ export default async function CommissionsPage({
         />
       ) : null}
 
-      <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex min-w-max gap-3">
+      <section>
+        <div className="aa-stat-grid">
           <MetricChip
             label="Pending review"
             value={String(data.stats.pendingReview)}
@@ -286,11 +286,12 @@ export default async function CommissionsPage({
                 <Link
                   key={item.id}
                   href={buildHref({ state, entry: item.id })}
-                  className={`grid gap-4 px-5 py-3 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.4fr)_140px_140px_auto] md:items-center ${
+                  className={`grid gap-3 px-4 py-4 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.4fr)_140px_140px_auto] md:items-center md:gap-4 md:px-5 md:py-3 ${
                     item.id === selectedItem?.id ? "bg-primary-soft/35" : ""
                   }`}
                 >
                   <div>
+                    <span className="aa-mobile-label md:hidden">Partner / event</span>
                     <h3 className="text-sm font-semibold text-ink">{item.partnerName}</h3>
                     <p className="mt-1 text-sm text-ink-muted">
                       {item.appName}
@@ -300,11 +301,18 @@ export default async function CommissionsPage({
                       {item.eventType} • {item.environment}
                     </p>
                   </div>
-                  <div className="text-sm text-ink-muted">{item.basisAmountLabel}</div>
-                  <div className="text-sm font-semibold text-ink">
-                    {item.commissionAmountLabel}
+                  <div>
+                    <span className="aa-mobile-label md:hidden">Basis</span>
+                    <div className="text-sm text-ink-muted">{item.basisAmountLabel}</div>
+                  </div>
+                  <div>
+                    <span className="aa-mobile-label md:hidden">Commission</span>
+                    <div className="text-sm font-semibold text-ink">
+                      {item.commissionAmountLabel}
+                    </div>
                   </div>
                   <div className="flex justify-start md:justify-end">
+                    <span className="aa-mobile-label mr-2 md:hidden">State</span>
                     <StatusBadge tone={stateTone(item.reviewState)}>
                       {item.reviewStateLabel}
                     </StatusBadge>

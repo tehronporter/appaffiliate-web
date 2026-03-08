@@ -245,8 +245,8 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
         />
       ) : null}
 
-      <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex min-w-max gap-3">
+      <section>
+        <div className="aa-stat-grid">
           <MetricChip
             label="Creators"
             value={String(data.partners.length)}
@@ -367,7 +367,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
                 <Link
                   key={partner.id}
                   href={buildHref({ status, partner: partner.id })}
-                  className="grid gap-4 px-5 py-3 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_90px_auto] md:items-center"
+                  className="grid gap-3 px-4 py-4 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_90px_auto] md:items-center md:gap-4 md:px-5 md:py-3"
                 >
                   <div>
                     <h3 className="text-sm font-semibold text-ink">{partner.name}</h3>
@@ -375,13 +375,20 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
                       {partner.notes ?? "No note"}
                     </p>
                   </div>
-                  <div className="text-sm text-ink-muted">
-                    {partner.contactEmail ?? "No email on file"}
+                  <div>
+                    <span className="aa-mobile-label md:hidden">Contact</span>
+                    <div className="text-sm text-ink-muted">
+                      {partner.contactEmail ?? "No email on file"}
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-ink">
-                    {partner.assignedCodes}
+                  <div>
+                    <span className="aa-mobile-label md:hidden">Codes</span>
+                    <div className="text-sm font-semibold text-ink">
+                      {partner.assignedCodes}
+                    </div>
                   </div>
                   <div className="flex justify-start md:justify-end">
+                    <span className="aa-mobile-label mr-2 md:hidden">Status</span>
                     <StatusBadge tone={statusTone(partner.status)}>
                       {statusLabel(partner.status)}
                     </StatusBadge>

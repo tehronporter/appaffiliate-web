@@ -165,8 +165,8 @@ export default async function UnattributedPage({
         />
       ) : null}
 
-      <section className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex min-w-max gap-3">
+      <section>
+        <div className="aa-stat-grid">
           <MetricChip
             label="Needs decision"
             value={String(data.stats.unresolved)}
@@ -273,31 +273,45 @@ export default async function UnattributedPage({
             <Link
               key={item.eventId}
               href={buildHref({ reason, item: item.eventId })}
-              className={`grid gap-4 px-5 py-3 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[120px_minmax(0,1.35fr)_minmax(0,0.95fr)_130px_150px_110px] md:items-center ${
+              className={`grid gap-3 px-4 py-4 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[120px_minmax(0,1.35fr)_minmax(0,0.95fr)_130px_150px_110px] md:items-center md:gap-4 md:px-5 md:py-3 ${
                 item.eventId === selectedItem?.eventId ? "bg-primary-soft/35" : ""
               }`}
             >
               <div className="flex justify-start">
+                <span className="aa-mobile-label mr-2 md:hidden">State</span>
                 <StatusBadge tone={queueTone(item.queueStatus)}>
                   {queueLabel(item.queueStatus)}
                 </StatusBadge>
               </div>
               <div>
+                <span className="aa-mobile-label md:hidden">Why it is here</span>
                 <h3 className="text-[15px] font-semibold text-ink">{item.reasonLabel}</h3>
                 <p className="mt-1 text-sm text-ink-muted">
                   {item.eventType} on {item.appName}
                 </p>
               </div>
-              <div className="text-sm text-ink-muted">
-                {(item.suggestedPartnerLabel ?? "No creator") +
-                  " / " +
-                  (item.suggestedCodeLabel ?? "No code")}
+              <div>
+                <span className="aa-mobile-label md:hidden">Suggested owner</span>
+                <div className="text-sm text-ink-muted">
+                  {(item.suggestedPartnerLabel ?? "No creator") +
+                    " / " +
+                    (item.suggestedCodeLabel ?? "No code")}
+                </div>
               </div>
-              <div className="text-sm font-semibold text-ink">{item.confidenceLabel}</div>
-              <div className="text-sm text-ink-muted">
-                {formatOperationalTimestamp(item.receivedAt ?? item.occurredAt)}
+              <div>
+                <span className="aa-mobile-label md:hidden">Confidence</span>
+                <div className="text-sm font-semibold text-ink">{item.confidenceLabel}</div>
               </div>
-              <div className="text-sm font-semibold text-primary">Review record</div>
+              <div>
+                <span className="aa-mobile-label md:hidden">Time</span>
+                <div className="text-sm text-ink-muted">
+                  {formatOperationalTimestamp(item.receivedAt ?? item.occurredAt)}
+                </div>
+              </div>
+              <div>
+                <span className="aa-mobile-label md:hidden">Action</span>
+                <div className="text-sm font-semibold text-primary">Review record</div>
+              </div>
             </Link>
           ))}
         </div>

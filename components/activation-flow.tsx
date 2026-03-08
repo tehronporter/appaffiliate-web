@@ -108,7 +108,7 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
 function ActivationTopBar({ currentStepIndex }: { currentStepIndex: number }) {
   return (
     <header className="border-b border-[var(--aa-shell-border)] bg-white">
-      <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-6 px-4 sm:px-6">
+      <div className="aa-page-width flex h-14 items-center justify-between gap-3 sm:gap-6">
         <BrandLogoLink href="/dashboard" size="workspace-compact" ariaLabel="Open dashboard" />
         <div className="flex max-w-[240px] flex-1 items-center justify-center gap-2">
           {Array.from({ length: 5 }, (_, index) => {
@@ -129,7 +129,8 @@ function ActivationTopBar({ currentStepIndex }: { currentStepIndex: number }) {
           href="/dashboard"
           className="text-sm font-medium text-ink-muted transition hover:text-ink"
         >
-          Exit to dashboard
+          <span className="hidden sm:inline">Exit to dashboard</span>
+          <span className="sm:hidden">Exit</span>
         </Link>
       </div>
     </header>
@@ -150,7 +151,7 @@ function StepFrame({
   footer?: ReactNode;
 }) {
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-56px)] max-w-[560px] flex-col justify-center px-6 py-10">
+    <section className="mx-auto flex min-h-[calc(100vh-56px)] max-w-[600px] flex-col justify-center px-5 py-8 sm:px-6 sm:py-10">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
         STEP {step} OF 5
       </p>
@@ -181,7 +182,7 @@ function StepCard({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-[20px] border border-[var(--aa-shell-border)] bg-white p-5">
+    <div className="rounded-[var(--radius-panel)] border border-[var(--aa-shell-border)] bg-white p-5">
       <div className="flex items-start justify-between gap-4">
         <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft/60 text-primary">
           <Icon size={20} strokeWidth={1.75} />
@@ -205,7 +206,7 @@ function EmptyPanel({
   detail: string;
 }) {
   return (
-    <div className="rounded-[20px] border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] px-6 py-8 text-center">
+    <div className="rounded-[var(--radius-panel)] border border-[var(--aa-shell-border)] bg-[var(--aa-shell-panel-muted)] px-6 py-8 text-center">
       <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft/60 text-primary/60">
         <Icon size={24} strokeWidth={1.75} />
       </span>
@@ -283,7 +284,7 @@ function ChoiceCard({
       type="button"
       onClick={onSelect}
       className={joinClasses(
-        "rounded-[20px] border p-4 text-left transition",
+        "rounded-[var(--radius-panel)] border p-4 text-left transition",
         selected
           ? "border-primary bg-primary-soft/40"
           : "border-[var(--aa-shell-border)] bg-white hover:border-[var(--aa-shell-border-strong)]",

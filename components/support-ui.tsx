@@ -33,7 +33,7 @@ export function SupportCard({
   );
 
   const classes = joinClasses(
-    "block rounded-[18px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] transition-colors sm:p-6",
+    "block rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] transition-colors sm:p-6",
     href &&
       "hover:border-[color:color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)]",
     className,
@@ -71,7 +71,7 @@ export function FaqGroup({
   return (
     <div
       className={joinClasses(
-        "rounded-[20px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-white p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] sm:p-6",
+        "rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-white p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] sm:p-6",
         className,
       )}
     >
@@ -89,7 +89,7 @@ export function FaqGroup({
         {items.map((item) => (
           <details
             key={item.question}
-            className="group rounded-[18px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[#fbfcfe] px-4 py-4"
+            className="group rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[#fbfcfe] px-4 py-4"
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left">
               <span className="text-sm font-semibold tracking-[-0.01em] text-ink">
@@ -127,7 +127,7 @@ export function SupportChecklist({
   return (
     <div
       className={joinClasses(
-        "rounded-[20px] border border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-white p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] sm:p-6",
+        "rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-white p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] sm:p-6",
         className,
       )}
     >
@@ -138,7 +138,7 @@ export function SupportChecklist({
         {items.map((item, index) => (
           <div
             key={item.label}
-            className="flex flex-col gap-3 rounded-[16px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[#fbfcfe] px-4 py-4 sm:flex-row sm:gap-4"
+            className="flex flex-col gap-3 rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[#fbfcfe] px-4 py-4 sm:flex-row sm:gap-4"
           >
             <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#EBF0FF] text-sm font-semibold text-primary">
               {index + 1}

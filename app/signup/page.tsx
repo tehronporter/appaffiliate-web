@@ -49,7 +49,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       title="Create your AppAffiliate workspace"
       description="Start with an owner account, create your workspace, and begin a 14-day trial on the plan you selected."
     >
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:gap-6">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:gap-6">
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             <InsetPanel tone="primary">

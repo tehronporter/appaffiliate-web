@@ -179,6 +179,16 @@ export function WorkspaceSearch() {
         </span>
       </label>
 
+      <button
+        type="button"
+        onClick={openSearch}
+        aria-label="Open search"
+        className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--aa-shell-border)] bg-white px-3 text-sm font-medium text-ink-muted transition hover:border-[var(--aa-shell-border-strong)] hover:bg-surface hover:text-ink lg:hidden"
+      >
+        <Search size={16} strokeWidth={1.75} />
+        <span className="hidden sm:inline">Search</span>
+      </button>
+
       {open ? (
         <>
           <button
@@ -187,7 +197,7 @@ export function WorkspaceSearch() {
             onClick={close}
             className="aa-search-backdrop fixed inset-0 z-40 bg-[rgba(17,24,39,0.08)] backdrop-blur-[4px]"
           />
-          <div className="aa-search-modal fixed inset-x-0 top-24 z-50 mx-auto w-full max-w-[720px] px-4">
+          <div className="aa-search-modal fixed inset-x-0 top-[calc(var(--aa-shell-top-offset)+0.5rem)] z-50 mx-auto w-full max-w-[720px] px-4">
             <div className="rounded-[var(--radius-card)] border border-[var(--aa-shell-border)] bg-white p-4 shadow-[0_24px_56px_rgba(17,24,39,0.08)]">
               <div className="relative">
                 <Search

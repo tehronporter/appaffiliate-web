@@ -404,26 +404,36 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       view: view === "all" ? "all" : "ready",
                       group: group.id,
                     })}
-                    className={`grid gap-4 px-5 py-3 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.2fr)_150px_120px_110px] md:items-center ${
+                    className={`grid gap-3 px-4 py-4 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.2fr)_150px_120px_110px] md:items-center md:gap-4 md:px-5 md:py-3 ${
                       group.id === selectedGroup?.id ? "bg-primary-soft/35" : ""
                     }`}
                   >
                     <div>
+                      <span className="aa-mobile-label md:hidden">Partner</span>
                       <h3 className="text-sm font-semibold text-ink">{group.partnerName}</h3>
                       <p className="mt-1 text-sm text-ink-muted">
                         {group.entryCount} approved entries across{" "}
                         {group.appNames.join(", ") || "unknown app context"}
                       </p>
                     </div>
-                    <div className="text-sm text-ink-muted">
-                      {group.latestEffectiveAt
-                        ? formatOperationalTimestamp(group.latestEffectiveAt)
-                        : "Timing unavailable"}
+                    <div>
+                      <span className="aa-mobile-label md:hidden">Readiness</span>
+                      <div className="text-sm text-ink-muted">
+                        {group.latestEffectiveAt
+                          ? formatOperationalTimestamp(group.latestEffectiveAt)
+                          : "Timing unavailable"}
+                      </div>
                     </div>
-                    <div className="text-sm font-semibold text-ink">
-                      {group.totalAmountLabel}
+                    <div>
+                      <span className="aa-mobile-label md:hidden">Total</span>
+                      <div className="text-sm font-semibold text-ink">
+                        {group.totalAmountLabel}
+                      </div>
                     </div>
-                    <div className="text-sm font-semibold text-primary">Build batch</div>
+                    <div>
+                      <span className="aa-mobile-label md:hidden">Action</span>
+                      <div className="text-sm font-semibold text-primary">Build batch</div>
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -468,21 +478,29 @@ export default async function PayoutsPage({ searchParams }: PayoutsPageProps) {
                       view: view === "all" ? "all" : "batches",
                       batch: batch.id,
                     })}
-                    className={`grid gap-4 px-5 py-3 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.2fr)_120px_120px_auto] md:items-center ${
+                    className={`grid gap-3 px-4 py-4 transition odd:bg-white even:bg-[rgba(245,245,245,0.45)] hover:bg-surface md:grid-cols-[minmax(0,1.2fr)_120px_120px_auto] md:items-center md:gap-4 md:px-5 md:py-3 ${
                       batch.id === selectedBatch?.id ? "bg-primary-soft/35" : ""
                     }`}
                   >
                     <div>
+                      <span className="aa-mobile-label md:hidden">Batch</span>
                       <h3 className="text-sm font-semibold text-ink">{batch.name}</h3>
                       <p className="mt-1 text-sm text-ink-muted">
                         {batch.partnerCount} partners • {batch.windowLabel}
                       </p>
                     </div>
-                    <div className="text-sm text-ink-muted">{batch.entryCount}</div>
-                    <div className="text-sm font-semibold text-ink">
-                      {batch.totalAmountLabel}
+                    <div>
+                      <span className="aa-mobile-label md:hidden">Entries</span>
+                      <div className="text-sm text-ink-muted">{batch.entryCount}</div>
+                    </div>
+                    <div>
+                      <span className="aa-mobile-label md:hidden">Total</span>
+                      <div className="text-sm font-semibold text-ink">
+                        {batch.totalAmountLabel}
+                      </div>
                     </div>
                     <div className="flex justify-start md:justify-end">
+                      <span className="aa-mobile-label mr-2 md:hidden">Status</span>
                       <StatusBadge tone={batchTone(batch.status)}>
                         {batch.statusLabel}
                       </StatusBadge>

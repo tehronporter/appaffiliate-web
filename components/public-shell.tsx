@@ -31,7 +31,7 @@ export function PublicShell({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex max-w-[18rem] flex-wrap justify-end gap-2.5 sm:max-w-none">
             <Link href="/login" className="aa-button aa-button-secondary w-full sm:w-auto">
               Sign in
             </Link>
@@ -42,15 +42,15 @@ export function PublicShell({
         </SiteHeaderRow>
       </SiteHeaderFrame>
 
-      <main className="mx-auto max-w-[1200px] space-y-8 px-4 pb-12 pt-8 sm:space-y-10 sm:px-6 sm:pt-10 lg:px-12 lg:pb-16">
-        <section className="relative overflow-hidden rounded-[28px] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(249,251,255,0.96)_100%)] px-5 py-7 shadow-[0_20px_44px_rgba(17,24,39,0.06)] sm:px-8 sm:py-9">
+      <main className="aa-marketing-width space-y-8 pb-12 pt-8 sm:space-y-10 sm:pt-10 lg:pb-16">
+        <section className="relative overflow-hidden rounded-[var(--radius-hero)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(249,251,255,0.96)_100%)] px-5 py-7 shadow-[0_20px_44px_rgba(17,24,39,0.06)] sm:px-8 sm:py-9 lg:px-10">
           <div className="pointer-events-none absolute right-[-64px] top-[-72px] h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(46,83,255,0.12)_0%,rgba(46,83,255,0.04)_48%,transparent_72%)] blur-2xl" />
           <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
                 {eyebrow}
               </p>
-              <h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-ink sm:text-[52px] sm:leading-[1.02]">
+              <h1 className="mt-3 text-[clamp(2rem,5vw,3.25rem)] font-semibold tracking-[-0.05em] text-ink sm:leading-[1.02]">
                 {title}
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-ink-muted sm:text-base">
@@ -58,7 +58,7 @@ export function PublicShell({
               </p>
             </div>
 
-            {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+            {actions ? <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">{actions}</div> : null}
           </div>
         </section>
 
