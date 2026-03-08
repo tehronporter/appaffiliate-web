@@ -5,14 +5,15 @@ Use this checklist for a targeted manual smoke pass across the internal MVP.
 ## Environment
 
 - `npm run lint` succeeds.
+- `npm run typecheck` succeeds.
 - `npm run build` succeeds.
 - Required Supabase environment variables are present.
-- The target database has all migrations through `20260307110000_phase2_settings_write_policies.sql`.
+- The target database has all migrations through `20260308010000_workspace_billing_states.sql`.
 
 ## Core Internal Routes
 
 - `/dashboard` loads and shows live launch-readiness data.
-- `/onboarding` loads and shows real checklist rows and operational counts.
+- `/setup` loads and shows real checklist rows and operational counts.
 - `/settings` loads launch summary, billing posture, and settings links.
 - `/settings/organization` loads org-scoped data and persists safe edits.
 - `/settings/team` shows real workspace members and honest role/update boundaries.
@@ -29,13 +30,13 @@ Use this checklist for a targeted manual smoke pass across the internal MVP.
 
 ## Partner And Attribution Flows
 
-- `/partners` renders existing partners and a calm empty state if none exist.
+- `/creators` renders existing creators and a calm empty state if none exist.
 - `/codes` renders existing codes and any related partner/code context.
-- `/unattributed` renders queue counts, review states, and honest zero-backlog messaging.
+- `/review` renders queue counts, review states, and honest zero-backlog messaging.
 
 ## Finance Flows
 
-- `/commissions` renders current review states and action feedback.
+- `/earnings` renders current review states and action feedback.
 - `/payouts` renders payout readiness and honest no-data states.
 - `/payout-batches` renders draft/exported/completed posture correctly.
 - Export downloads remain available only to owner, admin, or finance roles.

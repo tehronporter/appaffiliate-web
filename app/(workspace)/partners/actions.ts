@@ -48,17 +48,23 @@ export async function createPartnerAction(formData: FormData) {
         | "archived",
       notes: String(formData.get("notes") ?? ""),
     });
+    let notice = "creator-created";
 
     if (contactEmail.trim() && shouldSendInvite) {
-      await invitePartnerPortalUser({
-        partnerId: result.id,
-        email: contactEmail,
-        displayName: String(formData.get("name") ?? ""),
-      });
+      try {
+        await invitePartnerPortalUser({
+          partnerId: result.id,
+          email: contactEmail,
+          displayName: String(formData.get("name") ?? ""),
+        });
+      } catch {
+        notice = "creator-created-invite-error";
+      }
     }
 
     revalidatePath("/creators");
     revalidatePath(`/creators/${result.slug}`);
+    revalidatePath("/codes");
     revalidatePath("/setup");
     revalidatePath("/dashboard");
     revalidatePath("/settings/team");
@@ -66,7 +72,7 @@ export async function createPartnerAction(formData: FormData) {
       buildPartnersHref({
         partnerId: result.id,
         slug: result.slug,
-        notice: "creator-created",
+        notice,
       }),
     );
   } catch {
@@ -95,6 +101,9 @@ export async function updatePartnerAction(formData: FormData) {
 
     revalidatePath("/creators");
     revalidatePath(`/creators/${result.slug}`);
+    revalidatePath("/codes");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     redirect(
       buildPartnersHref({
         partnerId: result.id,
@@ -119,6 +128,7 @@ export async function resendPartnerInviteAction(formData: FormData) {
   try {
     await resendWorkspaceInvitation(invitationId);
     revalidatePath("/creators");
+    revalidatePath("/setup");
     revalidatePath("/dashboard");
     redirect(
       buildPartnersHref({
@@ -143,6 +153,7 @@ export async function revokePartnerInviteAction(formData: FormData) {
   try {
     await revokeWorkspaceInvitation(invitationId);
     revalidatePath("/creators");
+    revalidatePath("/setup");
     revalidatePath("/dashboard");
     redirect(
       buildPartnersHref({

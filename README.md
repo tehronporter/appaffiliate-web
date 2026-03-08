@@ -5,8 +5,8 @@ This repository contains the internal AppAffiliate MVP built with Next.js App Ro
 The current operator-facing product includes:
 
 - Apple ingestion visibility and per-app readiness checks
-- partners, codes, and unattributed manual review flows
-- commissions, payouts, payout batches, and finance exports
+- creators, codes, and review queue workflows
+- earnings, payouts, payout batches, and finance exports
 - org-scoped settings, audit history, team context, and lightweight monitoring
 - launch-readiness surfaces for internal rollout checks
 - a separate read-only partner portal for partner-scoped codes, performance, and payouts
@@ -28,7 +28,11 @@ NEXT_PUBLIC_APP_URL=...
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
+APPLE_ROOT_CA_BASE64=TODO_BASE64_APPLE_ROOT_CA
+APPLE_ENABLE_ONLINE_CHECKS=false
 ```
+
+If Apple verification is not configured yet, leave the placeholder value in place so the UI stays honest and shows setup attention instead of a false ready state.
 
 3. Apply any missing SQL migrations in filename order.
 
@@ -46,6 +50,24 @@ npm run dev
 npm run dev
 npm run build
 npm run lint
+npm run typecheck
+```
+
+## Local Public URL
+
+For real webhook testing, expose port `3000` publicly and set `NEXT_PUBLIC_APP_URL` to that URL.
+
+Example with ngrok after configuring your authtoken:
+
+```bash
+ngrok config add-authtoken <your-ngrok-authtoken>
+ngrok http 3000
+```
+
+Then update `.env.local`:
+
+```bash
+NEXT_PUBLIC_APP_URL=https://<your-public-subdomain>.ngrok-free.app
 ```
 
 ## Operator Docs
@@ -88,6 +110,7 @@ Apply these in filename order when bringing up a new environment or reconciling 
 - `supabase/migrations/20260307023000_phase2_finance_manual_write_policies.sql`
 - `supabase/migrations/20260307110000_phase2_settings_write_policies.sql`
 - `supabase/migrations/20260307143000_phase2_partner_portal_read_policies.sql`
+- `supabase/migrations/20260308010000_workspace_billing_states.sql`
 
 ## Launch Notes
 

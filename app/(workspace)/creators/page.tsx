@@ -71,6 +71,14 @@ function noticeCopy(notice: string | undefined) {
     };
   }
 
+  if (notice === "creator-created-invite-error") {
+    return {
+      tone: "amber" as const,
+      title: "Creator added, invite still needs attention",
+      detail: "The creator record was saved, but the invite did not send successfully. Open the creator detail page before retrying.",
+    };
+  }
+
   if (notice === "creator-updated") {
     return {
       tone: "green" as const,

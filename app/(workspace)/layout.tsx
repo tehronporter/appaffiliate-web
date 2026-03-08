@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { WorkspaceLayoutBoundary } from "@/components/workspace-layout-boundary";
@@ -15,10 +16,16 @@ type WorkspaceLayoutProps = {
 export default async function WorkspaceLayout({
   children,
 }: WorkspaceLayoutProps) {
+  const headerStore = await headers();
+  const requestPath = headerStore.get("x-appaffiliate-request-path") ?? "/dashboard";
   const [workspace, user] = await Promise.all([
     getCurrentWorkspaceContext(),
     getAuthenticatedUser(),
   ]);
+
+  if (!user) {
+    redirect(`/login?redirectTo=${encodeURIComponent(requestPath)}`);
+  }
 
   if (workspace.role?.key === "partner_user") {
     redirect("/portal");

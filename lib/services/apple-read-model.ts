@@ -1,12 +1,15 @@
 import "server-only";
 
 import { createServiceContext } from "@/lib/services/context";
+import { getAppleVerificationConfigState } from "@/lib/services/apple-verifier";
 
 export type EventOperationalState =
   | "attributed"
   | "unattributed"
   | "ignored"
   | "failed";
+
+export type AppleReadinessCheckStatus = "ready" | "attention" | "blocked";
 
 type NormalizedEventRow = {
   id: string;
@@ -83,16 +86,38 @@ export type WorkspaceEventsData = {
   hasWorkspaceAccess: boolean;
 };
 
+export type AppleReadinessCheck = {
+  id: string;
+  title: string;
+  status: AppleReadinessCheckStatus;
+  label: string;
+  detail: string;
+};
+
+export type AppleWebhookSetupData = {
+  appUrl: string | null;
+  endpointPath: string | null;
+  endpointUrl: string | null;
+  requestMethod: "POST";
+  requestBodyExample: string;
+  hasConfiguredAppUrl: boolean;
+  hasVerificationConfig: boolean;
+  verificationDetail: string;
+};
+
 export type AppleHealthReadinessData = {
   hasWorkspaceAccess: boolean;
   app: AppRow | null;
   latestReceipt: ReceiptRow | null;
   latestEvent: WorkspaceEventView | null;
+  overallStatus: AppleReadinessCheckStatus;
   readinessLabel: string;
   readinessTone: "primary" | "success" | "warning";
   readinessDetail: string;
   warningNote: string | null;
   environmentLabel: string;
+  readinessChecks: AppleReadinessCheck[];
+  webhookSetup: AppleWebhookSetupData;
 };
 
 const UUID_PATTERN =
@@ -177,6 +202,205 @@ function normalizeEnvironmentLabel(value: string | null | undefined) {
   }
 
   return "unknown";
+}
+
+function getConfiguredAppUrl() {
+  const value = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (!value) {
+    return null;
+  }
+
+  return value.replace(/\/+$/, "");
+}
+
+function buildWebhookSetup(app: AppRow | null): AppleWebhookSetupData {
+  const appUrl = getConfiguredAppUrl();
+  const verification = getAppleVerificationConfigState();
+  const endpointPath = app?.ingest_key
+    ? `/api/v1/apple/notifications/${app.ingest_key}`
+    : null;
+
+  return {
+    appUrl,
+    endpointPath,
+    endpointUrl: appUrl && endpointPath ? `${appUrl}${endpointPath}` : null,
+    requestMethod: "POST",
+    requestBodyExample: '{ "signedPayload": "<Apple signedPayload>" }',
+    hasConfiguredAppUrl: Boolean(appUrl),
+    hasVerificationConfig: verification.hasRootCertificates,
+    verificationDetail: verification.hasRootCertificates
+      ? `${verification.rootCertificateCount} Apple root certificate${verification.rootCertificateCount === 1 ? "" : "s"} configured${verification.onlineChecksEnabled ? " with online checks enabled" : ""}.`
+      : "Apple root certificates are not configured yet, so signature verification cannot be confirmed.",
+  };
+}
+
+function overallStatusFromChecks(checks: AppleReadinessCheck[]) {
+  if (checks.some((check) => check.status === "blocked")) {
+    return "blocked" as const;
+  }
+
+  if (checks.some((check) => check.status === "attention")) {
+    return "attention" as const;
+  }
+
+  return "ready" as const;
+}
+
+function toneForReadinessStatus(status: AppleReadinessCheckStatus) {
+  return status === "ready" ? "success" : "warning";
+}
+
+function buildReadinessChecks(params: {
+  app: AppRow;
+  latestReceipt: ReceiptRow | null;
+  latestEvent: WorkspaceEventView | null;
+  webhookSetup: AppleWebhookSetupData;
+}) {
+  const checks: AppleReadinessCheck[] = [
+    {
+      id: "app-record",
+      title: "App record",
+      status: "ready",
+      label: "App saved",
+      detail: `${params.app.name} exists in the current workspace.`,
+    },
+    {
+      id: "public-app-url",
+      title: "Public app URL",
+      status: params.webhookSetup.hasConfiguredAppUrl ? "ready" : "blocked",
+      label: params.webhookSetup.hasConfiguredAppUrl
+        ? "App URL configured"
+        : "Missing NEXT_PUBLIC_APP_URL",
+      detail: params.webhookSetup.hasConfiguredAppUrl
+        ? `Webhook routes will resolve against ${params.webhookSetup.appUrl}.`
+        : "Set NEXT_PUBLIC_APP_URL so operators can copy a real webhook endpoint and validate tunnel or deployment routing.",
+    },
+    {
+      id: "ingest-key",
+      title: "Ingest key",
+      status: params.app.ingest_key ? "ready" : "blocked",
+      label: params.app.ingest_key ? "Ingest key assigned" : "Ingest key missing",
+      detail: params.app.ingest_key
+        ? "Apple can target this app lane through its dedicated notification route."
+        : "Save the app with an ingest key before Apple can send signed notifications into this lane.",
+    },
+    {
+      id: "apple-verification-config",
+      title: "Apple verification config",
+      status: params.webhookSetup.hasVerificationConfig ? "ready" : "attention",
+      label: params.webhookSetup.hasVerificationConfig
+        ? "Verification configured"
+        : "Verification config incomplete",
+      detail: params.webhookSetup.verificationDetail,
+    },
+    {
+      id: "latest-receipt",
+      title: "Latest receipt stored",
+      status: params.latestReceipt ? "ready" : "attention",
+      label: params.latestReceipt ? "Receipt stored" : "No receipt yet",
+      detail: params.latestReceipt
+        ? `The latest Apple receipt was stored at ${formatOperationalTimestamp(params.latestReceipt.received_at)}.`
+        : "No Apple notification receipt has been stored for this app yet.",
+    },
+    {
+      id: "latest-receipt-verified",
+      title: "Latest receipt verified",
+      status: !params.latestReceipt
+        ? "attention"
+        : params.latestReceipt.verification_status === "verified"
+          ? "ready"
+          : "attention",
+      label: !params.latestReceipt
+        ? "Awaiting receipt"
+        : params.latestReceipt.verification_status === "verified"
+          ? "Verified"
+          : params.latestReceipt.verification_status === "failed"
+            ? "Verification failed"
+            : "Verification pending",
+      detail: !params.latestReceipt
+        ? "A verification result appears here after the first Apple notification is stored."
+        : params.latestReceipt.verification_status === "verified"
+          ? "The latest stored receipt passed Apple signature verification."
+          : params.latestReceipt.last_error ??
+            "The latest stored receipt has not completed verification successfully.",
+    },
+    {
+      id: "latest-event-normalized",
+      title: "Latest event normalized",
+      status: params.latestEvent && params.latestEvent.eventStatus !== "invalid"
+        ? "ready"
+        : "attention",
+      label: params.latestEvent
+        ? params.latestEvent.eventStatus === "invalid"
+          ? "Normalization failed"
+          : "Normalized event visible"
+        : "No normalized event yet",
+      detail: params.latestEvent
+        ? params.latestEvent.eventStatus === "invalid"
+          ? params.latestEvent.reasonCode ?? "The latest receipt did not normalize into a usable event row."
+          : `The latest event is ${params.latestEvent.eventType} with ${params.latestEvent.attributionStatus} attribution state.`
+        : params.latestReceipt?.processed_status === "failed"
+          ? params.latestReceipt.last_error ??
+            "The latest receipt was stored, but normalization did not complete."
+          : "A normalized event will appear here after receipt processing completes.",
+    },
+  ];
+
+  return checks;
+}
+
+function buildReadinessSummary(params: {
+  overallStatus: AppleReadinessCheckStatus;
+  latestReceipt: ReceiptRow | null;
+  latestEvent: WorkspaceEventView | null;
+  webhookSetup: AppleWebhookSetupData;
+}) {
+  if (params.overallStatus === "ready") {
+    return {
+      label: "Ready for Apple intake",
+      detail:
+        "Webhook configuration, receipt verification, and normalized event visibility are all present for this app.",
+    };
+  }
+
+  if (!params.webhookSetup.hasConfiguredAppUrl) {
+    return {
+      label: "Setup needs configuration",
+      detail:
+        "Set NEXT_PUBLIC_APP_URL before treating the webhook endpoint as copyable or demo-ready.",
+    };
+  }
+
+  if (!params.latestReceipt) {
+    return {
+      label: "Waiting for first Apple receipt",
+      detail:
+        "The endpoint can be configured before traffic arrives, but this app is not demo-ready until the first receipt is stored.",
+    };
+  }
+
+  if (params.latestReceipt.verification_status !== "verified") {
+    return {
+      label: "Receipt received and verification needs attention",
+      detail:
+        "The latest receipt is stored, but verification has not completed successfully, so setup should not be treated as ready.",
+    };
+  }
+
+  if (!params.latestEvent || params.latestEvent.eventStatus === "invalid") {
+    return {
+      label: "Receipt received and normalization needs attention",
+      detail:
+        "Receipt intake is active, but normalized event visibility is still incomplete for the latest signal.",
+    };
+  }
+
+  return {
+    label: "Receipt intake needs attention",
+    detail:
+      "Apple setup is partly connected, but one or more readiness checks still need operator follow-up.",
+  };
 }
 
 function toWorkspaceEventView(
@@ -341,6 +565,7 @@ export async function listWorkspaceNormalizedEvents() {
 
 export async function getAppleHealthReadinessData(appIdentifier: string) {
   const context = await createServiceContext();
+  const emptyWebhookSetup = buildWebhookSetup(null);
 
   if (!context.supabase || !context.workspace.organization) {
     return {
@@ -348,12 +573,15 @@ export async function getAppleHealthReadinessData(appIdentifier: string) {
       app: null,
       latestReceipt: null,
       latestEvent: null,
+      overallStatus: "blocked",
       readinessLabel: "Workspace access required",
       readinessTone: "warning",
       readinessDetail:
         "Sign in to a workspace to review app-scoped Apple receipt readiness.",
       warningNote: null,
       environmentLabel: "Unknown",
+      readinessChecks: [],
+      webhookSetup: emptyWebhookSetup,
     } satisfies AppleHealthReadinessData;
   }
 
@@ -365,14 +593,19 @@ export async function getAppleHealthReadinessData(appIdentifier: string) {
       app: null,
       latestReceipt: null,
       latestEvent: null,
+      overallStatus: "blocked",
       readinessLabel: "App record not found",
       readinessTone: "warning",
       readinessDetail:
         "No app row matched this workspace path yet, so receipt readiness cannot be evaluated.",
       warningNote: "Create the app row and assign an ingest key before Apple can post receipts here.",
       environmentLabel: "Unknown",
+      readinessChecks: [],
+      webhookSetup: emptyWebhookSetup,
     } satisfies AppleHealthReadinessData;
   }
+
+  const webhookSetup = buildWebhookSetup(app);
 
   const [latestReceiptResult, latestEventResult] = await Promise.all([
     context.supabase
@@ -408,74 +641,46 @@ export async function getAppleHealthReadinessData(appIdentifier: string) {
     ? toWorkspaceEventView(latestEventResult.data, appsById)
     : null;
   const latestReceipt = latestReceiptResult.data ?? null;
-
-  if (!latestReceipt) {
-    return {
-      hasWorkspaceAccess: true,
-      app,
-      latestReceipt: null,
-      latestEvent,
-      readinessLabel: "Awaiting first receipt",
-      readinessTone: "warning",
-      readinessDetail:
-        "No Apple notification receipt has been stored for this app yet.",
-      warningNote:
-        app.ingest_key === null
-          ? "This app still needs an ingest key before Apple can target the public notification route."
-          : null,
-      environmentLabel: "Unknown",
-    } satisfies AppleHealthReadinessData;
-  }
-
   const environmentLabel = normalizeEnvironmentLabel(
-    latestEvent?.environment ?? latestReceipt.environment,
+    latestEvent?.environment ?? latestReceipt?.environment,
   );
+  const readinessChecks = buildReadinessChecks({
+    app,
+    latestReceipt,
+    latestEvent,
+    webhookSetup,
+  });
+  const overallStatus = overallStatusFromChecks(readinessChecks);
+  const readinessSummary = buildReadinessSummary({
+    overallStatus,
+    latestReceipt,
+    latestEvent,
+    webhookSetup,
+  });
   const warningNote =
-    latestReceipt.last_error ??
-    (latestReceipt.verification_status === "failed"
-      ? "The latest receipt failed Apple signature verification or payload decoding."
-      : null);
-
-  if (latestEvent) {
-    return {
-      hasWorkspaceAccess: true,
-      app,
-      latestReceipt,
-      latestEvent,
-      readinessLabel: "Receiving receipts and normalized events",
-      readinessTone: "success",
-      readinessDetail:
-        "Apple notifications are reaching the app and producing normalized event rows for operations review.",
-      warningNote,
-      environmentLabel,
-    } satisfies AppleHealthReadinessData;
-  }
-
-  if (latestReceipt.processed_status === "failed") {
-    return {
-      hasWorkspaceAccess: true,
-      app,
-      latestReceipt,
-      latestEvent: null,
-      readinessLabel: "Receipt stored, review required",
-      readinessTone: "warning",
-      readinessDetail:
-        "The latest receipt was stored durably, but normalization could not complete for the MVP path.",
-      warningNote,
-      environmentLabel,
-    } satisfies AppleHealthReadinessData;
-  }
+    latestReceipt?.last_error ??
+    (!webhookSetup.hasVerificationConfig
+      ? webhookSetup.verificationDetail
+      : latestReceipt?.verification_status === "failed"
+        ? "The latest receipt failed Apple signature verification or payload decoding."
+        : latestReceipt?.processed_status === "failed"
+          ? "The latest receipt was stored, but normalization did not complete successfully."
+          : latestEvent?.eventStatus === "invalid"
+            ? latestEvent.reasonCode ?? "The latest normalized event is invalid."
+            : null);
 
   return {
     hasWorkspaceAccess: true,
     app,
     latestReceipt,
-    latestEvent: null,
-    readinessLabel: "Receipt intake active",
-    readinessTone: "primary",
-    readinessDetail:
-      "The app has started receiving Apple receipts, but no normalized event has been produced yet.",
+    latestEvent,
+    overallStatus,
+    readinessLabel: readinessSummary.label,
+    readinessTone: toneForReadinessStatus(overallStatus),
+    readinessDetail: readinessSummary.detail,
     warningNote,
-    environmentLabel,
+    environmentLabel: environmentLabel === "unknown" ? "Unknown" : environmentLabel,
+    readinessChecks,
+    webhookSetup,
   } satisfies AppleHealthReadinessData;
 }

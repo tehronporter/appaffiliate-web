@@ -34,6 +34,8 @@ export async function markUnattributedReviewAction(formData: FormData) {
     );
 
     revalidatePath("/review");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     redirect(
       buildUnattributedHref({
         eventId: result.eventId,
@@ -63,6 +65,9 @@ export async function applyManualAttributionAction(formData: FormData) {
 
     revalidatePath("/review");
     revalidatePath("/events");
+    revalidatePath("/earnings");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     redirect(
       buildUnattributedHref({
         eventId: result.eventId,

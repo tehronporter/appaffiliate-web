@@ -311,6 +311,7 @@ async function loadPartnerScopedRows(params: {
       .from("promo_codes")
       .select("id, app_id, code, status, code_type, created_at")
       .eq("organization_id", params.organizationId)
+      .eq("partner_id", params.partnerId)
       .order("created_at", { ascending: false })
       .returns<PromoCodeRow[]>(),
     params.supabase
@@ -319,6 +320,7 @@ async function loadPartnerScopedRows(params: {
         "id, app_id, promo_code_id, event_type, event_status, event_at, received_at, currency, gross_amount",
       )
       .eq("organization_id", params.organizationId)
+      .eq("partner_id", params.partnerId)
       .eq("attribution_status", "attributed")
       .order("event_at", { ascending: false })
       .returns<EventRow[]>(),
@@ -328,12 +330,14 @@ async function loadPartnerScopedRows(params: {
         "id, normalized_event_id, promo_code_id, status, currency, amount, effective_at, created_at, updated_at",
       )
       .eq("organization_id", params.organizationId)
+      .eq("partner_id", params.partnerId)
       .order("updated_at", { ascending: false })
       .returns<LedgerRow[]>(),
     params.supabase
       .from("payout_batch_items")
       .select("id, payout_batch_id, commission_ledger_entry_id, amount, status, created_at")
       .eq("organization_id", params.organizationId)
+      .eq("partner_id", params.partnerId)
       .order("created_at", { ascending: false })
       .returns<PayoutBatchItemRow[]>(),
   ]);

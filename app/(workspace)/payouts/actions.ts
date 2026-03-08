@@ -55,6 +55,8 @@ export async function createDraftPayoutBatchAction(formData: FormData) {
     });
 
     revalidatePath("/earnings");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
@@ -85,6 +87,8 @@ export async function markPayoutBatchExportedAction(formData: FormData) {
     });
 
     revalidatePath("/earnings");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
@@ -114,6 +118,8 @@ export async function markPayoutBatchPaidAction(formData: FormData) {
     });
 
     revalidatePath("/earnings");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
@@ -143,6 +149,8 @@ export async function cancelPayoutBatchAction(formData: FormData) {
     });
 
     revalidatePath("/earnings");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");

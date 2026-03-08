@@ -21,6 +21,13 @@ export function buildActivationProgress(
   const ownedCodes = launch.rules?.activeOwnedCodeCount ?? 0;
   const monitoring = launch.overview.monitoring;
   const finance = launch.overview.financeSummary;
+  const payoutFlowVisible =
+    finance.hasFinanceAccess &&
+    (finance.approvedCount > 0 ||
+      finance.payoutTrackedCount > 0 ||
+      finance.draftBatchCount > 0 ||
+      finance.exportedBatchCount > 0 ||
+      finance.paidBatchCount > 0);
 
   const steps: ActivationProgressStep[] = [
     {
@@ -45,9 +52,7 @@ export function buildActivationProgress(
     },
     {
       label: "Payout",
-      complete:
-        (finance.hasFinanceAccess && finance.payoutTrackedCount > 0) ||
-        finance.paidCount > 0,
+      complete: payoutFlowVisible || finance.paidCount > 0,
     },
   ];
 

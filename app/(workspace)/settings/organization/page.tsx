@@ -53,6 +53,11 @@ export default async function SettingsOrganizationPage({
   ]);
   const noticeChip = noticeBadge(notice);
   const primaryApp = appsData.apps[0] ?? null;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()?.replace(/\/+$/, "") ?? null;
+  const webhookEndpoint =
+    appUrl && primaryApp?.ingestKey
+      ? `${appUrl}/api/v1/apple/notifications/${primaryApp.ingestKey}`
+      : null;
 
   return (
     <SettingsPageFrame
@@ -212,7 +217,21 @@ export default async function SettingsOrganizationPage({
                 </label>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_160px]">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-ink">Status</span>
+                  <select
+                    name="status"
+                    defaultValue={primaryApp?.status ?? "active"}
+                    className="aa-field"
+                  >
+                    <option value="active">Active</option>
+                    <option value="draft">Draft</option>
+                    <option value="paused">Paused</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </label>
+
                 <label className="grid gap-2">
                   <span className="text-sm font-medium text-ink">Apple fee mode</span>
                   <select
@@ -244,6 +263,19 @@ export default async function SettingsOrganizationPage({
                   Ingest key assigned. Use <span className="font-medium text-ink">Apple Health</span> to verify receipt and event flow.
                 </InsetPanel>
               ) : null}
+
+              <InsetPanel
+                tone={webhookEndpoint ? "blue" : "amber"}
+                className="text-sm text-ink-muted"
+              >
+                <p className="font-medium text-ink">Webhook endpoint</p>
+                <p className="mt-2 break-all">
+                  {webhookEndpoint ?? "Set NEXT_PUBLIC_APP_URL and keep the ingest key assigned to generate the public Apple endpoint."}
+                </p>
+                <p className="mt-2">
+                  Expected request shape: <span className="font-medium text-ink">POST {"{ \"signedPayload\": \"&lt;Apple signedPayload&gt;\" }"}</span>
+                </p>
+              </InsetPanel>
 
               <div className="flex justify-end">
                 <ActionButton type="submit" variant="primary">

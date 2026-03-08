@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronsUpDown, Settings } from "lucide-react";
+import { ChevronDown, Settings } from "lucide-react";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import type { WorkspaceShellUser } from "@/components/workspace-shell-types";
@@ -82,15 +82,9 @@ export function WorkspaceUserMenu({ user }: WorkspaceUserMenuProps) {
               <Settings size={16} strokeWidth={1.75} />
               Settings
             </Link>
-            <button
-              type="button"
-              role="menuitem"
-              disabled
-              className="flex items-center gap-3 rounded-[var(--radius-card)] px-3 py-2 text-left text-sm font-medium text-ink-subtle"
-            >
-              <ChevronsUpDown size={16} strokeWidth={1.75} />
-              Workspace switch coming soon
-            </button>
+            <div className="rounded-[var(--radius-card)] px-3 py-2 text-sm text-ink-muted">
+              Single-workspace access for this MVP
+            </div>
             <SignOutButton variant="menu-item" />
           </div>
         </div>

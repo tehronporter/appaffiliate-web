@@ -3,7 +3,6 @@ import "server-only";
 import { buildActivationProgress } from "@/lib/activation-progress";
 import type { LaunchReadinessData } from "@/lib/services/launch-readiness";
 import { getLaunchReadinessData } from "@/lib/services/launch-readiness";
-import { listWorkspaceApps } from "@/lib/services/apps";
 import { listWorkspacePartners } from "@/lib/services/partners";
 import { listWorkspacePromoCodes } from "@/lib/services/codes";
 import { listWorkspaceNormalizedEvents } from "@/lib/services/apple-read-model";
@@ -39,9 +38,8 @@ export type SetupGuideData = {
 };
 
 export async function getSetupGuideData() {
-  const [launch, appsData, partnersData, codesData, eventsData] = await Promise.all([
+  const [launch, partnersData, codesData, eventsData] = await Promise.all([
     getLaunchReadinessData(),
-    listWorkspaceApps(),
     listWorkspacePartners(),
     listWorkspacePromoCodes(),
     listWorkspaceNormalizedEvents(),
@@ -53,9 +51,15 @@ export async function getSetupGuideData() {
   const hasCreators = partnersData.partners.length > 0;
   const hasCodes = codesData.codes.some((code) => code.ownerAssigned);
   const hasTrackedResults = eventsData.events.length > 0;
+  const finance = launch.overview.financeSummary;
   const payoutConfigured =
-    launch.billingSummary.status === "trialing" ||
-    launch.billingSummary.status === "manual_contact";
+    finance.hasFinanceAccess &&
+    (finance.approvedCount > 0 ||
+      finance.payoutTrackedCount > 0 ||
+      finance.draftBatchCount > 0 ||
+      finance.exportedBatchCount > 0 ||
+      finance.paidBatchCount > 0 ||
+      finance.paidCount > 0);
 
   const workspaceSteps: SetupGuideStep[] = [
     {
@@ -108,8 +112,10 @@ export async function getSetupGuideData() {
       id: "payout-path-configured",
       label: "Payout path configured",
       detail: payoutConfigured
-        ? launch.billingSummary.detail
-        : "Confirm billing and finance posture before operators prepare payouts.",
+        ? "Approved earnings, payout tracking, or payout batches are already visible in the current finance flow."
+        : finance.hasFinanceAccess
+          ? "Approve earnings or create the first payout batch before marking the payout path as configured."
+          : "Open this with an owner, admin, or finance role to confirm payout readiness from real finance data.",
       href: "/payouts",
       complete: payoutConfigured,
     },
@@ -126,7 +132,7 @@ export async function getSetupGuideData() {
     const steps: SetupGuideStep[] = [
       {
         id: `${app.id}-ingest`,
-        label: "API integrated",
+        label: "Webhook configured",
         detail: app.ingestReady
           ? "This app has an ingest key and can receive Apple notifications."
           : "Assign an ingest key before Apple can send notifications into this app lane.",

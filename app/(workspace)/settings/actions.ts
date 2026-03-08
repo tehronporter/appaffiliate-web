@@ -54,6 +54,11 @@ export async function saveWorkspaceAppAction(formData: FormData) {
         appStoreId: String(formData.get("appStoreId") ?? ""),
         appleTeamId: String(formData.get("appleTeamId") ?? ""),
         timezone: String(formData.get("timezone") ?? "UTC"),
+        status: String(formData.get("status") ?? "active") as
+          | "draft"
+          | "active"
+          | "paused"
+          | "archived",
         appleFeeMode: String(formData.get("appleFeeMode") ?? "standard_30") as
           | "standard_30"
           | "small_business_15"
@@ -67,6 +72,11 @@ export async function saveWorkspaceAppAction(formData: FormData) {
         appStoreId: String(formData.get("appStoreId") ?? ""),
         appleTeamId: String(formData.get("appleTeamId") ?? ""),
         timezone: String(formData.get("timezone") ?? "UTC"),
+        status: String(formData.get("status") ?? "active") as
+          | "draft"
+          | "active"
+          | "paused"
+          | "archived",
         appleFeeMode: String(formData.get("appleFeeMode") ?? "standard_30") as
           | "standard_30"
           | "small_business_15"
@@ -78,6 +88,7 @@ export async function saveWorkspaceAppAction(formData: FormData) {
     revalidatePath("/dashboard");
     revalidatePath("/setup");
     revalidatePath("/apps");
+    revalidatePath("/apple-health");
     revalidatePath("/settings");
     revalidatePath("/settings/organization");
     redirect(buildSettingsHref("/settings/organization", "app-saved"));

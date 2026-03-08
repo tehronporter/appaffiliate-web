@@ -10,7 +10,7 @@ Use this as the final launch and operational handoff for the current AppAffiliat
 - Apple notification ingest endpoint and receipt health visibility
 - App-level Apple health/readiness views
 - Partner directory and code ownership management
-- Manual unattributed queue review
+- Manual review queue workflow
 - Attribution-aware event inspection with sanitized browser output
 - Commission review and approval/rejection workflow
 - Payout-ready grouping and payout batch tracking
@@ -41,6 +41,7 @@ Apply SQL migrations in this order for a fresh environment:
 7. `supabase/migrations/20260307023000_phase2_finance_manual_write_policies.sql`
 8. `supabase/migrations/20260307110000_phase2_settings_write_policies.sql`
 9. `supabase/migrations/20260307143000_phase2_partner_portal_read_policies.sql`
+10. `supabase/migrations/20260308010000_workspace_billing_states.sql`
 
 ## Production Setup Checklist
 
@@ -55,7 +56,7 @@ Apply SQL migrations in this order for a fresh environment:
 ## Launch Smoke Checklist
 
 - `/` and `/login` load correctly when signed out.
-- `/dashboard`, `/onboarding`, `/partners`, `/codes`, `/events`, `/unattributed`, `/commissions`, `/payouts`, `/payout-batches`, `/settings`, `/settings/organization`, `/settings/team`, `/settings/rules`, `/settings/exports`, and `/settings/audit` render for an internal admin account.
+- `/dashboard`, `/setup`, `/creators`, `/codes`, `/review`, `/events`, `/earnings`, `/payouts`, `/payout-batches`, `/settings`, `/settings/organization`, `/settings/team`, `/settings/rules`, `/settings/exports`, and `/settings/audit` render for an internal admin account.
 - `/apps/[appId]/apple-health` renders for at least one real app slug.
 - `/portal`, `/portal/codes`, `/portal/performance`, and `/portal/payouts` render as a sign-in boundary when signed out.
 - Portal routes render partner-scoped read-only data for a linked `partner_user` account.

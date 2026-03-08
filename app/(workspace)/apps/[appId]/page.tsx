@@ -185,6 +185,9 @@ export default async function AppDetailPage({
   const linkedCreators = partnersData.partners.filter((partner) => linkedPartnerIds.has(partner.id));
   const appCommissionItems = commissions.items.filter((item) => item.appSlug === resolvedApp.slug);
   const appGuide = setup.appGuides.find((item) => item.id === resolvedApp.id) ?? null;
+  const endpointValue = readiness.webhookSetup.endpointUrl ?? "Configure app URL and ingest key";
+  const endpointDetail =
+    readiness.webhookSetup.endpointPath ?? "Webhook endpoint appears after App URL and ingest key are configured.";
 
   return (
     <PageContainer>
@@ -242,8 +245,49 @@ export default async function AppDetailPage({
                 { label: "Apple team ID", value: resolvedApp.appleTeamId ?? "Not set" },
                 { label: "Timezone", value: resolvedApp.timezone },
                 { label: "Ingest key", value: resolvedApp.ingestKey ?? "Missing" },
+                { label: "Webhook endpoint", value: endpointValue },
+                {
+                  label: "Verification config",
+                  value: readiness.webhookSetup.hasVerificationConfig
+                    ? "Configured"
+                    : "Needs attention",
+                },
               ]}
             />
+          </SectionCard>
+
+          <SectionCard
+            title="Webhook setup"
+            description="Copy the real endpoint, confirm environment prerequisites, and keep the expected request shape visible."
+            actions={<ActionLink href={`/apps/${resolvedApp.slug}/apple-health`}>Open Apple health</ActionLink>}
+          >
+            <div className="space-y-4">
+              <InsetPanel tone={readiness.webhookSetup.endpointUrl ? "blue" : "amber"}>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
+                  Notification endpoint
+                </p>
+                <p className="mt-2 break-all text-sm font-medium text-ink">{endpointValue}</p>
+                <p className="mt-2 text-sm leading-5 text-ink-muted">{endpointDetail}</p>
+              </InsetPanel>
+
+              <DetailList
+                columns={1}
+                items={[
+                  {
+                    label: "Expected request",
+                    value: `${readiness.webhookSetup.requestMethod} ${readiness.webhookSetup.requestBodyExample}`,
+                  },
+                  {
+                    label: "App URL",
+                    value: readiness.webhookSetup.appUrl ?? "Missing NEXT_PUBLIC_APP_URL",
+                  },
+                  {
+                    label: "Apple verification",
+                    value: readiness.webhookSetup.verificationDetail,
+                  },
+                ]}
+              />
+            </div>
           </SectionCard>
 
           <ListTable

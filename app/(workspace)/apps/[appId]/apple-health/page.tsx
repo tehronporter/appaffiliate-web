@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { Heart } from "lucide-react";
 
 import { ActionLink, PageContainer } from "@/components/app-shell";
@@ -16,6 +15,7 @@ import {
 } from "@/components/admin-ui";
 import {
   formatOperationalTimestamp,
+  type AppleReadinessCheckStatus,
   getAppleHealthReadinessData,
 } from "@/lib/services/apple-read-model";
 import { toneForSystemStatus } from "@/lib/status-badges";
@@ -26,13 +26,17 @@ type AppleHealthPageProps = {
   }>;
 };
 
-type ReadinessStep = {
-  title: string;
-  description: string;
-  tone: "blue" | "green" | "amber" | "red";
-  statusLabel: string;
-  actions?: ReactNode;
-};
+function toneForCheckStatus(status: AppleReadinessCheckStatus) {
+  if (status === "ready") {
+    return "green" as const;
+  }
+
+  if (status === "blocked") {
+    return "red" as const;
+  }
+
+  return "amber" as const;
+}
 
 export default async function AppleHealthPage({
   params,
@@ -42,7 +46,9 @@ export default async function AppleHealthPage({
   const readiness = await getAppleHealthReadinessData(formattedAppId);
   const appName = readiness.app?.name ?? formattedAppId;
   const environmentLabel =
-    readiness.environmentLabel === "unknown" ? "Unknown" : readiness.environmentLabel;
+    readiness.environmentLabel === "Unknown"
+      ? "Unknown"
+      : readiness.environmentLabel.charAt(0).toUpperCase() + readiness.environmentLabel.slice(1);
   const receiptVerificationStatus =
     readiness.latestReceipt?.verification_status ?? "unknown";
   const receiptProcessingStatus =
@@ -51,55 +57,20 @@ export default async function AppleHealthPage({
     readiness.latestReceipt?.notification_type ?? "unknown";
   const receiptNotificationSubtype = readiness.latestReceipt?.notification_subtype;
 
-  const readinessSteps: ReadinessStep[] = [
-    {
-      title: "Public ingestion endpoint",
-      description: readiness.app?.ingest_key
-        ? "Apple can target the public notification route for durable receipt intake."
-        : "Assign an ingest key before Apple can target the public notification route.",
-      tone: readiness.app?.ingest_key ? "green" : "amber",
-      statusLabel: readiness.app?.ingest_key ? "Ready" : "Needs ingest key",
-      actions: <ActionLink href="/settings/organization">Open app settings</ActionLink>,
-    },
-    {
-      title: "Receipt durability",
-      description: readiness.latestReceipt
-        ? `Latest receipt stored at ${formatOperationalTimestamp(readiness.latestReceipt.received_at)} with ${receiptVerificationStatus} verification state.`
-        : "No Apple receipt has been stored for this app yet.",
-      tone: readiness.latestReceipt ? "green" : "amber",
-      statusLabel: readiness.latestReceipt ? "Receiving receipts" : "Awaiting first receipt",
-      actions: <ActionLink href="/review?view=all">Open review</ActionLink>,
-    },
-    {
-      title: "Normalized event visibility",
-      description: readiness.latestEvent
-        ? `Latest normalized event is ${readiness.latestEvent.eventType} with ${readiness.latestEvent.eventStatus} processing and ${readiness.latestEvent.attributionStatus} attribution.`
-        : "No normalized event exists yet. Receipt-only storage is still possible when verification or decode is incomplete.",
-      tone: readiness.latestEvent ? "green" : "blue",
-      statusLabel: readiness.latestEvent ? "Visible" : "Receipt-only",
-      actions: <ActionLink href="/review?view=all">Review result log</ActionLink>,
-    },
-    {
-      title: "Operator follow-up",
-      description: readiness.warningNote
-        ? readiness.warningNote
-        : "No current warning note is attached to the latest receipt or event.",
-      tone: readiness.warningNote ? "amber" : "blue",
-      statusLabel: readiness.warningNote ? "Attention visible" : "Calm",
-      actions: <ActionLink href="/review?view=needs-review">Open queue</ActionLink>,
-    },
-  ];
-
-  const recommendedAction = !readiness.app?.ingest_key
+  const recommendedAction = !readiness.webhookSetup.hasConfiguredAppUrl || !readiness.app?.ingest_key
     ? { href: "/settings/organization", label: "Finish app setup" }
+    : !readiness.webhookSetup.hasVerificationConfig
+      ? { href: `/apps/${formattedAppId}`, label: "Review verification setup" }
     : !readiness.latestReceipt
       ? { href: "/review?view=all", label: "Watch first result" }
       : readiness.warningNote
         ? { href: "/review?view=all", label: "Review latest result" }
         : { href: "/dashboard", label: "Open dashboard" };
 
-  const recommendedDetail = !readiness.app?.ingest_key
+  const recommendedDetail = !readiness.webhookSetup.hasConfiguredAppUrl || !readiness.app?.ingest_key
     ? "Finish app setup so Apple can send receipts into a real app lane."
+    : !readiness.webhookSetup.hasVerificationConfig
+      ? readiness.webhookSetup.verificationDetail
     : !readiness.latestReceipt
       ? "Wait for the first receipt, then verify that it lands here with the expected verification state."
       : readiness.warningNote
@@ -125,8 +96,10 @@ export default async function AppleHealthPage({
           <StatusBadge tone={toneForSystemStatus(readiness.readinessLabel)}>
             {readiness.readinessLabel}
           </StatusBadge>
-          <StatusBadge tone={readiness.app?.ingest_key ? "green" : "amber"}>
-            {readiness.app?.ingest_key ? "Ingest key assigned" : "Ingest key missing"}
+          <StatusBadge tone={readiness.webhookSetup.hasVerificationConfig ? "green" : "amber"}>
+            {readiness.webhookSetup.hasVerificationConfig
+              ? "Verification configured"
+              : "Verification config incomplete"}
           </StatusBadge>
         </div>
       </PageHeader>
@@ -217,18 +190,49 @@ export default async function AppleHealthPage({
             title="Checks"
             description="Review ingest key, receipt flow, and the next step."
           >
-            {readinessSteps.map((step) => (
+            {readiness.readinessChecks.map((step) => (
               <InlineActionRow
-                key={step.title}
+                key={step.id}
                 title={step.title}
-                description={step.description}
-                badge={<StatusBadge tone={step.tone}>{step.statusLabel}</StatusBadge>}
-                actions={step.actions}
+                description={step.detail}
+                badge={<StatusBadge tone={toneForCheckStatus(step.status)}>{step.label}</StatusBadge>}
+                actions={
+                  step.id === "latest-event-normalized" || step.id === "latest-receipt"
+                    ? <ActionLink href="/review?view=all">Open review</ActionLink>
+                    : step.id === "public-app-url" || step.id === "ingest-key"
+                      ? <ActionLink href="/settings/organization">Open app settings</ActionLink>
+                      : undefined
+                }
               />
             ))}
           </ListTable>
 
           <div className="space-y-5">
+            <SectionCard
+              title="Webhook setup"
+              description="Keep the exact endpoint, request shape, and verification posture visible."
+            >
+              <DetailList
+                columns={1}
+                items={[
+                  {
+                    label: "Endpoint",
+                    value:
+                      readiness.webhookSetup.endpointUrl ??
+                      "Configure NEXT_PUBLIC_APP_URL and an ingest key to generate the endpoint.",
+                  },
+                  {
+                    label: "Request shape",
+                    value: `${readiness.webhookSetup.requestMethod} ${readiness.webhookSetup.requestBodyExample}`,
+                  },
+                  {
+                    label: "Verification config",
+                    value: readiness.webhookSetup.verificationDetail,
+                  },
+                ]}
+              />
+            </SectionCard>
+
             <InsetPanel>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
                 Recommended next step

@@ -2,9 +2,14 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const AUTH_COOKIE_NAME = "appaffiliate-access-token";
+const REQUEST_PATH_HEADER = "x-appaffiliate-request-path";
 
 const WORKSPACE_PATH_PREFIXES = [
   "/dashboard",
+  "/setup",
+  "/review",
+  "/creators",
+  "/earnings",
   "/partners",
   "/codes",
   "/events",
@@ -33,21 +38,37 @@ export function proxy(request: NextRequest) {
   const isWorkspacePath = WORKSPACE_PATH_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+  const requestPath = `${pathname}${request.nextUrl.search}`;
 
   if (!hasSession && isPortalPath) {
-    return NextResponse.redirect(buildRedirect(request, "/portal"));
+    return NextResponse.redirect(buildRedirect(request, requestPath));
   }
 
   if (!hasSession && isWorkspacePath) {
-    return NextResponse.redirect(buildRedirect(request, pathname));
+    return NextResponse.redirect(buildRedirect(request, requestPath));
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(REQUEST_PATH_HEADER, requestPath);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/setup/:path*",
+    "/setup",
+    "/review/:path*",
+    "/review",
+    "/creators/:path*",
+    "/creators",
+    "/earnings/:path*",
+    "/earnings",
     "/partners/:path*",
     "/codes/:path*",
     "/events/:path*",

@@ -29,6 +29,7 @@ function buildAppsHref(params: {
 
 function revalidateAppSurfaces(slug?: string | null) {
   revalidatePath("/apps");
+  revalidatePath("/apple-health");
   revalidatePath("/setup");
   revalidatePath("/dashboard");
   revalidatePath("/settings");

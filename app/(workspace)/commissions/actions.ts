@@ -35,6 +35,8 @@ export async function approveCommissionAction(formData: FormData) {
     });
 
     revalidatePath("/earnings");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");
@@ -64,6 +66,8 @@ export async function rejectCommissionAction(formData: FormData) {
     });
 
     revalidatePath("/earnings");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     revalidatePath("/payouts");
     revalidatePath("/payout-batches");
     revalidatePath("/settings/exports");

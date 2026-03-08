@@ -176,7 +176,8 @@ export function toneForSystemStatus(status: string | null | undefined): StatusTo
     normalized === "paid" ||
     normalized === "ready" ||
     normalized === "calm" ||
-    normalized === "visible"
+    normalized === "visible" ||
+    normalized === "ready_for_apple_intake"
   ) {
     return "green";
   }
@@ -190,7 +191,11 @@ export function toneForSystemStatus(status: string | null | undefined): StatusTo
     normalized === "awaiting_first_receipt" ||
     normalized === "attention_visible" ||
     normalized === "receipt_only" ||
-    normalized === "in_review"
+    normalized === "in_review" ||
+    normalized === "waiting_for_first_apple_receipt" ||
+    normalized === "receipt_received_and_verification_needs_attention" ||
+    normalized === "receipt_received_and_normalization_needs_attention" ||
+    normalized === "receipt_intake_needs_attention"
   ) {
     return "amber";
   }
@@ -199,7 +204,8 @@ export function toneForSystemStatus(status: string | null | undefined): StatusTo
     normalized === "blocked" ||
     normalized === "error" ||
     normalized === "failed" ||
-    normalized === "launch_blocked"
+    normalized === "launch_blocked" ||
+    normalized === "setup_needs_configuration"
   ) {
     return "red";
   }

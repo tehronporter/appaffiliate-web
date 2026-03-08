@@ -41,6 +41,10 @@ export async function createPromoCodeAction(formData: FormData) {
     });
 
     revalidatePath("/codes");
+    revalidatePath("/apps");
+    revalidatePath("/creators");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     redirect(
       buildCodesHref({
         codeId: result.id,
@@ -79,6 +83,10 @@ export async function updatePromoCodeAction(formData: FormData) {
     });
 
     revalidatePath("/codes");
+    revalidatePath("/apps");
+    revalidatePath("/creators");
+    revalidatePath("/setup");
+    revalidatePath("/dashboard");
     redirect(
       buildCodesHref({
         codeId: result.id,

@@ -113,6 +113,16 @@ function loadRootCertificates() {
   return configuredValues.map((value) => Buffer.from(value, "base64"));
 }
 
+export function getAppleVerificationConfigState() {
+  const rootCertificates = loadRootCertificates();
+
+  return {
+    hasRootCertificates: rootCertificates.length > 0,
+    rootCertificateCount: rootCertificates.length,
+    onlineChecksEnabled: process.env.APPLE_ENABLE_ONLINE_CHECKS === "true",
+  };
+}
+
 function environmentToApple(environment: AppleVerifierEnvironment) {
   return environment === "production" ? Environment.PRODUCTION : Environment.SANDBOX;
 }

@@ -6,9 +6,9 @@ Use this as the honest limitations list for launch and handoff.
 
 - Billing is not active in-product.
 - Tax forms, payout method collection, and remittance tooling are not implemented.
-- Invite send/accept flows remain out of scope even though invited membership rows may exist.
+- Invite delivery still depends on Supabase auth email configuration and real redirect URLs.
 - Organization switching is not implemented.
-- Password reset, signup, and deep account management are not implemented.
+- Password reset and deep account management are not implemented.
 - Apple cryptographic verification and historical reconciliation remain intentionally narrow.
 - Manual operations are still required for attribution review, commission approval, and payout preparation.
 - Finance exports are manual CSV downloads, not a full reporting or remittance system.
