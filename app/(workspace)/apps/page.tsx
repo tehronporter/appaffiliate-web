@@ -49,40 +49,45 @@ function AppFormFields() {
     <div className="grid gap-4">
       <label className="grid gap-2">
         <span className="text-sm font-medium text-ink">App name</span>
-        <input name="name" type="text" required className="aa-field" />
+        <input name="name" type="text" required placeholder="My App" className="aa-field" />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Bundle ID</span>
-          <input name="bundleId" type="text" className="aa-field" />
-        </label>
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">App Store ID</span>
-          <input name="appStoreId" type="text" className="aa-field" />
-        </label>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="create-bundleId">Bundle ID</label>
+          <input id="create-bundleId" name="bundleId" type="text" placeholder="com.company.appname" className="aa-field" />
+          <p className="text-xs text-ink-muted">Found in Xcode → Target → General, or App Store Connect → App Information.</p>
+        </div>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="create-appStoreId">App Store ID</label>
+          <input id="create-appStoreId" name="appStoreId" type="text" placeholder="1234567890" className="aa-field" />
+          <p className="text-xs text-ink-muted">The numeric ID at the end of your App Store URL: apps.apple.com/app/id<strong>1234567890</strong></p>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Apple team ID</span>
-          <input name="appleTeamId" type="text" className="aa-field" />
-        </label>
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Timezone</span>
-          <input name="timezone" type="text" defaultValue="UTC" className="aa-field" />
-        </label>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="create-appleTeamId">Apple Team ID</label>
+          <input id="create-appleTeamId" name="appleTeamId" type="text" placeholder="A1B2C3D4E5" className="aa-field" />
+          <p className="text-xs text-ink-muted">10-character ID. Find it at <strong>developer.apple.com</strong> → Account → Membership → Team ID.</p>
+        </div>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="create-timezone">Timezone</label>
+          <input id="create-timezone" name="timezone" type="text" defaultValue="UTC" className="aa-field" />
+          <p className="text-xs text-ink-muted">IANA timezone for event timestamps. Example: America/New_York</p>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Apple fee mode</span>
-          <select name="appleFeeMode" defaultValue="standard_30" className="aa-field">
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="create-appleFeeMode">Apple fee mode</label>
+          <select id="create-appleFeeMode" name="appleFeeMode" defaultValue="standard_30" className="aa-field">
             <option value="standard_30">Standard 30%</option>
-            <option value="small_business_15">Small business 15%</option>
+            <option value="small_business_15">Small Business 15%</option>
             <option value="custom">Custom</option>
           </select>
-        </label>
+          <p className="text-xs text-ink-muted">Used to calculate net revenue. Most apps use Standard 30%. Small Business Program members use 15%.</p>
+        </div>
         <label className="grid gap-2">
           <span className="text-sm font-medium text-ink">Status</span>
           <select name="status" defaultValue="active" className="aa-field">
@@ -96,7 +101,8 @@ function AppFormFields() {
 
       <label className="grid gap-2">
         <span className="text-sm font-medium text-ink">Custom fee bps</span>
-        <input name="appleFeeBps" type="number" min="0" max="10000" className="aa-field" />
+        <input name="appleFeeBps" type="number" min="0" max="10000" placeholder="e.g. 2000 for 20%" className="aa-field" />
+        <p className="text-xs text-ink-muted">Only required if Apple fee mode is set to Custom. Enter basis points (100 bps = 1%).</p>
       </label>
     </div>
   );

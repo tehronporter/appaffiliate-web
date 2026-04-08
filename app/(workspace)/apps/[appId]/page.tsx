@@ -56,36 +56,41 @@ function AppFormFields(props: {
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Bundle ID</span>
-          <input name="bundleId" type="text" defaultValue={props.bundleId ?? ""} className="aa-field" />
-        </label>
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">App Store ID</span>
-          <input name="appStoreId" type="text" defaultValue={props.appStoreId ?? ""} className="aa-field" />
-        </label>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="edit-bundleId">Bundle ID</label>
+          <input id="edit-bundleId" name="bundleId" type="text" defaultValue={props.bundleId ?? ""} placeholder="com.company.appname" className="aa-field" />
+          <p className="text-xs text-ink-muted">Found in Xcode → Target → General, or App Store Connect → App Information.</p>
+        </div>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="edit-appStoreId">App Store ID</label>
+          <input id="edit-appStoreId" name="appStoreId" type="text" defaultValue={props.appStoreId ?? ""} placeholder="1234567890" className="aa-field" />
+          <p className="text-xs text-ink-muted">The numeric ID at the end of your App Store URL: apps.apple.com/app/id<strong>1234567890</strong></p>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Apple team ID</span>
-          <input name="appleTeamId" type="text" defaultValue={props.appleTeamId ?? ""} className="aa-field" />
-        </label>
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Timezone</span>
-          <input name="timezone" type="text" defaultValue={props.timezone} className="aa-field" />
-        </label>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="edit-appleTeamId">Apple Team ID</label>
+          <input id="edit-appleTeamId" name="appleTeamId" type="text" defaultValue={props.appleTeamId ?? ""} placeholder="A1B2C3D4E5" className="aa-field" />
+          <p className="text-xs text-ink-muted">10-character ID. Find it at <strong>developer.apple.com</strong> → Account → Membership → Team ID.</p>
+        </div>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="edit-timezone">Timezone</label>
+          <input id="edit-timezone" name="timezone" type="text" defaultValue={props.timezone} className="aa-field" />
+          <p className="text-xs text-ink-muted">IANA timezone for event timestamps. Example: America/New_York</p>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Apple fee mode</span>
-          <select name="appleFeeMode" defaultValue={props.appleFeeMode} className="aa-field">
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink" htmlFor="edit-appleFeeMode">Apple fee mode</label>
+          <select id="edit-appleFeeMode" name="appleFeeMode" defaultValue={props.appleFeeMode} className="aa-field">
             <option value="standard_30">Standard 30%</option>
-            <option value="small_business_15">Small business 15%</option>
+            <option value="small_business_15">Small Business 15%</option>
             <option value="custom">Custom</option>
           </select>
-        </label>
+          <p className="text-xs text-ink-muted">Used to calculate net revenue. Most apps use Standard 30%. Small Business Program members use 15%.</p>
+        </div>
         <label className="grid gap-2">
           <span className="text-sm font-medium text-ink">Status</span>
           <select name="status" defaultValue={props.status} className="aa-field">
@@ -105,8 +110,10 @@ function AppFormFields(props: {
           min="0"
           max="10000"
           defaultValue={props.appleFeeBps ?? ""}
+          placeholder="e.g. 2000 for 20%"
           className="aa-field"
         />
+        <p className="text-xs text-ink-muted">Only required if Apple fee mode is set to Custom. Enter basis points (100 bps = 1%).</p>
       </label>
     </div>
   );
