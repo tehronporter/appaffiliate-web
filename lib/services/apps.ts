@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 
+import { createServiceSupabaseClient } from "@/lib/service-supabase";
 import { createServiceContext } from "@/lib/services/context";
 import { ServiceError } from "@/lib/services/errors";
 import {
@@ -448,7 +449,10 @@ export async function deleteApp(appId: string) {
     .eq("id", appId)
     .single<{ name: string }>();
 
-  const { error } = await context.supabase
+  // Use service role client — no DELETE RLS policy exists on apps.
+  // Authorization is already enforced above via requireWorkspaceRole.
+  const serviceClient = createServiceSupabaseClient();
+  const { error } = await serviceClient
     .from("apps")
     .delete()
     .eq("organization_id", context.workspace.organization.id)
