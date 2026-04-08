@@ -204,6 +204,44 @@ export default async function AppDetailPage({
   const endpointDetail =
     readiness.webhookSetup.endpointPath ?? "Webhook endpoint appears after App URL and ingest key are configured.";
 
+  const setupSteps = [
+    {
+      id: "app-details",
+      label: "Complete app details",
+      detail: "Fill in your Bundle ID, App Store ID, and Apple Team ID so AppAffiliate can verify receipts for the right app.",
+      done: Boolean(resolvedApp.bundleId && resolvedApp.appStoreId && resolvedApp.appleTeamId),
+      action: { label: "Edit app", href: `?drawer=edit` },
+    },
+    {
+      id: "apple-certs",
+      label: "Add Apple root certificate",
+      detail: "In your Vercel project, add the environment variable APPLE_ROOT_CA_BASE64. Download Apple's G3 root certificate from developer.apple.com → Certificates → Root Certificates, base64-encode it, and paste it as the value. Set APPLE_ENABLE_ONLINE_CHECKS to false.",
+      done: readiness.webhookSetup.hasVerificationConfig,
+      action: { label: "Open Apple health", href: `/apps/${resolvedApp.slug}/apple-health` },
+    },
+    {
+      id: "server-notifications",
+      label: "Point Apple Server Notifications to your webhook",
+      detail: readiness.webhookSetup.endpointUrl
+        ? `In App Store Connect → your app → App Information → App Store Server Notifications, paste this URL for both Production and Sandbox:`
+        : "Your webhook URL will appear here once the app URL is configured. Check NEXT_PUBLIC_APP_URL in your Vercel environment variables.",
+      webhookUrl: readiness.webhookSetup.endpointUrl ?? null,
+      done: Boolean(readiness.latestReceiptAt),
+      action: { label: "Open Apple health", href: `/apps/${resolvedApp.slug}/apple-health` },
+    },
+    {
+      id: "creator-code",
+      label: "Add a creator and assign a promo code",
+      detail: "Create a creator record, then create a promo code that matches your Apple Offer Code identifier and link it to the creator. This is what attribution uses to identify who drove each purchase.",
+      done: linkedCreators.length > 0 && appCodes.length > 0,
+      action: { label: "Add creator", href: `/creators` },
+      secondaryAction: { label: "Create code", href: `/codes?drawer=create` },
+    },
+  ];
+
+  const currentStepIndex = setupSteps.findIndex((s) => !s.done);
+  const allSetupDone = currentStepIndex === -1;
+
   return (
     <PageContainer>
       <PageHeader
@@ -231,6 +269,105 @@ export default async function AppDetailPage({
       </PageHeader>
 
       {banner ? <NoticeBanner title={banner.title} detail={banner.detail} tone={banner.tone} /> : null}
+
+      {!allSetupDone && (
+        <section className="rounded-xl border border-primary/20 bg-[linear-gradient(160deg,rgba(238,243,255,0.7)_0%,rgba(255,255,255,0.95)_100%)] p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                Get connected
+              </p>
+              <p className="mt-1 text-sm text-ink-muted">
+                {currentStepIndex + 1} of {setupSteps.length} steps complete — follow these in order to start receiving live attribution data.
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              Step {currentStepIndex + 1} of {setupSteps.length}
+            </span>
+          </div>
+
+          <ol className="mt-5 space-y-2">
+            {setupSteps.map((step, index) => {
+              const isActive = index === currentStepIndex;
+              const isPast = index < currentStepIndex;
+
+              return (
+                <li
+                  key={step.id}
+                  className={[
+                    "rounded-lg border px-4 py-3 transition-all",
+                    isActive
+                      ? "border-primary/30 bg-white shadow-[0_2px_12px_rgba(46,83,255,0.08)]"
+                      : isPast
+                        ? "border-transparent bg-transparent opacity-60"
+                        : "border-transparent bg-transparent opacity-40",
+                  ].join(" ")}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={[
+                        "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
+                        isPast
+                          ? "bg-green-100 text-green-700"
+                          : isActive
+                            ? "bg-primary text-white"
+                            : "bg-border text-ink-subtle",
+                      ].join(" ")}
+                    >
+                      {isPast ? "✓" : index + 1}
+                    </span>
+
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={[
+                          "text-sm font-semibold",
+                          isPast ? "text-ink-muted line-through" : "text-ink",
+                        ].join(" ")}
+                      >
+                        {step.label}
+                      </p>
+
+                      {isActive && (
+                        <>
+                          <p className="mt-1 text-sm leading-5 text-ink-muted">{step.detail}</p>
+
+                          {"webhookUrl" in step && step.webhookUrl && (
+                            <div className="mt-3 rounded-md border border-primary/20 bg-[rgba(46,83,255,0.04)] px-3 py-2">
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                                Webhook URL — copy and paste into App Store Connect
+                              </p>
+                              <p className="mt-1 break-all font-mono text-xs text-ink">
+                                {step.webhookUrl}
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Link
+                              href={step.action.href}
+                              className="aa-button aa-button-primary text-xs"
+                            >
+                              {step.action.label}
+                            </Link>
+                            {"secondaryAction" in step && step.secondaryAction && (
+                              <Link
+                                href={step.secondaryAction.href}
+                                className="aa-button aa-button-secondary text-xs"
+                              >
+                                {step.secondaryAction.label}
+                              </Link>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      )}
 
       <SummaryBar
         items={[
