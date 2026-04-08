@@ -1,0 +1,157 @@
+import Link from "next/link";
+import { ChevronDown } from "lucide-react";
+
+function joinClasses(...classes: Array<string | undefined | false>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+type SupportCardProps = {
+  title: string;
+  description: string;
+  href?: string;
+  label?: string;
+  className?: string;
+};
+
+export function SupportCard({
+  title,
+  description,
+  href,
+  label = "Open",
+  className,
+}: SupportCardProps) {
+  const content = (
+    <>
+      <h3 className="text-xl font-semibold tracking-[-0.03em] text-ink">{title}</h3>
+      <p className="mt-3 text-sm leading-7 text-ink-muted">{description}</p>
+      {href ? (
+        <span className="mt-5 inline-flex text-sm font-semibold text-primary">
+          {label}
+        </span>
+      ) : null}
+    </>
+  );
+
+  const classes = joinClasses(
+    "block rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] transition-colors sm:p-6",
+    href &&
+      "hover:border-[color:color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] focus-visible:border-[color:color-mix(in_srgb,var(--color-primary)_18%,white)]",
+    className,
+  );
+
+  return href ? (
+    <Link href={href} className={classes}>
+      {content}
+    </Link>
+  ) : (
+    <div className={classes}>{content}</div>
+  );
+}
+
+type FaqItem = {
+  question: string;
+  answer: string;
+};
+
+type FaqGroupProps = {
+  eyebrow?: string;
+  title: string;
+  description: string;
+  items: FaqItem[];
+  className?: string;
+};
+
+export function FaqGroup({
+  eyebrow,
+  title,
+  description,
+  items,
+  className,
+}: FaqGroupProps) {
+  return (
+    <div
+      className={joinClasses(
+        "rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-white p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] sm:p-6",
+        className,
+      )}
+    >
+      {eyebrow ? (
+        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+          {eyebrow}
+        </p>
+      ) : null}
+      <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink">
+        {title}
+      </h3>
+      <p className="mt-3 text-sm leading-7 text-ink-muted">{description}</p>
+
+      <div className="mt-6 space-y-3">
+        {items.map((item) => (
+          <details
+            key={item.question}
+            className="group rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[#fbfcfe] px-4 py-4"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left">
+              <span className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                {item.question}
+              </span>
+              <ChevronDown
+                size={18}
+                className="shrink-0 text-ink-subtle transition-transform group-open:rotate-180"
+              />
+            </summary>
+            <p className="mt-3 text-sm leading-7 text-ink-muted">{item.answer}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type SupportChecklistProps = {
+  title: string;
+  description: string;
+  items: Array<{
+    label: string;
+    detail: string;
+  }>;
+  className?: string;
+};
+
+export function SupportChecklist({
+  title,
+  description,
+  items,
+  className,
+}: SupportChecklistProps) {
+  return (
+    <div
+      className={joinClasses(
+        "rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-white p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] sm:p-6",
+        className,
+      )}
+    >
+      <h3 className="text-2xl font-semibold tracking-[-0.04em] text-ink">{title}</h3>
+      <p className="mt-3 text-sm leading-7 text-ink-muted">{description}</p>
+
+      <div className="mt-6 space-y-3">
+        {items.map((item, index) => (
+          <div
+            key={item.label}
+            className="flex flex-col gap-3 rounded-[var(--radius-panel)] border border-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] bg-[#fbfcfe] px-4 py-4 sm:flex-row sm:gap-4"
+          >
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#EBF0FF] text-sm font-semibold text-primary">
+              {index + 1}
+            </span>
+            <div>
+              <p className="text-sm font-semibold tracking-[-0.01em] text-ink">
+                {item.label}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-ink-muted">{item.detail}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

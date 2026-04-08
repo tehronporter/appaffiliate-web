@@ -1,0 +1,269 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Menu, X } from "lucide-react";
+
+import { BrandLogoLink } from "@/components/brand-logo";
+import { SiteHeaderFrame, SiteHeaderRow } from "@/components/site-header";
+
+type MarketingLink = {
+  href: string;
+  label: string;
+};
+
+type MarketingAction = {
+  href: string;
+  label: string;
+  variant?: "primary" | "secondary";
+};
+
+type MarketingShellProps = {
+  children: ReactNode;
+  navLinks: MarketingLink[];
+  footerLinks: MarketingLink[];
+  primaryAction: MarketingAction;
+  secondaryAction: MarketingAction;
+  currentPath?: string;
+};
+
+function joinClasses(...classes: Array<string | undefined | false>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function ActionButton({
+  href,
+  label,
+  variant = "secondary",
+  className,
+  onClick,
+}: MarketingAction & { className?: string; onClick?: () => void }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={joinClasses(
+        "aa-button",
+        variant === "primary" ? "aa-button-primary" : "aa-button-secondary",
+        "w-full sm:w-auto",
+        className,
+      )}
+    >
+      {label}
+    </Link>
+  );
+}
+
+export function MarketingShell({
+  children,
+  navLinks,
+  footerLinks,
+  primaryAction,
+  secondaryAction,
+  currentPath,
+}: MarketingShellProps) {
+  const pathname = usePathname();
+  const activePath = currentPath ?? pathname;
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawerOpen]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape" && drawerOpen) setDrawerOpen(false);
+    },
+    [drawerOpen],
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(46,83,255,0.12)_0%,transparent_28%),linear-gradient(180deg,#fcfdff_0%,#f4f8fd_44%,#ffffff_100%)] text-ink">
+      <SiteHeaderFrame scrolled={scrolled}>
+        <SiteHeaderRow>
+          <div className="min-w-0 flex-1">
+            <BrandLogoLink size="marketing-header" priority />
+          </div>
+
+          <nav className="hidden items-center gap-1 lg:flex lg:mr-3">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={activePath === link.href ? "page" : undefined}
+                className={joinClasses(
+                  "group relative whitespace-nowrap rounded-full px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-white/86",
+                  activePath === link.href
+                    ? "bg-white text-ink shadow-[0_4px_14px_rgba(17,24,39,0.06)]"
+                    : "text-ink-muted hover:text-ink",
+                )}
+              >
+                <span>{link.label}</span>
+                <span
+                  aria-hidden="true"
+                  className={joinClasses(
+                    "absolute inset-x-3 bottom-1 h-0.5 rounded-full bg-primary transition-opacity duration-200",
+                    activePath === link.href ? "opacity-100" : "opacity-0 group-hover:opacity-60",
+                  )}
+                />
+              </Link>
+            ))}
+          </nav>
+
+          <div className="hidden items-center gap-2.5 lg:flex">
+            <ActionButton {...secondaryAction} />
+            <ActionButton {...primaryAction} />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open navigation menu"
+            aria-expanded={drawerOpen}
+            aria-controls="marketing-mobile-drawer"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink-muted transition hover:bg-white/80 hover:text-ink lg:hidden"
+          >
+            <Menu size={22} strokeWidth={1.5} />
+          </button>
+        </SiteHeaderRow>
+      </SiteHeaderFrame>
+
+      {/* ── Mobile Drawer Overlay ── */}
+      {drawerOpen ? (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setDrawerOpen(false)}
+          />
+          {/* Drawer */}
+          <nav
+            id="marketing-mobile-drawer"
+            className="absolute right-0 top-0 flex h-full w-[min(22rem,calc(100vw-1rem))] max-w-full flex-col border-l border-border bg-white shadow-[0_24px_48px_rgba(17,24,39,0.16)] sm:w-[20rem]"
+          >
+            <div className="flex min-h-16 items-center justify-between border-b border-border px-4 sm:px-5">
+              <span className="text-sm font-semibold text-ink">Menu</span>
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(false)}
+                aria-label="Close navigation menu"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink-muted transition hover:bg-surface hover:text-ink"
+              >
+                <X size={24} strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-4">
+              <div className="space-y-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setDrawerOpen(false)}
+                    aria-current={activePath === link.href ? "page" : undefined}
+                    className={joinClasses(
+                      "flex min-h-[48px] items-center rounded-[var(--radius-card)] border px-4 text-sm font-medium transition-colors",
+                      activePath === link.href
+                        ? "border-[color:color-mix(in_srgb,var(--color-primary)_16%,var(--color-border))] bg-primary-soft text-primary"
+                        : "border-transparent text-ink-muted hover:bg-surface hover:text-ink",
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-3 border-t border-border px-3 py-4 sm:px-4">
+              <ActionButton
+                {...secondaryAction}
+                className="w-full"
+                onClick={() => setDrawerOpen(false)}
+              />
+              <ActionButton
+                {...primaryAction}
+                className="w-full"
+                onClick={() => setDrawerOpen(false)}
+              />
+            </div>
+          </nav>
+        </div>
+      ) : null}
+
+      {children}
+
+      {/* ── Footer ── */}
+      <footer className="border-t border-border bg-[linear-gradient(180deg,#ffffff_0%,#f5f5f5_100%)]">
+        <div className="aa-marketing-width grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="max-w-md sm:col-span-2 lg:col-span-1">
+            <BrandLogoLink size="marketing-footer" />
+            <p className="mt-3 text-lg font-semibold tracking-[-0.03em] text-ink">
+              Pay creators for results, not hype.
+            </p>
+            <p className="mt-3 text-sm leading-7 text-ink-muted">
+              Trackable creator growth for iOS app teams. No upfront fees, no spreadsheets, no
+              guesswork.
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-ink">Explore</p>
+            <div className="mt-4 space-y-3">
+              {footerLinks.map((link) => (
+                <div key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-ink-muted transition hover:text-ink"
+                  >
+                    {link.label}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-ink">Get started</p>
+            <div className="mt-4 flex flex-col gap-3">
+              <ActionButton href="/signup" label="Start free trial" variant="primary" />
+              <ActionButton href="/login" label="Sign in" variant="secondary" />
+            </div>
+            <p className="mt-4 text-sm leading-6 text-ink-subtle">
+              New workspaces open directly into activation.
+            </p>
+          </div>
+        </div>
+
+        {/* Legal */}
+        <div className="border-t border-border">
+          <div className="aa-marketing-width flex flex-col items-start justify-between gap-3 py-5 text-xs text-ink-subtle sm:flex-row sm:items-center">
+            <p>&copy; 2026 AppAffiliate. All rights reserved.</p>
+            <div className="flex flex-wrap gap-4">
+              <Link href="/privacy" className="transition hover:text-ink">Privacy Policy</Link>
+              <Link href="/terms" className="transition hover:text-ink">Terms of Service</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

@@ -1,0 +1,295 @@
+AppAffiliate Header and Sign-In Polish Brief
+
+Purpose
+
+Bring the public header and sign-in page up to the same level of polish as the refreshed marketing pages. The homepage and core marketing sections are moving toward a cleaner, more premium direction. The header and sign-in page still feel slightly behind that standard. This brief defines the next quality pass.
+
+Core intent
+
+The goal is not to add more UI. The goal is to reduce visual noise, improve proportional confidence, and make both surfaces feel more deliberate, modern, and brand-aligned.
+
+The desired tone is:
+
+clear
+premium
+calm
+operationally sharp
+not over-explained
+
+
+Section A: Header Improvements
+
+Current issues
+
+1. The logo lockup feels too small.
+The symbol and wordmark are currently underpowered relative to the nav and CTA buttons. The brand should anchor the header, not get visually outranked by the right-side actions.
+
+2. The header sits too tight to the top edge.
+The header feels pressed against browser chrome instead of living inside a deliberate page frame. The rest of the marketing site has more air than the header does.
+
+3. The vertical alignment is acceptable but not premium.
+The current bar reads functional, but it does not yet feel luxurious or high-confidence. The proportions need more breathing room.
+
+4. The CTA region currently pulls too much weight.
+Because the left brand block is small, the overall visual balance leans right.
+
+5. The header frame could feel more intentional.
+It is clean, but it does not yet feel strongly designed as a composed site element.
+
+
+Header design direction
+
+The header should feel like a refined product brand header, not a generic startup nav. It should be slightly taller, calmer, more balanced, and clearly aligned to the same layout rhythm as the hero below.
+
+
+Recommended header changes
+
+1. Increase overall header height.
+Target a desktop header that feels closer to 80px to 92px instead of a tighter utility bar.
+
+2. Add more vertical breathing room.
+Aim for roughly 20px to 24px of inner vertical padding so the header feels placed rather than pinned.
+
+3. Increase logo lockup scale.
+Increase the logo symbol by roughly 20% to 35%.
+Increase the wordmark size slightly.
+Keep the symbol and wordmark closer together so they read as one unit.
+
+4. Give the left brand block more presence.
+Slightly widen the visual footprint of the logo area.
+Ensure the lockup aligns cleanly with the hero content grid below.
+
+5. Rebalance the spacing between brand, nav, and CTAs.
+Increase the space between the logo block and the nav cluster.
+Tighten link-to-link spacing only if needed.
+The reading order should feel like:
+brand first
+navigation second
+CTA third
+
+6. Keep CTA hierarchy, but rebalance the visual system around it.
+The primary CTA should remain Request access.
+Sign in should remain secondary.
+The secondary button should feel polished without competing with the primary.
+
+7. Add a more intentional header frame.
+Use one of the following:
+a faint bottom border
+a soft translucent panel treatment
+a subtle tonal distinction from the page body
+
+The result should still feel light, not heavy.
+
+8. Match the header container to the hero grid exactly.
+Use the same max-width and gutter logic as the hero.
+The header should feel integrated with the page system, not floating above it.
+
+
+Highest-priority header moves
+
+If only three changes happen in the next pass, they should be:
+
+1. Make the header taller.
+2. Make the logo lockup larger.
+3. Align header spacing more closely to the premium hero rhythm.
+
+
+Section B: Sign-In Page Improvements
+
+Current issues
+
+1. The page still feels like an older product utility page.
+It is clear and usable, but it reads more like an internal tool surface than a polished premium SaaS entry point.
+
+2. There are too many bordered boxes.
+The current experience depends on several outlined cards stacked together. That creates visual repetition and makes the page feel boxy and dated.
+
+3. The hierarchy is too flat.
+There are too many blocks competing at once:
+intro
+workspace explanation
+creator portal explanation
+expectation panel
+access note
+need access note
+form card
+
+4. The form styling is competent but not elevated.
+The form works, but it lacks the refinement and compositional confidence of the updated homepage.
+
+5. The page over-explains.
+The current copy is clear, but it repeats concepts that could be compressed into sharper language.
+
+6. The page lacks a visual brand moment.
+The homepage has a stronger visual identity. The sign-in page still feels mostly informational.
+
+
+Sign-in page design direction
+
+The sign-in page should feel like the front door to a finance-grade platform.
+
+It should feel:
+lighter
+cleaner
+more premium
+more focused
+
+It should not feel like:
+an auth utility page
+documentation
+an older internal product surface
+
+
+Recommended sign-in changes
+
+1. Simplify the overall composition.
+Move to a cleaner two-column layout:
+left side for concise routing/context
+right side for the sign-in form
+
+2. Replace the current top explanation box with a lighter hero-style intro.
+Use:
+a smaller eyebrow
+a stronger headline
+a shorter supporting paragraph
+less emphasis on card framing
+
+3. Reduce the number of bordered containers.
+Do not solve every communication need with another card.
+Combine related content into fewer, better-composed sections.
+
+4. Rework the left column into a cleaner entry guide.
+Preferred content:
+one slim explanation of internal workspace vs creator portal
+one compact “what happens after login” note
+one lightweight request-access helper link
+
+Avoid repeating the same routing explanation three different ways.
+
+5. Upgrade the form card.
+It should feel like a polished product surface, not a default auth box.
+Use:
+more generous padding
+softer border treatment
+better visual rhythm between labels, fields, and support text
+slightly stronger elevation only if it fits the public design system
+
+6. Improve input styling.
+Inputs should feel softer and more premium.
+Reduce the heavy gray-block feeling.
+Use cleaner focus states and more refined contrast.
+
+7. Reduce copy volume.
+Keep only the necessary explanation.
+Remove repeated references to invite flow, routing, and access logic when the same idea is already established once.
+
+8. Make the workspace vs creator distinction slimmer.
+Keep the distinction, but avoid two large equal-weight boxes if possible.
+Preferred alternatives:
+two compact rows
+two slimmer callouts
+one comparison surface with two concise entries
+
+9. Add a subtle visual brand element.
+The page needs a visual anchor so it belongs to the same family as the homepage.
+Options:
+a smaller, subtler version of the 3D AppAffiliate visual
+an abstract product-shape graphic
+a soft brand-toned illustration panel
+
+This should support the page, not dominate it.
+
+10. Improve the CTA/support area under the form.
+The sign-in button is fine, but the support region below it feels abrupt.
+Use a more intentional secondary support row for:
+access note
+back to site
+request access helper
+
+11. Increase whitespace across the page.
+The most important visual upgrade is likely fewer boxes and more breathing room.
+
+12. Improve medium and mobile behavior.
+On smaller screens:
+keep the form high in the viewport
+collapse support information into fewer surfaces
+make the primary task obvious immediately
+
+
+Recommended sign-in structure
+
+Top
+
+light intro band or hero-style header
+eyebrow: Sign in
+headline
+1 to 2 sentence explanation
+
+Main section
+
+Left column
+short explanation of workspace vs creator portal
+one compact “what to expect” note
+one subtle request-access helper
+
+Right column
+refined sign-in card
+email field
+password field
+primary sign-in button
+compact helper note
+back-to-site link
+
+Optional
+
+one subtle brand visual element integrated into the left side or top-right area
+
+
+Content strategy notes
+
+The sign-in page should stay product-confident.
+
+Do not:
+sound apologetic
+turn the page into documentation
+over-explain rollout mechanics
+stack repeated explanatory blocks
+
+The correct voice is:
+clear
+controlled
+premium
+invite-aware
+direct
+
+
+Priority ranking
+
+Highest priority
+
+1. Increase header height and logo scale.
+2. Redesign the sign-in page to reduce box clutter.
+3. Upgrade sign-in form styling so it matches homepage polish.
+4. Simplify sign-in page copy and content hierarchy.
+
+Medium priority
+
+5. Add a subtle brand visual to the sign-in page.
+6. Improve CTA grouping and support note treatment.
+7. Tighten nav spacing and strengthen brand anchoring in the header.
+
+Lower priority
+
+8. Add a more nuanced header background/frame treatment.
+9. Refine the workspace-vs-portal explanation into a slimmer, more elegant component.
+
+
+Final design intent
+
+The refreshed homepage is starting to feel like a serious premium SaaS brand. The public header and sign-in page now need to match that level of quality.
+
+The next pass should focus on:
+reducing visual noise
+increasing spacing confidence
+improving brand weight
+making sign-in feel like a designed front door rather than a leftover legacy surface
