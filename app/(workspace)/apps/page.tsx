@@ -33,6 +33,14 @@ function noticeCopy(notice: string | undefined) {
     };
   }
 
+  if (notice === "app-deleted") {
+    return {
+      tone: "green" as const,
+      title: "App deleted",
+      detail: "The app and all its associated data have been permanently removed.",
+    };
+  }
+
   return null;
 }
 

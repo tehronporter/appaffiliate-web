@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { updateWorkspaceAppAction } from "@/app/(workspace)/apps/actions";
+import { updateWorkspaceAppAction, deleteWorkspaceAppAction } from "@/app/(workspace)/apps/actions";
 import { ActionLink, PageContainer } from "@/components/app-shell";
 import {
   DetailList,
@@ -137,6 +137,14 @@ function noticeCopy(notice: string | undefined) {
     };
   }
 
+  if (notice === "delete-error") {
+    return {
+      tone: "red" as const,
+      title: "Delete failed",
+      detail: "Unable to delete the app. Please try again.",
+    };
+  }
+
   return null;
 }
 
@@ -198,6 +206,9 @@ export default async function AppDetailPage({
         actions={
           <>
             <ActionLink href={`/apps/${resolvedApp.slug}/apple-health`}>Open health</ActionLink>
+            <ActionLink href={`/apps/${resolvedApp.slug}?drawer=delete`} variant="secondary">
+              Delete app
+            </ActionLink>
             <ActionLink href={`/apps/${resolvedApp.slug}?drawer=edit`} variant="primary">
               Edit app
             </ActionLink>
@@ -434,6 +445,35 @@ export default async function AppDetailPage({
               </Link>
             </div>
           </form>
+        </WorkspaceDrawer>
+      ) : null}
+
+      {drawer === "delete" ? (
+        <WorkspaceDrawer
+          closeHref={`/apps/${resolvedApp.slug}`}
+          eyebrow="Delete app"
+          title={resolvedApp.name}
+          description="This action cannot be undone. All associated data will be permanently deleted."
+        >
+          <div className="space-y-4">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <p className="text-sm text-red-900">
+                Are you sure you want to delete <strong>{resolvedApp.name}</strong>? This will permanently remove the app and all its associated data, including codes, creators, and earnings data.
+              </p>
+            </div>
+            <form action={deleteWorkspaceAppAction} className="space-y-4">
+              <input type="hidden" name="appId" value={resolvedApp.id} />
+              <input type="hidden" name="appSlug" value={resolvedApp.slug} />
+              <div className="flex flex-wrap gap-3">
+                <button type="submit" className="aa-button aa-button-danger">
+                  Delete app
+                </button>
+                <Link href={`/apps/${resolvedApp.slug}`} className="aa-button aa-button-secondary">
+                  Cancel
+                </Link>
+              </div>
+            </form>
+          </div>
         </WorkspaceDrawer>
       ) : null}
     </PageContainer>

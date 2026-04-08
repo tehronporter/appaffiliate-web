@@ -422,3 +422,53 @@ export async function updateApp(appId: string, input: SaveAppInput) {
 
   return toWorkspaceAppView(data);
 }
+
+export async function deleteApp(appId: string) {
+  const context = await createServiceContext({
+    requireAuth: true,
+    requireOrganization: true,
+  });
+
+  if (!context.supabase || !context.workspace.organization) {
+    throw new ServiceError("forbidden", "No active workspace was found.", {
+      status: 403,
+    });
+  }
+
+  requireWorkspaceRole(
+    context,
+    INTERNAL_WORKSPACE_ROLE_KEYS,
+    "Only internal workspace members can delete apps.",
+  );
+
+  const { data: appData } = await context.supabase
+    .from("apps")
+    .select("name")
+    .eq("organization_id", context.workspace.organization.id)
+    .eq("id", appId)
+    .single<{ name: string }>();
+
+  const { error } = await context.supabase
+    .from("apps")
+    .delete()
+    .eq("organization_id", context.workspace.organization.id)
+    .eq("id", appId);
+
+  if (error) {
+    throw new ServiceError("internal_error", "Failed to delete the app.", {
+      status: 500,
+      details: { message: error.message, requestId: context.requestId },
+    });
+  }
+
+  await writeAuditLog(context, {
+    organizationId: context.workspace.organization.id,
+    entityType: "app",
+    entityId: appId,
+    action: "app.deleted",
+    summary: `Deleted app ${appData?.name ?? "unknown"}.`,
+    metadata: {
+      appId,
+    },
+  });
+}

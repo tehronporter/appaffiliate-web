@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { createApp, updateApp } from "@/lib/services/apps";
+import { createApp, updateApp, deleteApp } from "@/lib/services/apps";
 
 function buildAppsHref(params: {
   app?: string;
@@ -119,4 +119,27 @@ export async function updateWorkspaceAppAction(formData: FormData) {
   }
 
   redirect(redirectTarget!);
+}
+
+export async function deleteWorkspaceAppAction(formData: FormData) {
+  const appId = String(formData.get("appId") ?? "");
+  const appSlug = String(formData.get("appSlug") ?? "");
+
+  try {
+    await deleteApp(appId);
+
+    revalidateAppSurfaces(appSlug || null);
+    redirect(`/apps?notice=app-deleted`);
+  } catch {
+    revalidateAppSurfaces(appSlug || null);
+    if (appSlug) {
+      redirect(`/apps/${appSlug}?notice=delete-error`);
+    }
+
+    redirect(
+      buildAppsHref({
+        notice: "delete-error",
+      }),
+    );
+  }
 }

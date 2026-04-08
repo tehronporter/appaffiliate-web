@@ -102,11 +102,7 @@ export function WorkspaceSidebar({
                   .filter((item) => group.hrefs.some((href) => href === item.href))
                   .map((item) => {
                     const active = isNavItemActive(pathname, item);
-                    const href =
-                      item.activePrefixes?.some((prefix) => pathname.startsWith(prefix)) &&
-                      active
-                        ? pathname
-                        : item.href;
+                    const href = item.href;
                     const Icon = iconMap[item.icon];
 
                     return (

@@ -151,6 +151,30 @@ export default async function CreatorDetailPage({
   const banner = noticeCopy(notice);
   const creatorCodes = codesData.codes.filter((code) => code.partnerId === creator.id);
   const creatorCommissions = commissions.items.filter((item) => item.partnerId === creator.id);
+  const currency = creatorCommissions[0]?.currency ?? "USD";
+  const totalRevenueDriven = creatorCommissions.reduce(
+    (sum, item) => sum + (item.basisAmount ?? 0),
+    0,
+  );
+  const approvedCommission = creatorCommissions
+    .filter(
+      (item) =>
+        item.reviewState === "approved" ||
+        item.reviewState === "payout_ready" ||
+        item.reviewState === "paid",
+    )
+    .reduce((sum, item) => sum + (item.commissionAmount ?? 0), 0);
+  const pendingReviewCount = creatorCommissions.filter(
+    (item) => item.reviewState === "pending_review",
+  ).length;
+
+  function formatCurrency(amount: number) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+      minimumFractionDigits: 2,
+    }).format(amount);
+  }
   const invite =
     creator.contactEmail
       ? invitations.find(
@@ -254,29 +278,39 @@ export default async function CreatorDetailPage({
 
           <SectionCard
             title="Earnings summary"
-            description="Read-only earning posture for this creator."
+            description="Revenue driven and commission posture for this creator."
           >
             <DetailList
               columns={1}
               items={[
                 {
-                  label: "Tracked rows",
-                  value: String(creatorCommissions.length),
+                  label: "Attributed events",
+                  value: creatorCommissions.length > 0
+                    ? `${creatorCommissions.length} event${creatorCommissions.length === 1 ? "" : "s"}`
+                    : "None yet",
                 },
                 {
-                  label: "Approved or payout-ready",
-                  value: String(
-                    creatorCommissions.filter(
-                      (item) =>
-                        item.reviewState === "approved" ||
-                        item.reviewState === "payout_ready" ||
-                        item.reviewState === "paid",
-                    ).length,
-                  ),
+                  label: "Revenue driven",
+                  value: creatorCommissions.length > 0
+                    ? formatCurrency(totalRevenueDriven)
+                    : "No revenue yet",
                 },
                 {
-                  label: "Latest review",
-                  value: creatorCommissions[0]?.reviewStateLabel ?? "No earnings rows yet",
+                  label: "Commission earned",
+                  value: approvedCommission > 0
+                    ? formatCurrency(approvedCommission)
+                    : pendingReviewCount > 0
+                      ? `${pendingReviewCount} pending review`
+                      : "No earnings yet",
+                },
+                {
+                  label: "Latest event",
+                  value: creatorCommissions[0]?.occurredAt
+                    ? new Intl.DateTimeFormat("en-US", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(creatorCommissions[0].occurredAt))
+                    : "No events yet",
                 },
               ]}
             />

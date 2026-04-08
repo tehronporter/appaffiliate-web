@@ -532,6 +532,62 @@ async function updateReceiptProcessingState(params: {
   return data;
 }
 
+async function tryAutoAttributeByOfferCode(params: {
+  app: AppleIngestApp;
+  normalizedEventId: string;
+  offerIdentifier: string;
+}) {
+  const supabase = createServiceSupabaseClient();
+
+  const { data: appCodes } = await supabase
+    .from("promo_codes")
+    .select("id, partner_id, code")
+    .eq("organization_id", params.app.organization_id)
+    .eq("app_id", params.app.id)
+    .eq("status", "active");
+
+  const upperOffer = params.offerIdentifier.trim().toUpperCase();
+  const matchingCodes = (appCodes ?? []).filter(
+    (code) => code.code.trim().toUpperCase() === upperOffer,
+  );
+
+  if (matchingCodes.length !== 1) {
+    return; // No match or ambiguous — leave for operator review
+  }
+
+  const code = matchingCodes[0];
+
+  if (!code.partner_id) {
+    return; // Code not linked to a partner — cannot auto-attribute
+  }
+
+  const { error: updateError } = await supabase
+    .from("normalized_events")
+    .update({
+      partner_id: code.partner_id,
+      promo_code_id: code.id,
+      attribution_status: "attributed",
+    })
+    .eq("organization_id", params.app.organization_id)
+    .eq("id", params.normalizedEventId)
+    .eq("attribution_status", "unattributed");
+
+  if (updateError) {
+    return; // Silently skip — event will surface in the manual review queue
+  }
+
+  await supabase.from("attribution_decisions").insert({
+    organization_id: params.app.organization_id,
+    normalized_event_id: params.normalizedEventId,
+    partner_id: code.partner_id,
+    promo_code_id: code.id,
+    decision_type: "rule_match",
+    confidence: 95,
+    reason: `Auto-attributed via Apple offer_identifier: ${params.offerIdentifier}`,
+    decided_by_membership_id: null,
+  });
+}
+
 async function autoReverseRefundEvent(params: {
   app: AppleIngestApp;
   receipt: AppleReceiptRecord;
@@ -882,6 +938,17 @@ export async function processAppleNotificationReceipt(
         normalizedEvent: normalization.normalizedEvent,
         decoded: stored.decoded,
       });
+
+      if (
+        stored.decoded.offerIdentifier &&
+        normalization.normalizedEvent.attribution_status === "unattributed"
+      ) {
+        await tryAutoAttributeByOfferCode({
+          app,
+          normalizedEventId: normalization.normalizedEvent.id,
+          offerIdentifier: stored.decoded.offerIdentifier,
+        });
+      }
     }
 
     if (
